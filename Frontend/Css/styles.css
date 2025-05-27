@@ -1,0 +1,114 @@
+body {
+  font-family: 'Poppins', Arial, sans-serif;
+  margin: 0;
+  background: #fafbfc;
+}
+
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 230px;
+  background: #fafbfc;
+  border-right: 2px solid #f1f1f1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0;
+  position: relative;
+}
+
+
+/* Logo */
+
+.logo-container {
+  display: flex;
+  flex-direction: left;
+  align-items: center;
+  padding: 0px 20px;
+  margin-bottom: 50px;
+  margin-top: 30px;
+  text-align: center;
+}
+
+.logo {
+  width: 60%;
+  height: auto;
+  max-width: 200px;
+}
+
+
+/* Sidebar Menu */
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+
+.menu-item {
+  all: unset; /* elimina estilos nativos del button */
+  cursor: pointer;
+  text-decoration: none;
+  color: black;
+  font-size: 0.8rem;
+  background: #F5F5F5;
+  border-radius: 10px;
+  padding: 10px 10px;
+  display: flex;
+  align-items: center;
+  transition: background 0.2s, color 0.2s;
+  font-weight: 600;
+}
+
+.menu-item.active {
+  background: #f2edfe;
+  color: #a259fa;
+}
+
+.menu-item:hover:not(.active) {
+  background: #ededed;
+}
+
+
+/* Sidebar Iconos */
+
+.sidebar-ico svg {
+  display: flex;
+  align-items: center;
+  width: 20px;
+  height: 20px;
+}
+
+
+.menu-item .sidebar-ico {
+  font-size: 1.25rem;
+  margin-right: 5px;
+}
+
+/*Sidebar Footer */
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-left: 20px;
+  padding-right: 20px;
+  margin-bottom: 30px;
+}
+
+
+.sidebar-footer .menu-item {
+  background: #f5f6f7;
+}
+
+
+
+/* Responsive */
+
