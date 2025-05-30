@@ -1,18 +1,21 @@
 body {
   font-family: 'Poppins', Arial, sans-serif;
   margin: 0;
-  background: #fafbfc;
+  background: white;
 }
 
 .container {
   display: flex;
-  min-height: 100vh;
+  flex-direction: row;
+  max-height: 100vh;
 }
 
 /* Sidebar */
 .sidebar {
-  width: 230px;
-  background: #fafbfc;
+  min-height: 100vh; /* altura mínima de la barra lateral */
+  width: 230px; /* ya lo tienes */
+  flex-shrink: 0; /* evita que se reduzca */
+  background: white;
   border-right: 2px solid #f1f1f1;
   display: flex;
   flex-direction: column;
@@ -109,6 +112,13 @@ body {
 }
 
 
+/*Main */
+
+main#contenido {
+  flex-grow: 1;
+  padding: 20px;
+  max-height: 100vh;
+}
 
 /* Responsive */
 
