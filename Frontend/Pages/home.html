@@ -1,0 +1,99 @@
+<div class="home-container">
+  <div class="container-header">
+    <div class="header-left">
+      <img src="/Frontend/Assets/Imagenes/Mascota2.png" alt="Mascota" width="120">
+    </div>
+    <div class="header-center">
+      <div class="upload-section">
+        <div class="upload-section-content">
+          <p><strong>¡Arrastra tus Apuntes Aquí!</strong></p>
+          <div class="upload-box">
+            <img src="/Frontend/Assets/Imagenes/file.png" alt="Documento">
+          </div>
+          <button class="upload-button">SUBIR</button>
+        </div>
+      </div>
+    </div>
+    <div class="header-right"></div>
+  </div>
+
+  <div class="carousel-wrapper">
+  <button class="carousel-button" onclick="moveCarousel(-1)">&#8592;</button>
+  <div class="carousel-container">
+    <div class="carousel" id="carousel">
+      <div class="card">
+        <div class="card-title">Verdadero o Falso</div>
+        <img src="/Frontend/Assets/Imagenes/VerdaderoFalso.png" alt="VF">
+      </div>
+      <div class="card">
+        <div class="card-title">Resumen</div>
+        <img src="/Frontend/Assets/Imagenes/Resumen.png" alt="Resumen">
+      </div>
+      <div class="card">
+        <div class="card-title">Multiple choice</div>
+        <img src="/Frontend/Assets/Imagenes/Multiplechoice.png" alt="Multiple choice">
+      </div>
+    </div>
+  </div>
+  <button class="carousel-button" onclick="moveCarousel(1)">&#8594;</button>
+</div>
+
+<script>
+  const carousel = document.getElementById('carousel');
+  let cards = Array.from(carousel.children);
+  let isAnimating = false;
+
+  function moveCarousel(direction) {
+  if (isAnimating) return;
+  isAnimating = true;
+
+  const cardWidth = cards[0].offsetWidth + 20;
+
+  if (direction === 1) {
+    const clone = cards[0].cloneNode(true);
+    clone.style.opacity = "0";
+    carousel.appendChild(clone);
+
+    // animar opacidad de entrada
+    requestAnimationFrame(() => {
+      clone.style.transition = "opacity 0.4s ease";
+      clone.style.opacity = "1";
+    });
+
+    carousel.style.transition = 'transform 0.5s ease-in-out';
+    carousel.style.transform = `translateX(-${cardWidth}px)`;
+
+    setTimeout(() => {
+      carousel.removeChild(cards[0]);
+      carousel.style.transition = 'none';
+      carousel.style.transform = 'translateX(0)';
+      cards = Array.from(carousel.children);
+      isAnimating = false;
+    }, 500);
+
+  } else {
+    const clone = cards[cards.length - 1].cloneNode(true);
+    clone.style.opacity = "0";
+    carousel.insertBefore(clone, cards[0]);
+    carousel.style.transition = 'none';
+    carousel.style.transform = `translateX(-${cardWidth}px)`;
+
+    requestAnimationFrame(() => {
+      clone.style.transition = "opacity 0.4s ease";
+      clone.style.opacity = "1";
+      carousel.style.transition = 'transform 0.5s ease-in-out';
+      carousel.style.transform = 'translateX(0)';
+    });
+
+    setTimeout(() => {
+      carousel.removeChild(cards[cards.length - 1]);
+      cards = Array.from(carousel.children);
+      isAnimating = false;
+    }, 500);
+  }
+}
+
+</script>
+
+  <link rel="stylesheet" href="/Frontend/Css/home.css">
+</div>
