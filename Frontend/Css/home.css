@@ -91,7 +91,17 @@
     transition: background-color 0.3s ease;
 }
 
+.upload-box.hover {
+  border-color: #FFBB5B;
+  background-color: #fff7ec;
+}
 
+.upload-text {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+}
 
 /*Cards Section*/
 
