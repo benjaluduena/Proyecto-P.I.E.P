@@ -3,9 +3,33 @@ const uploadBox = document.querySelector(".upload-box")
 const uploadText = document.querySelector(".upload-text")
 const fileInput = document.querySelector(".file-input")
 const loadingOverlay = document.getElementById("loadingOverlay")
+const uploadSection = document.querySelector(".upload-section")
 
 // Cards functionality
 const cards = document.querySelectorAll(".card")
+
+// Track file state
+let filesLoaded = false
+
+// Initialize cards as disabled
+function initializeCards() {
+  cards.forEach((card) => {
+    card.classList.add("disabled")
+  })
+}
+
+// Enable/Disable cards based on file state
+function toggleCardsState(enabled) {
+  cards.forEach((card) => {
+    if (enabled) {
+      card.classList.remove("disabled")
+    } else {
+      card.classList.add("disabled")
+      card.classList.remove("active")
+    }
+  })
+  filesLoaded = enabled
+}
 
 // Drag and Drop Events
 uploadBox.addEventListener("dragover", (e) => {
@@ -26,8 +50,10 @@ uploadBox.addEventListener("drop", (e) => {
   if (files.length) {
     fileInput.files = files
     updateUploadText(files.length)
+    toggleCardsState(true)
   } else {
     uploadText.textContent = "Ningún archivo válido"
+    toggleCardsState(false)
   }
 })
 
@@ -36,14 +62,17 @@ uploadBox.addEventListener("click", () => fileInput.click())
 fileInput.addEventListener("change", () => {
   if (fileInput.files.length) {
     updateUploadText(fileInput.files.length)
+    toggleCardsState(true)
+  } else {
+    toggleCardsState(false)
   }
 })
 
 function updateUploadText(fileCount) {
   uploadText.innerHTML = `
-        <strong>${fileCount} archivo(s) cargado(s)</strong>
-        <br><small>Listo para procesar</small>
-    `
+    <strong>${fileCount} archivo(s) cargado(s)</strong>
+    <br><small>Listo para procesar</small>
+  `
 }
 
 // Card Interactions
@@ -53,6 +82,12 @@ cards.forEach((card) => {
 
   // Card click to select
   card.addEventListener("click", (e) => {
+    // Prevent interaction if disabled
+    if (card.classList.contains("disabled")) {
+      highlightUploadSection()
+      return
+    }
+
     if (e.target === actionBtn) return // Don't trigger if clicking action button
 
     // Remove active class from all cards
@@ -60,30 +95,47 @@ cards.forEach((card) => {
 
     // Add active class to clicked card
     card.classList.add("active")
-
-    // Update usage count (simulate)
-    updateUsageCount(card)
   })
 
   // Action button click
-  actionBtn.addEventListener("click", (e) => {
-    e.stopPropagation()
-    processCard(cardType, card)
-  })
+  if (actionBtn) {
+    actionBtn.addEventListener("click", (e) => {
+      e.stopPropagation()
 
-  // Hover effects
+      // Double check files are loaded
+      if (!filesLoaded || !fileInput.files.length) {
+        highlightUploadSection()
+        return
+      }
+
+      processCard(cardType, card)
+    })
+  }
+
+  // Hover effects (only for enabled cards)
   card.addEventListener("mouseenter", () => {
-    if (!card.classList.contains("active")) {
+    if (!card.classList.contains("disabled") && !card.classList.contains("active")) {
       card.style.transform = "translateY(-10px) scale(1.02)"
     }
   })
 
   card.addEventListener("mouseleave", () => {
-    if (!card.classList.contains("active")) {
+    if (!card.classList.contains("disabled") && !card.classList.contains("active")) {
       card.style.transform = ""
     }
   })
 })
+
+function highlightUploadSection() {
+  uploadSection.classList.add("highlight")
+
+  // Show a temporary message
+  showInfoMessage("Por favor, sube un archivo primero para activar las funciones")
+
+  setTimeout(() => {
+    uploadSection.classList.remove("highlight")
+  }, 2000)
+}
 
 function updateUsageCount(card) {
   const usageElement = card.querySelector(".usage-count")
@@ -99,9 +151,9 @@ function updateUsageCount(card) {
 }
 
 function processCard(type, cardElement) {
-  // Check if files are uploaded
+  // Final check for files
   if (!fileInput.files.length) {
-    alert("Por favor, sube un archivo primero")
+    highlightUploadSection()
     return
   }
 
@@ -130,30 +182,42 @@ function showSuccessMessage(type) {
     "multiple-choice": "¡Examen de opción múltiple generado exitosamente!",
   }
 
-  // Create success notification
-  const notification = document.createElement("div")
-  notification.className = "success-notification"
-  notification.innerHTML = `
-        <div class="notification-content">
-            <div class="notification-icon">✅</div>
-            <div class="notification-text">${messages[type]}</div>
-        </div>
-    `
+  showNotification(messages[type], "success")
+}
 
-  // Add notification styles
+function showInfoMessage(message) {
+  showNotification(message, "info")
+}
+
+function showNotification(message, type = "success") {
+  const notification = document.createElement("div")
+  notification.className = `notification ${type}`
+
+  const icon = type === "success" ? "✅" : "ℹ️"
+  const bgColor =
+    type === "success" ? "linear-gradient(135deg, #00b894, #00a085)" : "linear-gradient(135deg, #0984e3, #74b9ff)"
+
+  notification.innerHTML = `
+    <div class="notification-content">
+      <div class="notification-icon">${icon}</div>
+      <div class="notification-text">${message}</div>
+    </div>
+  `
+
   notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, #00b894, #00a085);
-        color: white;
-        padding: 15px 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 20px rgba(0, 184, 148, 0.3);
-        z-index: 1001;
-        transform: translateX(100%);
-        transition: transform 0.3s ease;
-    `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${bgColor};
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    max-width: 300px;
+  `
 
   document.body.appendChild(notification)
 
@@ -162,17 +226,21 @@ function showSuccessMessage(type) {
     notification.style.transform = "translateX(0)"
   }, 100)
 
-  // Remove after 3 seconds
+  // Remove after 4 seconds
   setTimeout(() => {
     notification.style.transform = "translateX(100%)"
     setTimeout(() => {
-      document.body.removeChild(notification)
+      if (document.body.contains(notification)) {
+        document.body.removeChild(notification)
+      }
     }, 300)
-  }, 3000)
+  }, 4000)
 }
 
-// Keyboard shortcuts
+// Keyboard shortcuts (only work when files are loaded)
 document.addEventListener("keydown", (e) => {
+  if (!filesLoaded) return
+
   if (e.ctrlKey || e.metaKey) {
     switch (e.key) {
       case "1":
@@ -197,7 +265,10 @@ document.addEventListener("keydown", (e) => {
 
 // Add tooltips for keyboard shortcuts
 cards.forEach((card, index) => {
-  card.title = `Ctrl+${index + 1} para seleccionar`
+  card.title = `Ctrl+${index + 1} para seleccionar (requiere archivo)`
 })
 
 uploadBox.title = "Ctrl+U para subir archivos"
+
+// Initialize on page load
+initializeCards()
