@@ -24,11 +24,29 @@ body {
 
 /* Header Section */
 .container-header {
-    flex-shrink: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0px;
+  
+}
+
+.header-left {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;   /* ⬅️ hacia la derecha */
+  align-items: center;       /* ⬇️ hacia abajo */
+}
+
+.header-left .mascot {
+    margin-right: 2rem;
+}
+
+.header-center,
+.header-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
 }
 
 .header-center {
@@ -38,6 +56,8 @@ body {
 }
 
 .upload-section {
+    height: ;
+    width: 400px;
     background: white;
     border: 2px solid #f1f1f1;
     border-radius: 15px;
@@ -49,21 +69,7 @@ body {
     border-color: #e0e0e0;
 }
 
-.mascot-container {
-    margin-bottom: 15px;
-}
 
-.mascot {
-    width: 60px;
-    height: 60px;
-    margin: 0 auto;
-    background: #f2edfe;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 30px;
-}
 
 .upload-title {
     color: #333;
@@ -73,6 +79,11 @@ body {
 }
 
 .upload-box {
+    display: flex;
+    flex-direction: column;
+    height: 150px;
+    align-items: center;
+    justify-content: center;
     border: 2px dashed #e0e0e0;
     border-radius: 10px;
     padding: 25px 15px;
@@ -140,47 +151,50 @@ body {
 
 /* Cards Section */
 .cards {
-    flex: 1;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 15px;
-    overflow-y: auto;
-    padding-right: 5px;
-}
-
-.cards::-webkit-scrollbar {
-    width: 6px;
-}
-
-.cards::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-}
-
-.cards::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 3px;
-}
-
-.cards::-webkit-scrollbar-thumb:hover {
-    background: #a259fa;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    max-width: 900px;
+    margin: 0 auto;
+    margin-top: 2.2rem;
 }
 
 .card {
     background: white;
     border: 2px solid #f1f1f1;
     border-radius: 15px;
-    padding: 20px;
+    padding: 25px 20px;
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
     cursor: pointer;
-    height: fit-content;
+    text-align: center;
+    width: 220px;
+    height: 250px;
+    
+    /* CSS Grid para contenido interno */
+    display: grid;
+    grid-template-rows: 
+        auto        /* badge (posición absoluta, no afecta) */
+        60px        /* icono - altura fija */
+        1fr         /* título - se adapta al contenido */
+        2fr         /* descripción - ocupa más espacio */
+        auto;       /* stats - altura mínima necesaria */
+    
+    grid-template-areas:
+        "badge"
+        "icon"
+        "title"
+        "description"
+        "stats";
+    
+    align-items: center;
+    justify-items: center;
 }
 
 .card:hover {
     border-color: #e0e0e0;
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
 
@@ -190,16 +204,17 @@ body {
 
 .container-card-badge {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: -10px;
+    right: -10px;
+    grid-area: badge;
 }
 
 .card-badge {
     background: #f2edfe;
     color: #a259fa;
-    padding: 4px 10px;
-    border-radius: 10px;
-    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 9px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -211,56 +226,70 @@ body {
 }
 
 .card-icon {
-    width: 45px;
-    height: 45px;
-    background: #F5F5F5;
-    border-radius: 10px;
+    grid-area: icon;
+    width: 60px;
+    height: 60px;
+    background: #fff3e0;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 15px;
-    font-size: 18px;
+    font-size: 24px;
+    color: #ff9f43;
     transition: all 0.3s ease;
+    align-self: center; /* Centra verticalmente en su área */
 }
 
 .card:hover .card-icon {
     background: #f2edfe;
     color: #a259fa;
+    transform: scale(1.1);
 }
 
 .card-content {
-    position: relative;
-    z-index: 2;
+    grid-area: title / title / stats / stats; /* Ocupa desde title hasta stats */
+    display: grid;
+    grid-template-rows: subgrid; /* Hereda las filas del padre */
+    width: 100%;
+    align-items: center;
 }
 
 .card-title {
-    font-size: 18px;
+    grid-area: title;
+    font-size: 16px;
     font-weight: 600;
-    margin-bottom: 6px;
     color: #333;
+    margin: 0;
+    align-self: end; /* Alinea al final de su área */
 }
 
 .card-description {
-    font-size: 13px;
+    grid-area: description;
+    font-size: 12px;
     color: #666;
-    margin-bottom: 12px;
     line-height: 1.4;
     font-weight: 400;
+    margin: 0;
+    align-self: center; /* Centra verticalmente en su área */
+    padding: 0 5px;
 }
 
 .card-stats {
-    margin-top: 12px;
+    grid-area: stats;
+    align-self: start; /* Alinea al inicio de su área */
+    margin: 0;
 }
 
 .usage-count {
-    font-size: 11px;
+    font-size: 10px;
     color: #999;
     font-weight: 500;
 }
 
 .card-overlay {
+    height: 60px;
     position: absolute;
-    top: 0;
+    top: 10;
     left: 0;
     right: 0;
     bottom: 0;
@@ -270,7 +299,7 @@ body {
     justify-content: center;
     opacity: 0;
     transition: all 0.3s ease;
-    border-radius: 13px;
+    border-radius: 0px;
 }
 
 .card:hover .card-overlay {
@@ -281,9 +310,9 @@ body {
     background: white;
     color: #a259fa;
     border: none;
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -294,6 +323,8 @@ body {
     transform: scale(1.05);
     box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
 }
+
+
 
 /* File selected state */
 .file-selected .upload-text {
@@ -306,75 +337,3 @@ body {
     background-color: #f2edfe;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .home-container {
-        padding: 15px;
-    }
-
-    .upload-section {
-        padding: 20px 15px;
-    }
-
-    .cards {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-
-    .card {
-        padding: 18px;
-    }
-
-    .upload-title {
-        font-size: 18px;
-        margin-bottom: 15px;
-    }
-
-    .container-header {
-        margin-bottom: 20px;
-    }
-}
-
-@media (max-width: 480px) {
-    .upload-box {
-        padding: 20px 12px;
-    }
-
-    .mascot {
-        width: 50px;
-        height: 50px;
-        font-size: 25px;
-    }
-
-    .upload-title {
-        font-size: 16px;
-    }
-
-    .card-title {
-        font-size: 16px;
-    }
-
-    .card-description {
-        font-size: 12px;
-    }
-}
-
-@media (max-height: 700px) {
-    .upload-section {
-        padding: 20px;
-    }
-    
-    .upload-title {
-        font-size: 18px;
-        margin-bottom: 15px;
-    }
-    
-    .upload-box {
-        padding: 20px 15px;
-        margin: 10px 0;
-    }
-    
-    .container-header {
-        margin-bottom: 20px;
-    }
-}

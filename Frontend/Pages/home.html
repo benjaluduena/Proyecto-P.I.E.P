@@ -1,92 +1,92 @@
 <div class="home-container">
-  <link rel="stylesheet" href="/Frontend/Css/home.css">
-        <div class="container-header">
-            <div class="header-center">
-                <div class="upload-section">
-                    <div class="mascot-container">
-                        <div class="mascot">🦊</div>
-                    </div>
-                    <h2 class="upload-title">¡Arrastra tus Apuntes Aquí!</h2>
-                    
-                    <div class="upload-box" id="uploadBox">
-                        <div class="file-icon">📄</div>
-                        <span class="upload-text" id="uploadText">Ningún archivo seleccionado</span>
-                        <input type="file" class="file-input" id="fileInput" multiple accept=".pdf,.doc,.docx,.txt">
-                    </div>
-                    
-                    <button class="upload-button" id="uploadButton">SUBIR</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="cards">
-            <!-- Verdadero o Falso -->
-            <div class="card active" data-type="verdadero-falso">
-                <div class="container-card-badge">
-                    <div class="card-badge">Popular</div>
-                </div>
-
-                <div class="card-icon">
-                    ✓
-                </div>
-
-                <div class="card-content">
-                    <div class="card-title">Verdadero o Falso</div>
-                    <div class="card-description">Genera preguntas de verdadero o falso automáticamente</div>
-                    <div class="card-stats">
-                        <span class="usage-count">Usado 12 veces</span>
-                    </div>
-                </div>
-
-                <div class="card-overlay">
-                    <button class="card-action-btn">Crear Preguntas</button>
-                </div>
-            </div>
-
-            <!-- Resumen -->
-            <div class="card active" data-type="resumen">
-                <div class="container-card-badge">
-                    <div class="card-badge">Popular</div>
-                </div>
-
-                <div class="card-icon">
-                    📝
-                </div>
-
-                <div class="card-content">
-                    <div class="card-title">Resumen</div>
-                    <div class="card-description">Crea resúmenes inteligentes de tus documentos</div>
-                    <div class="card-stats">
-                        <span class="usage-count">Usado 8 veces</span>
-                    </div>
-                </div>
-
-                <div class="card-overlay">
-                    <button class="card-action-btn">Crear Resumen</button>
-                </div>
-            </div>
-
-            <!-- Multiple Choice -->
-            <div class="card active" data-type="multiple-choice">
-                <div class="container-card-badge">
-                    <div class="card-badge nuevo">Nuevo</div>
-                </div>
-
-                <div class="card-icon">
-                    📋
-                </div>
-
-                <div class="card-content">
-                    <div class="card-title">Multiple Choice</div>
-                    <div class="card-description">Crea exámenes de opción múltiple personalizados</div>
-                    <div class="card-stats">
-                        <span class="usage-count">Usado 15 veces</span>
-                    </div>
-                </div>
-
-                <div class="card-overlay">
-                    <button class="card-action-btn">Crear Examen</button>
-                </div>
-            </div>
-        </div>
+  <div class="container-header">
+    <div class="header-left">
+      <img class="mascot" src="/Frontend/Assets/Imagenes/Mascota1.png" alt="Mascota" width="120">
     </div>
+
+    <div class="header-center">
+      <div class="upload-section">
+        <h2 class="upload-title">¡Arrastra tus Apuntes Aquí!</h2>
+
+        <div class="upload-box" id="uploadBox">
+          <div class="file-icon">📄</div>
+          <span class="upload-text" id="uploadText">Ningún archivo seleccionado</span>
+          <input type="file" class="file-input" id="fileInput" multiple accept=".pdf,.doc,.docx,.txt">
+        </div>
+
+      </div>
+    </div>
+    <div class="header-right"></div>
+  </div>
+
+  <div class="cards">
+    <!-- Verdadero o Falso -->
+    <div class="card active" data-type="verdadero-falso">
+      <div class="container-card-badge">
+        <div class="card-badge">Popular</div>
+      </div>
+
+      <div class="card-icon">
+        ✓
+      </div>
+
+      <div class="card-content">
+        <div class="card-title">Verdadero o Falso</div>
+        <div class="card-description">Genera preguntas de verdadero o falso automáticamente</div>
+        <div class="card-stats">
+          <span class="usage-count">Usado 12 veces</span>
+        </div>
+      </div>
+
+      <div class="card-overlay">
+        <button class="card-action-btn">Crear Preguntas</button>
+      </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="card active" data-type="resumen">
+      <div class="container-card-badge">
+        <div class="card-badge">Popular</div>
+      </div>
+
+      <div class="card-icon">
+        📝
+      </div>
+
+      <div class="card-content">
+        <div class="card-title">Resumen</div>
+        <div class="card-description">Crea resúmenes inteligentes de tus documentos</div>
+        <div class="card-stats">
+          <span class="usage-count">Usado 8 veces</span>
+        </div>
+      </div>
+
+      <div class="card-overlay">
+        <button class="card-action-btn">Crear Resumen</button>
+      </div>
+    </div>
+
+    <!-- Multiple Choice -->
+    <div class="card active" data-type="multiple-choice">
+      <div class="container-card-badge">
+        <div class="card-badge nuevo">Nuevo</div>
+      </div>
+
+      <div class="card-icon">
+        📋
+      </div>
+
+      <div class="card-content">
+        <div class="card-title">Multiple Choice</div>
+        <div class="card-description">Crea exámenes de opción múltiple personalizados</div>
+        <div class="card-stats">
+          <span class="usage-count">Usado 15 veces</span>
+        </div>
+      </div>
+
+      <div class="card-overlay">
+        <button class="card-action-btn">Crear Examen</button>
+      </div>
+    </div>
+  </div>
+</div>
