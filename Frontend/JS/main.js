@@ -1,3 +1,4 @@
+// Carga inicial
 function cargarSeccion(nombre) {
   fetch(`Pages/${nombre}.html`)
     .then(res => res.text())

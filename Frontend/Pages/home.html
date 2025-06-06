@@ -1,9 +1,7 @@
 <div class="home-container">
   <div class="container-header">
-    <div class="header-left">
-      <img class="mascot" src="/Frontend/Assets/Imagenes/Mascota1.png" alt="Mascota" width="120">
-    </div>
-
+    <div class="header-left"> <img class="mascot" src="/Frontend/Assets/Imagenes/Mascota1.png" alt="Mascota"
+        width="120"> </div>
     <div class="header-center">
       <div class="upload-section">
         <h2 class="upload-title">¡Arrastra tus Apuntes Aquí!</h2>
@@ -11,21 +9,20 @@
         <div class="upload-box" id="uploadBox">
           <div class="file-icon">📄</div>
           <span class="upload-text" id="uploadText">Ningún archivo seleccionado</span>
-          <input type="file" class="file-input" id="fileInput" multiple accept=".pdf,.doc,.docx,.txt">
+          <input type="file" class="file-input" id="fileInput" accept=".pdf">
         </div>
+
+        <div class="uploaded-files" id="uploadedFilesContainer"></div>
 
       </div>
     </div>
     <div class="header-right"></div>
   </div>
-
-  <div class="cards">
-    <!-- Verdadero o Falso -->
+  <div class="cards"> <!-- Verdadero o Falso -->
     <div class="card active" data-type="verdadero-falso">
       <div class="container-card-badge">
         <div class="card-badge">Popular</div>
       </div>
-
       <div class="card-icon">
         ✓
       </div>
@@ -88,5 +85,10 @@
         <button class="card-action-btn">Crear Examen</button>
       </div>
     </div>
+  </div> <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <p>Procesando tu documento...</p>
   </div>
+  <script src="/Frontend/JS/home.js"></script>
 </div>

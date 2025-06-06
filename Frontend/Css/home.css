@@ -23,19 +23,22 @@ body {
 }
 
 /* Header Section */
+
 .container-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0px;
-  
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0px;
+
 }
 
 .header-left {
-  flex: 1;
-  display: flex;
-  justify-content: flex-end;   /* ⬅️ hacia la derecha */
-  align-items: center;       /* ⬇️ hacia abajo */
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    /* ⬅️ hacia la derecha */
+    align-items: center;
+    /* ⬇️ hacia abajo */
 }
 
 .header-left .mascot {
@@ -44,9 +47,9 @@ body {
 
 .header-center,
 .header-right {
-  flex: 1;
-  display: flex;
-  justify-content: center;
+    flex: 1;
+    display: flex;
+    justify-content: center;
 }
 
 .header-center {
@@ -55,7 +58,13 @@ body {
     max-width: 600px;
 }
 
+/* Upload Section */
 .upload-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: 269px;
+    overflow: hidden;
     width: 400px;
     background: white;
     border: 2px solid #f1f1f1;
@@ -68,25 +77,27 @@ body {
     border-color: #e0e0e0;
 }
 
-
-
 .upload-title {
     color: #333;
-    margin-bottom: 20px;
-    font-size: 20px;
+    margin-bottom: 10px;
+    font-size: 18px;
     font-weight: 600;
 }
 
 .upload-box {
+    flex: 1;
+    /* Que crezca solo lo necesario */
+    max-height: 150px;
+    min-height: 100px;
+    position: relative;
     display: flex;
     flex-direction: column;
-    height: 150px;
     align-items: center;
     justify-content: center;
     border: 2px dashed #e0e0e0;
     border-radius: 10px;
     padding: 25px 15px;
-    margin: 15px 0;
+    margin: 8px 0;
     transition: all 0.3s ease;
     cursor: pointer;
     position: relative;
@@ -94,6 +105,11 @@ body {
 }
 
 .upload-box:hover {
+    border-color: #a259fa;
+    background-color: #f2edfe;
+}
+
+.upload-box.hover {
     border-color: #a259fa;
     background-color: #f2edfe;
 }
@@ -148,6 +164,44 @@ body {
     transform: translateY(-1px);
 }
 
+.uploaded-files {
+    width: 100%;
+    max-height: 100px;
+    overflow-y: auto;
+    margin-top: 10px;
+    font-size: 13px;
+    color: #444;
+}
+
+.uploaded-file {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+    background: #fff;
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.uploaded-file span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+
+.remove-btn {
+    background: transparent;
+    color: #c0392b;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+
+
+
 /* Cards Section */
 .cards {
     display: grid;
@@ -170,23 +224,28 @@ body {
     text-align: center;
     width: 220px;
     height: 250px;
-    
+
     /* CSS Grid para contenido interno */
     display: grid;
-    grid-template-rows: 
-        auto        /* badge (posición absoluta, no afecta) */
-        60px        /* icono - altura fija */
-        1fr         /* título - se adapta al contenido */
-        2fr         /* descripción - ocupa más espacio */
-        auto;       /* stats - altura mínima necesaria */
-    
+    grid-template-rows:
+        auto
+        /* badge (posición absoluta, no afecta) */
+        60px
+        /* icono - altura fija */
+        1fr
+        /* título - se adapta al contenido */
+        2fr
+        /* descripción - ocupa más espacio */
+        auto;
+    /* stats - altura mínima necesaria */
+
     grid-template-areas:
         "badge"
         "icon"
         "title"
         "description"
         "stats";
-    
+
     align-items: center;
     justify-items: center;
 }
@@ -236,7 +295,8 @@ body {
     font-size: 24px;
     color: #ff9f43;
     transition: all 0.3s ease;
-    align-self: center; /* Centra verticalmente en su área */
+    align-self: center;
+    /* Centra verticalmente en su área */
 }
 
 .card:hover .card-icon {
@@ -246,9 +306,11 @@ body {
 }
 
 .card-content {
-    grid-area: title / title / stats / stats; /* Ocupa desde title hasta stats */
+    grid-area: title / title / stats / stats;
+    /* Ocupa desde title hasta stats */
     display: grid;
-    grid-template-rows: subgrid; /* Hereda las filas del padre */
+    grid-template-rows: subgrid;
+    /* Hereda las filas del padre */
     width: 100%;
     align-items: center;
 }
@@ -259,7 +321,8 @@ body {
     font-weight: 600;
     color: #333;
     margin: 0;
-    align-self: end; /* Alinea al final de su área */
+    align-self: end;
+    /* Alinea al final de su área */
 }
 
 .card-description {
@@ -269,13 +332,15 @@ body {
     line-height: 1.4;
     font-weight: 400;
     margin: 0;
-    align-self: center; /* Centra verticalmente en su área */
+    align-self: center;
+    /* Centra verticalmente en su área */
     padding: 0 5px;
 }
 
 .card-stats {
     grid-area: stats;
-    align-self: start; /* Alinea al inicio de su área */
+    align-self: start;
+    /* Alinea al inicio de su área */
     margin: 0;
 }
 
@@ -323,7 +388,38 @@ body {
     box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
 }
 
+/*Card Disabled*/
+.card.disabled {
+    pointer-events: none;
+    /* Desactiva interacciones */
+    opacity: 0.5;
+    /* Visualmente desactivada */
+    filter: grayscale(80%);
+    /* Tono gris para reforzar estado inactivo */
+    cursor: not-allowed;
+    /* Cursor bloqueado */
+    transition: all 0.3s ease;
+}
 
+.card.disabled:hover {
+    transform: none;
+    /* Desactiva animaciones de hover */
+    box-shadow: none;
+    border-color: #f1f1f1;
+    /* Color base del borde */
+}
+
+.card.disabled .card-icon {
+    background: #f9f9f9;
+    /* Color más tenue para el ícono */
+    color: #ccc;
+    transform: none;
+}
+
+.card.disabled .card-overlay {
+    opacity: 0 !important;
+    /* No mostrar overlay en estado desactivado */
+}
 
 /* File selected state */
 .file-selected .upload-text {
@@ -336,3 +432,42 @@ body {
     background-color: #f2edfe;
 }
 
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 1000;
+    color: white;
+}
+
+.loading-overlay.show {
+    display: flex;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid #ffbb5b;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
