@@ -1,36 +1,94 @@
 <div class="home-container">
   <div class="container-header">
-    <div class="header-left">
-      <img src="/Frontend/Assets/Imagenes/Mascota1.png" alt="Mascota" width="120">
-    </div>
+    <div class="header-left"> <img class="mascot" src="/Frontend/Assets/Imagenes/Mascota1.png" alt="Mascota"
+        width="120"> </div>
     <div class="header-center">
       <div class="upload-section">
-        <div class="upload-section-content">
-          <p><strong>¡Arrastra tus Apuntes Aquí!</strong></p>
-          <div class="upload-box">
-            <img src="/Frontend/Assets/Imagenes/file.png" alt="Documento">
-          </div>
-          <button class="upload-button">SUBIR</button>
+        <h2 class="upload-title">¡Arrastra tus Apuntes Aquí!</h2>
+
+        <div class="upload-box" id="uploadBox">
+          <div class="file-icon">📄</div>
+          <span class="upload-text" id="uploadText">Ningún archivo seleccionado</span>
+          <input type="file" class="file-input" id="fileInput" accept=".pdf">
         </div>
+
+        <div class="uploaded-files" id="uploadedFilesContainer"></div>
+
       </div>
     </div>
     <div class="header-right"></div>
   </div>
+  <div class="cards"> <!-- Verdadero o Falso -->
+    <div class="card active" data-type="verdadero-falso">
+      <div class="container-card-badge">
+        <div class="card-badge">Popular</div>
+      </div>
+      <div class="card-icon">
+        ✓
+      </div>
 
-  <div class="cards">
-    <div class="card">
-      <div class="card-title">Verdadero o Falso</div>
-      <img src="/Frontend/Assets/Imagenes/VerdaderoFalso.png" alt="VF">
+      <div class="card-content">
+        <div class="card-title">Verdadero o Falso</div>
+        <div class="card-description">Genera preguntas de verdadero o falso automáticamente</div>
+        <div class="card-stats">
+          <span class="usage-count">Usado 12 veces</span>
+        </div>
+      </div>
+
+      <div class="card-overlay">
+        <button class="card-action-btn">Crear Preguntas</button>
+      </div>
     </div>
-    <div class="card">
-      <div class="card-title">Resumen</div>
-      <img src="/Frontend/Assets/Imagenes/Resumen.png" alt="Resumen">
+
+    <!-- Resumen -->
+    <div class="card active" data-type="resumen">
+      <div class="container-card-badge">
+        <div class="card-badge">Popular</div>
+      </div>
+
+      <div class="card-icon">
+        📝
+      </div>
+
+      <div class="card-content">
+        <div class="card-title">Resumen</div>
+        <div class="card-description">Crea resúmenes inteligentes de tus documentos</div>
+        <div class="card-stats">
+          <span class="usage-count">Usado 8 veces</span>
+        </div>
+      </div>
+
+      <div class="card-overlay">
+        <button class="card-action-btn">Crear Resumen</button>
+      </div>
     </div>
-    <div class="card">
-      <div class="card-title">Multiple choice</div>
-      <img src="/Frontend/Assets/Imagenes/Multiplechoice.png" alt="Multiple choice">
+
+    <!-- Multiple Choice -->
+    <div class="card active" data-type="multiple-choice">
+      <div class="container-card-badge">
+        <div class="card-badge nuevo">Nuevo</div>
+      </div>
+
+      <div class="card-icon">
+        📋
+      </div>
+
+      <div class="card-content">
+        <div class="card-title">Multiple Choice</div>
+        <div class="card-description">Crea exámenes de opción múltiple personalizados</div>
+        <div class="card-stats">
+          <span class="usage-count">Usado 15 veces</span>
+        </div>
+      </div>
+
+      <div class="card-overlay">
+        <button class="card-action-btn">Crear Examen</button>
+      </div>
     </div>
+  </div> <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <p>Procesando tu documento...</p>
   </div>
-
-  <link rel="stylesheet" href="/Frontend/Css/home.css">
+  <script src="/Frontend/JS/home.js"></script>
 </div>
