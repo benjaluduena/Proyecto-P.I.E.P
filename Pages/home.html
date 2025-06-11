@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inicio</title>
+  <link rel="stylesheet" href="../Css/home.css">
+</head>
+<body>
+  <main class="home-container">
+
+    <!-- Zona superior con zorro, dropbox, búho -->
+    <header class="upload-banner">
+      <div class="character-side">
+        <img src="../Assets/Imagenes/Mascota2.png" alt="Zorro" class="character-img">
+      </div>
+
+      <section class="upload-section">
+        <p><strong>¡Arrastra tus Apuntes Aquí!</strong></p>
+        <div class="upload-box" id="upload-box">
+          <img src="../Assets/Imagenes/file.png" alt="Documento">
+          <p id="upload-feedback">Suelta un PDF aquí o haz clic en 'SUBIR'</p>
+          <input type="file" id="file-input" accept="application/pdf" hidden>
+        </div>
+        <div class="upload-actions">
+          <button class="upload-button" id="upload-button">SUBIR</button>
+          <button class="cancel-button" id="cancel-button">❌</button>
+        </div>
+      </section>
+
+      <div class="character-side">
+        <img src="../Assets/Imagenes/buho1.png" alt="Búho" class="character-img flipped">
+      </div>
+    </header>
+
+    <!-- Carrusel de funcionalidades -->
+    <section class="carousel-wrapper hidden-slide" id="feature-section">
+      <button class="carousel-button" onclick="moveCarousel(-1)">&#8592;</button>
+      <div class="carousel-container">
+        <div class="carousel" id="carousel">
+          <div class="card">
+            <div class="card-title">Resumen</div>
+            <img src="../Assets/Imagenes/Resumen.png" alt="Resumen">
+          </div>
+          <div class="card">
+            <div class="card-title">Multiple Choice</div>
+            <img src="../Assets/Imagenes/Multiplechoice.png" alt="Multiple choice">
+          </div>
+          <div class="card">
+            <div class="card-title">Verdadero o Falso</div>
+            <img src="../Assets/Imagenes/VerdaderoFalso.png" alt="VF">
+          </div>
+        </div>
+      </div>
+      <button class="carousel-button" onclick="moveCarousel(1)">&#8594;</button>
+    </section>
+  </main>
+
+  <script src="../JS/main.js"></script>
+  <script>
+    if (document.getElementById('carousel')) initCarrusel();
+    if (document.getElementById('upload-box')) setupUploadArea();
+  </script>
+</body>
+</html>
