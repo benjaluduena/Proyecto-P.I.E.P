@@ -12,9 +12,9 @@ body {
 
 /* Sidebar */
 .sidebar {
-  min-height: 100vh; /* altura mínima de la barra lateral */
-  width: 230px; /* ya lo tienes */
-  flex-shrink: 0; /* evita que se reduzca */
+  min-height: 100vh;
+  width: 230px;
+  flex-shrink: 0;
   background: white;
   border-right: 2px solid #f1f1f1;
   display: flex;
@@ -24,9 +24,7 @@ body {
   position: relative;
 }
 
-
 /* Logo */
-
 .logo-container {
   display: flex;
   flex-direction: left;
@@ -43,9 +41,7 @@ body {
   max-width: 200px;
 }
 
-
 /* Sidebar Menu */
-
 .menu {
   display: flex;
   flex-direction: column;
@@ -54,9 +50,8 @@ body {
   padding-right: 20px;
 }
 
-
 .menu-item {
-  all: unset; /* elimina estilos nativos del button */
+  all: unset;
   cursor: pointer;
   text-decoration: none;
   color: black;
@@ -79,9 +74,7 @@ body {
   background: #ededed;
 }
 
-
 /* Sidebar Iconos */
-
 .sidebar-ico svg {
   display: flex;
   align-items: center;
@@ -89,14 +82,12 @@ body {
   height: 20px;
 }
 
-
 .menu-item .sidebar-ico {
   font-size: 1.25rem;
   margin-right: 5px;
 }
 
-/*Sidebar Footer */
-
+/* Sidebar Footer */
 .sidebar-footer {
   display: flex;
   flex-direction: column;
@@ -106,14 +97,59 @@ body {
   margin-bottom: 30px;
 }
 
-
 .sidebar-footer .menu-item {
   background: #f5f6f7;
 }
 
+/* Perfil de Usuario */
+.user-profile {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #e9ecef;
+}
 
-/*Main */
+.user-avatar {
+  flex-shrink: 0;
+}
 
+.avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #dee2e6;
+  background: #e9ecef;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0; /* Para permitir que el texto se trunque */
+}
+
+.user-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email {
+  font-size: 0.7rem;
+  color: #6c757d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Main */
 main#contenido {
   flex-grow: 1;
   padding: 20px;
@@ -121,4 +157,21 @@ main#contenido {
 }
 
 /* Responsive */
-
+@media (max-width: 768px) {
+  .user-profile {
+    padding: 12px;
+  }
+  
+  .avatar-img {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .user-name {
+    font-size: 0.8rem;
+  }
+  
+  .user-email {
+    font-size: 0.65rem;
+  }
+}

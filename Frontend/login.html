@@ -3,31 +3,71 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Iniciar Sesión</title>
+  <title>Iniciar Sesión / Registrarse</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./Css/login.css">
+  <link rel="stylesheet" href="./Css/login.css" />
 </head>
 <body>
   <div class="image-placeholder">
     <img src="Assets/Imagenes/background.png" alt="background" />
   </div>
-  <div class="login-container">
+  
+  <div class="form-container">
     <img src="Assets/Imagenes/Logo.png" alt="Logo" class="logo" />
-    <h2>Iniciar Sesión</h2>
-    <form>
+    <h2 id="form-title">Iniciar Sesión</h2>
+    
+    <div class="form-toggle">
+      <button type="button" class="toggle-btn active" id="login-toggle">Iniciar Sesión</button>
+      <button type="button" class="toggle-btn" id="register-toggle">Registrarse</button>
+    </div>
+    
+    <form id="auth-form">
+      <!-- Campos de registro (ocultos inicialmente) -->
+      <div class="input-group hidden" id="name-group">
+        <label for="name">Nombre completo</label>
+        <input type="text" id="name" placeholder="Tu nombre completo" />
+      </div>
+      
+      <!-- Campo de email (siempre visible) -->
       <div class="input-group">
         <label for="email">Correo electrónico</label>
         <input type="email" id="email" placeholder="tucorreo@ejemplo.com" required />
       </div>
+      
+      <!-- Campo de contraseña (siempre visible) -->
       <div class="input-group">
         <label for="password">Contraseña</label>
         <input type="password" id="password" placeholder="********" required />
       </div>
-      <button type="submit" class="login-button">Entrar</button>
-      <div class="extra">
+      
+      <!-- Campos de registro adicionales (ocultos inicialmente) -->
+      <div class="input-group hidden" id="role-group">
+        <label for="role">Rol</label>
+        <select id="role">
+          <option value="">Selecciona tu rol</option>
+          <option value="estudiante">Estudiante</option>
+          <option value="docente">Docente</option>
+        </select>
+      </div>
+      
+      <div class="input-group hidden" id="education-group">
+        <label for="education_level">Nivel educativo</label>
+        <select id="education_level">
+          <option value="">Selecciona tu nivel educativo</option>
+          <option value="secundario">Secundario</option>
+          <option value="terciario">Terciario</option>
+          <option value="universitario">Universitario</option>
+          <option value="posgrado">Posgrado</option>
+        </select>
+      </div>
+      
+      <button type="submit" class="submit-button" id="submit-btn">Entrar</button>
+      
+      <div class="extra" id="login-extra">
         <a href="#">¿Olvidaste tu contraseña?</a>
       </div>
     </form>
   </div>
+  <script src="./Js/login.js"></script>
 </body>
 </html>
