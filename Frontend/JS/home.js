@@ -1,4 +1,3 @@
-
 const uploadBox = document.querySelector('.upload-box');
 const uploadText = document.querySelector('.upload-text');
 const fileInput = document.querySelector('.file-input');
@@ -112,16 +111,24 @@ function mostrarArchivos(files) {
 
 cardActionBtns.forEach(btn => {
   btn.addEventListener('click', () => {
-    // Mostrar loader
+    // Solo continuar si hay archivo cargado
+    if (fileInput.files.length === 0) {
+      showInfoMessage("Primero debes subir un archivo PDF.");
+      return;
+    }
+
     loadingOverlay.classList.add("show");
 
-    // Obtener tipo desde el contenedor padre más cercano con clase "card"
     const card = btn.closest(".card");
     const type = card?.dataset.type;
 
-    // Ocultar loader y mostrar notificación
     setTimeout(() => {
       loadingOverlay.classList.remove("show");
+
+      if (type === "resumen") {
+        window.location.href = "/Frontend/resumen.html";
+        return;
+      }
 
       if (type) {
         showSuccessMessage(type);
