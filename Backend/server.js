@@ -3,17 +3,17 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
-require('dotenv').config({ path: './config.env' });
+require('dotenv').config();
 
 // Importar rutas
 const authRoutes = require('./routes/auth');
 const pdfRoutes = require('./routes/pdfs');
-const aiRoutes = require('./routes/ai');
+// const aiRoutes = require('./routes/ai');
 const studyRoutes = require('./routes/study');
 const notificationRoutes = require('./routes/notifications');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5500;
 
 // Configuración de rate limiting
 // Desactivado para desarrollo
@@ -38,7 +38,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/pdfs', pdfRoutes);
-app.use('/api/ai', aiRoutes);
+// app.use('/api/ai', aiRoutes);
 app.use('/api/study', studyRoutes);
 app.use('/api/notifications', notificationRoutes);
 
