@@ -1,0 +1,44 @@
+🧠 Guía Detallada para IA – Plataforma Inteligente de Estudio Personalizado (P.I.E.P.)
+La Plataforma Inteligente de Estudio Personalizado (P.I.E.P.) es una herramienta web orientada a estudiantes y docentes que permite cargar materiales de estudio (principalmente archivos PDF) y obtener automáticamente recursos educativos personalizados generados por inteligencia artificial. La plataforma tiene como objetivo central transformar el contenido cargado por el usuario en formatos didácticos adaptados al estilo y nivel educativo de quien estudia, optimizando su tiempo y facilitando la comprensión de conceptos clave.
+
+Existen dos tipos de usuarios en la plataforma: estudiantes y docentes.
+
+Los estudiantes, al registrarse, deben indicar su nivel educativo (secundario, terciario, universitario, posgrado). Esto permite que la IA adapte el lenguaje, la profundidad y el formato del contenido generado.
+
+Los docentes pueden subir materiales para generar recursos educativos automatizados, que pueden usar en clases o compartir con estudiantes.
+
+Una vez cargado un PDF, la IA analiza el contenido y permite al usuario elegir entre diversos métodos de estudio personalizados, que incluyen:
+
+Resúmenes automáticos: extracción de ideas principales, esquemas y puntos clave.
+
+Recomendaciones complementarias: sugerencias de videos explicativos y textos relacionados para ampliar el conocimiento.
+
+Ejercicios interactivos: generación automática de preguntas de opción múltiple, verdadero/falso o problemas aplicados.
+
+Tarjetas de memoria (flashcards): conceptos clave para practicar de forma ágil y repetitiva.
+
+Problemas prácticos: resolución de casos o preguntas abiertas basadas en el contenido.
+
+La plataforma también incluye un planificador de estudio, donde el usuario puede:
+
+Crear planes con objetivos y fechas límite.
+
+Asignar tareas específicas a días concretos.
+
+Recibir recordatorios automáticos por correo electrónico o WhatsApp para mantener el ritmo.
+
+Además, se ofrece un sistema de seguimiento del progreso, que registra cómo interactúa el usuario con los materiales (por ejemplo, si completó una serie de ejercicios, leyó un resumen, respondió flashcards, etc.) y brinda estadísticas para fomentar la constancia.
+
+P.I.E.P. resuelve varios problemas comunes en estudiantes:
+
+La dificultad para organizarse antes de exámenes.
+
+La pérdida de tiempo resumiendo manualmente textos extensos.
+
+La falta de una metodología de estudio eficaz.
+
+La sobrecarga de información sin estructura.
+
+La desmotivación o el olvido de estudiar, que se mitiga con recordatorios y planes adaptados.
+
+En resumen, P.I.E.P. es una plataforma centrada en el usuario, impulsada por inteligencia artificial, cuyo objetivo es transformar materiales de estudio en experiencias interactivas, eficientes y personalizadas. La IA debe mantener como prioridad la claridad, la adaptabilidad al nivel educativo y la utilidad pedagógica de cada recurso generado.

@@ -1,0 +1,21 @@
+# Configurar MIME types correctos
+AddType application/javascript .js
+AddType text/css .css
+AddType text/html .html
+
+# Configurar login.html como página por defecto
+DirectoryIndex login.html index.html
+
+# Redirigir errores 404 a login.html
+ErrorDocument 404 /login.html
+
+# Configurar cache para archivos estáticos
+<FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg)$">
+    ExpiresActive On
+    ExpiresDefault "access plus 1 month"
+</FilesMatch>
+
+# Configurar CORS para desarrollo
+Header always set Access-Control-Allow-Origin "*"
+Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+Header always set Access-Control-Allow-Headers "Content-Type, Authorization" 

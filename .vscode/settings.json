@@ -1,0 +1,14 @@
+{
+  "liveServer.settings.root": "/Frontend",
+  "liveServer.settings.mount": [
+    ["/", "./Frontend"]
+  ],
+  "liveServer.settings.CustomBrowser": "chrome",
+  "liveServer.settings.https": false,
+  "liveServer.settings.port": 5500,
+  "liveServer.settings.mimeTypes": {
+    ".js": "application/javascript",
+    ".css": "text/css",
+    ".html": "text/html"
+  }
+} 

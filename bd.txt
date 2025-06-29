@@ -1,0 +1,80 @@
+-- 1. Usuarios
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role VARCHAR(20) CHECK (role IN ('estudiante', 'docente')) NOT NULL,
+    education_level VARCHAR(50), -- solo para estudiantes
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Validación adicional para education_level según el rol (opcional en lógica de backend)
+-- Valores sugeridos para education_level: 'secundario', 'terciario', 'universitario', 'posgrado'
+
+-- 2. Archivos PDF cargados
+CREATE TABLE pdf_uploads (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    file_name VARCHAR(255),
+    file_url TEXT NOT NULL,
+    title VARCHAR(255),
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 3. Contenido generado por IA
+CREATE TABLE study_outputs (
+    id SERIAL PRIMARY KEY,
+    pdf_id INTEGER REFERENCES pdf_uploads(id) ON DELETE CASCADE,
+    type VARCHAR(50) CHECK (
+        type IN ('resumen', 'recomendacion_video', 'recomendacion_texto', 'multiple_choice', 'verdadero_falso', 'flashcards', 'problema')
+    ) NOT NULL,
+    content JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4. Planes de estudio
+CREATE TABLE study_plans (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255),
+    description TEXT,
+    start_date DATE,
+    end_date DATE,
+    notify_by_email BOOLEAN DEFAULT FALSE,
+    notify_by_whatsapp BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 5. Tareas del plan de estudio
+CREATE TABLE plan_tasks (
+    id SERIAL PRIMARY KEY,
+    plan_id INTEGER REFERENCES study_plans(id) ON DELETE CASCADE,
+    title VARCHAR(255),
+    description TEXT,
+    due_date DATE,
+    completed BOOLEAN DEFAULT FALSE,
+    related_output_id INTEGER REFERENCES study_outputs(id)
+);
+
+-- 6. Recordatorios de notificación
+CREATE TABLE notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    task_id INTEGER REFERENCES plan_tasks(id) ON DELETE CASCADE,
+    method VARCHAR(20) CHECK (method IN ('email', 'whatsapp')),
+    scheduled_at TIMESTAMP,
+    sent BOOLEAN DEFAULT FALSE
+);
+
+-- 7. Seguimiento del progreso
+CREATE TABLE progress_tracking (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    output_id INTEGER REFERENCES study_outputs(id) ON DELETE CASCADE,
+    interacted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    interaction_type VARCHAR(50) CHECK (
+        interaction_type IN ('leido', 'completado', 'respondido')
+    ),
+    score NUMERIC(5,2)
+);
