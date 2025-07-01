@@ -20,6 +20,7 @@ function showLogin() {
   roleGroup.classList.add('hidden');
   educationGroup.classList.add('hidden');
   loginExtra.style.display = '';
+  document.getElementById('google-btn-text').textContent = 'Iniciar con Google';
 }
 
 function showRegister() {
@@ -31,6 +32,7 @@ function showRegister() {
   roleGroup.classList.remove('hidden');
   educationGroup.classList.remove('hidden');
   loginExtra.style.display = 'none';
+  document.getElementById('google-btn-text').textContent = 'Registrarte con Google';
 }
 
 loginToggle.addEventListener('click', showLogin);
@@ -78,6 +80,13 @@ authForm.addEventListener('submit', async function (e) {
       });
 
       if (error) {
+        // Si el error es por confirmación de email, mostrar mensaje de éxito
+        if (error.message && error.message.toLowerCase().includes('confirm')) {
+          mostrarPantallaVerificaEmail();
+          authForm.reset();
+          return;
+        }
+        // Si es otro error, mostrarlo normalmente
         alert(error.message || 'Error al registrar usuario');
         return;
       }
@@ -91,15 +100,17 @@ authForm.addEventListener('submit', async function (e) {
         });
 
         if (response.ok) {
-          alert('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
-          showLogin();
+          mostrarPantallaVerificaEmail();
           authForm.reset();
         } else {
-          // Si falla el backend, eliminar el usuario de auth
-          await supabase.auth.signOut();
+          // Si falla el backend, mostrar mensaje pero NO eliminar el usuario de auth
           const errorData = await response.json();
           alert(errorData.error || 'Error al completar el registro');
         }
+      } else if (data.user === null && data.session === null && !error) {
+        // Caso: usuario creado pero requiere confirmación de email
+        mostrarPantallaVerificaEmail();
+        authForm.reset();
       }
     } catch (err) {
       console.error('Error en registro:', err);
@@ -164,4 +175,29 @@ supabase.auth.onAuthStateChange((event, session) => {
   } else if (event === 'SIGNED_OUT') {
     clearSession();
   }
+});
+
+document.getElementById('google-auth-btn').addEventListener('click', async function () {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + '/Frontend/index.html'
+    }
+  });
+  if (error) {
+    alert('Error al autenticar con Google');
+  }
+});
+
+// Mostrar pantalla de verificación de email
+function mostrarPantallaVerificaEmail() {
+  document.querySelector('.form-container form').style.display = 'none';
+  document.getElementById('verify-email-container').style.display = '';
+}
+
+// Evento para el botón 'Ya lo verifiqué'
+document.getElementById('btn-verified-email').addEventListener('click', function() {
+  document.querySelector('.form-container form').style.display = '';
+  document.getElementById('verify-email-container').style.display = 'none';
+  showLogin();
 }); 

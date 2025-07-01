@@ -179,3 +179,34 @@
         height: 200px;
       }
     }
+
+    .google-auth-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .google-btn {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      color: #444;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 8px 18px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+
+    .google-btn:hover {
+      box-shadow: 0 4px 8px rgba(66,133,244,0.10);
+      border-color: #4285f4;
+    }
+
+    .google-icon {
+      width: 22px;
+      height: 22px;
+      margin-right: 10px;
+    }
