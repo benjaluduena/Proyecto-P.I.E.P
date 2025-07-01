@@ -8,7 +8,7 @@ require('dotenv').config();
 // Importar rutas
 const authRoutes = require('./routes/auth');
 const pdfRoutes = require('./routes/pdfs');
-// const aiRoutes = require('./routes/ai');
+const aiRoutes = require('./routes/ai');
 const studyRoutes = require('./routes/study');
 const notificationRoutes = require('./routes/notifications');
 
@@ -24,21 +24,45 @@ const PORT = process.env.PORT || 5500;
 // });
 
 // Middleware
-app.use(helmet());
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://tu-dominio.com'] 
-    : ['http://localhost:3000', 'http://localhost:5500', 'http://127.0.0.1:5500'],
-  credentials: true
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          'https://fonts.googleapis.com'
+        ],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        imgSrc: ["'self'", 'data:'],
+        connectSrc: [
+          "'self'",
+          'https://fqmpmseabhtvahzdavej.supabase.co'
+        ],
+      }
+    }
+  })
+);
 // app.use(limiter); // Desactivado para desarrollo
-app.use(express.json({ limit: '10mb' }));
+// Configurar JSON parsing solo para rutas que no sean de subida de archivos
+app.use((req, res, next) => {
+  if (req.path.includes('/api/pdfs/upload')) {
+    // Para subida de archivos, no parsear JSON
+    next();
+  } else {
+    // Para otras rutas, parsear JSON
+    express.json({ limit: '10mb' })(req, res, next);
+  }
+});
+
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/pdfs', pdfRoutes);
-// app.use('/api/ai', aiRoutes);
+app.use('/api/ai', aiRoutes);
 app.use('/api/study', studyRoutes);
 app.use('/api/notifications', notificationRoutes);
 
@@ -60,11 +84,6 @@ app.get('/index.html', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend', 'login.html'));
 });
 
-// Ruta fallback para SPA (opcional, si usas rutas en el frontend)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../Frontend', 'login.html'));
-});
-
 // Ruta de prueba
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -72,6 +91,16 @@ app.get('/api/health', (req, res) => {
     message: 'P.I.E.P. Backend funcionando correctamente',
     timestamp: new Date().toISOString()
   });
+});
+
+// Ruta para resumen.html
+app.get('/Frontend/resumen.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend', 'resumen.html'));
+});
+
+// Ruta fallback para SPA (opcional, si usas rutas en el frontend)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend', 'login.html'));
 });
 
 // Middleware de manejo de errores

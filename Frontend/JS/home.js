@@ -110,7 +110,7 @@ function mostrarArchivos(files) {
 // Manejar clics en botones de acción de tarjetas
 
 cardActionBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', async () => {
     // Solo continuar si hay archivo cargado
     if (fileInput.files.length === 0) {
       showInfoMessage("Primero debes subir un archivo PDF.");
@@ -122,20 +122,66 @@ cardActionBtns.forEach(btn => {
     const card = btn.closest(".card");
     const type = card?.dataset.type;
 
-    setTimeout(() => {
-      loadingOverlay.classList.remove("show");
-
+    try {
       if (type === "resumen") {
-        window.location.href = "/Frontend/resumen.html";
+        // Subir PDF y generar resumen
+        const formData = new FormData();
+        formData.append('pdf', fileInput.files[0]);
+        
+        const response = await apiCall('/api/pdfs/upload', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            // Remover Content-Type para FormData
+            'Authorization': getAuthHeaders().Authorization
+          }
+        });
+
+        if (!response || !response.ok) {
+          throw new Error('Error al subir el PDF');
+        }
+
+        const { pdf } = await response.json();
+        const pdfId = pdf.id;
+
+        // Generar resumen con IA
+        const summaryResponse = await apiCall(`/api/ai/generate/${pdfId}`, {
+          method: 'POST',
+          body: JSON.stringify({ type: 'resumen' })
+        });
+
+        if (!summaryResponse || !summaryResponse.ok) {
+          throw new Error('Error al generar el resumen');
+        }
+
+        const { output } = await summaryResponse.json();
+
+        // Redirigir a la página de resumen con los datos
+        const params = new URLSearchParams({
+          pdfId: pdfId,
+          outputId: output.id,
+          fileName: fileInput.files[0].name
+        });
+        
+        window.location.href = `/Frontend/resumen.html?${params.toString()}`;
         return;
       }
 
-      if (type) {
-        showSuccessMessage(type);
-      } else {
-        showInfoMessage("¡Proceso completado!");
-      }
-    }, 3000);
+      // Para otros tipos de contenido (mantener lógica existente)
+      setTimeout(() => {
+        loadingOverlay.classList.remove("show");
+        if (type) {
+          showSuccessMessage(type);
+        } else {
+          showInfoMessage("¡Proceso completado!");
+        }
+      }, 3000);
+
+    } catch (error) {
+      console.error('Error:', error);
+      loadingOverlay.classList.remove("show");
+      showNotification(`Error: ${error.message}`, "error");
+    }
   });
 });
 
@@ -160,10 +206,12 @@ function showNotification(message, type = "success") {
   const notification = document.createElement("div");
   notification.className = `notification ${type}`;
 
-  const icon = type === "success" ? "✅" : "ℹ️";
+  const icon = type === "success" ? "✅" : type === "error" ? "❌" : "ℹ️";
   const bgColor =
     type === "success"
       ? "linear-gradient(135deg, #00b894, #00a085)"
+      : type === "error"
+      ? "linear-gradient(135deg, #e74c3c, #c0392b)"
       : "linear-gradient(135deg, #0984e3, #74b9ff)";
 
   notification.innerHTML = `

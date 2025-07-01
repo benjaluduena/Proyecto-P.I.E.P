@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resumen - Study AI</title>
-    <link rel="stylesheet" href="./Css/resumen.css">
+    <link rel="stylesheet" href="/Css/resumen.css">
 </head>
 
 <body>
@@ -25,16 +25,16 @@
     <div class="main-content">
         <!-- File Information -->
         <div class="file-info">
-            <div class="file-name">TeoradelColorUsabilidadDiseño.pdf</div>
+            <div class="file-name" id="fileName">Cargando...</div>
             <div class="file-details">
                 <span>📄 Documento PDF</span>
-                <span>📊 15 páginas</span>
-                <span>⏱️ Procesado hace 2 minutos</span>
+                <span id="filePages">📊 Procesando...</span>
+                <span id="fileTime">⏱️ Generando resumen...</span>
             </div>
-            <div class="progress-bar">
-                <div class="progress-fill"></div>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
             </div>
-            <small style="color: #666;">Análisis completado al 85%</small>
+            <small style="color: #666;" id="progressText">Cargando resumen...</small>
         </div>
 
         <!-- Summary Container -->
@@ -46,63 +46,25 @@
                 <h1 class="summary-title">Resumen Inteligente</h1>
             </div>
 
-            <div class="summary-content">
-                <div class="summary-section">
-                    <h2 class="section-title">Resumen General</h2>
-                    <p>Este documento aborda los fundamentos de la teoría del color aplicada al diseño y la usabilidad.
-                        Se exploran los principios básicos de cómo los colores afectan la percepción del usuario, la
-                        legibilidad del contenido y la experiencia general de navegación en interfaces digitales.</p>
-                </div>
-
-                <div class="summary-section">
-                    <h2 class="section-title">Conceptos Clave</h2>
-                    <ul class="key-points">
-                        <li><strong>Psicología del Color:</strong> Cómo diferentes colores evocan emociones específicas
-                            y influyen en el comportamiento del usuario.</li>
-                        <li><strong>Contraste y Legibilidad:</strong> La importancia del contraste adecuado entre texto
-                            y fondo para garantizar la accesibilidad.</li>
-                        <li><strong>Armonías Cromáticas:</strong> Uso de esquemas de color complementarios, análogos y
-                            triádicos en el diseño.</li>
-                        <li><strong>Accesibilidad Visual:</strong> Consideraciones para usuarios con daltonismo y otras
-                            deficiencias visuales.</li>
-                        <li><strong>Jerarquía Visual:</strong> Uso del color para guiar la atención del usuario y crear
-                            flujos de navegación intuitivos.</li>
-                    </ul>
-                </div>
-
-                <div class="summary-section">
-                    <h2 class="section-title">Aplicaciones Prácticas</h2>
-                    <p>El documento incluye ejemplos prácticos de implementación en:</p>
-                    <ul class="key-points">
-                        <li>Diseño de interfaces web y móviles</li>
-                        <li>Sistemas de navegación y menús</li>
-                        <li>Botones de llamada a la acción (CTA)</li>
-                        <li>Esquemas de color para diferentes industrias</li>
-                        <li>Herramientas y recursos para selección de colores</li>
-                    </ul>
-                </div>
-
-                <div class="summary-section">
-                    <h2 class="section-title">Conclusiones</h2>
-                    <p>La teoría del color es fundamental para crear diseños efectivos y accesibles. La correcta
-                        aplicación de principios cromáticos no solo mejora la estética visual, sino que también optimiza
-                        la usabilidad y la experiencia del usuario, resultando en interfaces más intuitivas y
-                        funcionales.</p>
+            <div class="summary-content" id="summaryContent">
+                <!-- El contenido se cargará dinámicamente -->
+                <div class="loading-message">
+                    <div class="loading-spinner"></div>
+                    <p>Generando resumen inteligente...</p>
                 </div>
             </div>
 
             <div class="actions">
-                <button class="btn btn-primary">Generar Preguntas</button>
-                <button class="btn btn-secondary">Descargar Resumen</button>
-                <button class="btn btn-secondary">Compartir</button>
+                <button class="btn btn-primary" id="generateQuestionsBtn">Generar Preguntas</button>
+                <button class="btn btn-secondary" id="downloadBtn">Descargar Resumen</button>
+                <button class="btn btn-secondary" id="shareBtn">Compartir</button>
             </div>
         </div>
     </div>
-    <script>
-        document.querySelector('.back-btn').addEventListener('click', function () {
-            window.location.href = 'index.html';
-        });
-    </script>
+
+    <script src="/lib/supabase.js"></script>
+    <script src="/JS/config.js"></script>
+    <script src="/JS/resumen.js"></script>
 </body>
 
 </html>

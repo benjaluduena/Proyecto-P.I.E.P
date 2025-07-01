@@ -1,11 +1,11 @@
 const express = require('express');
 const supabase = require('../config/supabase');
-const { simpleAuth } = require('../middleware/auth');
+const { supabaseAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
 // Crear plan de estudio
-router.post('/plans', simpleAuth, async (req, res) => {
+router.post('/plans', supabaseAuth, async (req, res) => {
   try {
     const { title, description, start_date, end_date, notify_by_email, notify_by_whatsapp } = req.body;
 
@@ -44,7 +44,7 @@ router.post('/plans', simpleAuth, async (req, res) => {
 });
 
 // Listar planes de estudio del usuario
-router.get('/plans', simpleAuth, async (req, res) => {
+router.get('/plans', supabaseAuth, async (req, res) => {
   try {
     const { data: plans, error } = await supabase
       .from('study_plans')
@@ -81,7 +81,7 @@ router.get('/plans', simpleAuth, async (req, res) => {
 });
 
 // Obtener plan específico
-router.get('/plans/:planId', simpleAuth, async (req, res) => {
+router.get('/plans/:planId', supabaseAuth, async (req, res) => {
   try {
     const { planId } = req.params;
 
@@ -127,7 +127,7 @@ router.get('/plans/:planId', simpleAuth, async (req, res) => {
 });
 
 // Actualizar plan de estudio
-router.put('/plans/:planId', simpleAuth, async (req, res) => {
+router.put('/plans/:planId', supabaseAuth, async (req, res) => {
   try {
     const { planId } = req.params;
     const { title, description, start_date, end_date, notify_by_email, notify_by_whatsapp } = req.body;
@@ -164,7 +164,7 @@ router.put('/plans/:planId', simpleAuth, async (req, res) => {
 });
 
 // Eliminar plan de estudio
-router.delete('/plans/:planId', simpleAuth, async (req, res) => {
+router.delete('/plans/:planId', supabaseAuth, async (req, res) => {
   try {
     const { planId } = req.params;
 
@@ -188,7 +188,7 @@ router.delete('/plans/:planId', simpleAuth, async (req, res) => {
 });
 
 // Crear tarea del plan
-router.post('/plans/:planId/tasks', simpleAuth, async (req, res) => {
+router.post('/plans/:planId/tasks', supabaseAuth, async (req, res) => {
   try {
     const { planId } = req.params;
     const { title, description, due_date, related_output_id } = req.body;
@@ -238,7 +238,7 @@ router.post('/plans/:planId/tasks', simpleAuth, async (req, res) => {
 });
 
 // Actualizar tarea
-router.put('/tasks/:taskId', simpleAuth, async (req, res) => {
+router.put('/tasks/:taskId', supabaseAuth, async (req, res) => {
   try {
     const { taskId } = req.params;
     const { title, description, due_date, completed, related_output_id } = req.body;
@@ -278,7 +278,7 @@ router.put('/tasks/:taskId', simpleAuth, async (req, res) => {
 });
 
 // Eliminar tarea
-router.delete('/tasks/:taskId', simpleAuth, async (req, res) => {
+router.delete('/tasks/:taskId', supabaseAuth, async (req, res) => {
   try {
     const { taskId } = req.params;
 
@@ -317,7 +317,7 @@ router.delete('/tasks/:taskId', simpleAuth, async (req, res) => {
 });
 
 // Registrar progreso
-router.post('/progress', simpleAuth, async (req, res) => {
+router.post('/progress', supabaseAuth, async (req, res) => {
   try {
     const { output_id, interaction_type, score } = req.body;
 
@@ -369,7 +369,7 @@ router.post('/progress', simpleAuth, async (req, res) => {
 });
 
 // Obtener estadísticas de progreso
-router.get('/progress/stats', simpleAuth, async (req, res) => {
+router.get('/progress/stats', supabaseAuth, async (req, res) => {
   try {
     // Estadísticas generales
     const { data: totalInteractions, error: interactionsError } = await supabase
@@ -420,7 +420,7 @@ router.get('/progress/stats', simpleAuth, async (req, res) => {
 });
 
 // Obtener historial de progreso
-router.get('/progress/history', simpleAuth, async (req, res) => {
+router.get('/progress/history', supabaseAuth, async (req, res) => {
   try {
     const { data: history, error } = await supabase
       .from('progress_tracking')

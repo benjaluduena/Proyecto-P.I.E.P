@@ -25,11 +25,27 @@ function cargarSeccion(nombre) {
 window.onload = () => cargarSeccion('home');
 
 // Función de logout mejorada
-function logout() {
+async function logout() {
   console.log('Cerrando sesión...');
-  clearSession();
-  alert('Sesión cerrada correctamente');
-  redirectToLogin();
+  
+  try {
+    // Cerrar sesión en Supabase
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      console.error('Error al cerrar sesión en Supabase:', error);
+    }
+    
+    // Limpiar localStorage
+    clearSession();
+    
+    alert('Sesión cerrada correctamente');
+    redirectToLogin();
+  } catch (error) {
+    console.error('Error en logout:', error);
+    clearSession();
+    redirectToLogin();
+  }
 }
 
 // Asignar logout al botón 'Salir' de forma robusta

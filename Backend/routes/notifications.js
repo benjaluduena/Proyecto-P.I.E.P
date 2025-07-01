@@ -1,7 +1,7 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 const supabase = require('../config/supabase');
-const { simpleAuth } = require('../middleware/auth');
+const { supabaseAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -36,7 +36,7 @@ const sendEmail = async (to, subject, html) => {
 };
 
 // Crear notificación
-router.post('/', simpleAuth, async (req, res) => {
+router.post('/', supabaseAuth, async (req, res) => {
   try {
     const { task_id, method, scheduled_at } = req.body;
 
@@ -100,7 +100,7 @@ router.post('/', simpleAuth, async (req, res) => {
 });
 
 // Listar notificaciones del usuario
-router.get('/', simpleAuth, async (req, res) => {
+router.get('/', supabaseAuth, async (req, res) => {
   try {
     const { data: notifications, error } = await supabase
       .from('notifications')
@@ -133,7 +133,7 @@ router.get('/', simpleAuth, async (req, res) => {
 });
 
 // Enviar notificación inmediata (para pruebas)
-router.post('/send/:notificationId', simpleAuth, async (req, res) => {
+router.post('/send/:notificationId', supabaseAuth, async (req, res) => {
   try {
     const { notificationId } = req.params;
 
@@ -204,7 +204,7 @@ router.post('/send/:notificationId', simpleAuth, async (req, res) => {
 });
 
 // Eliminar notificación
-router.delete('/:notificationId', simpleAuth, async (req, res) => {
+router.delete('/:notificationId', supabaseAuth, async (req, res) => {
   try {
     const { notificationId } = req.params;
 
@@ -228,7 +228,7 @@ router.delete('/:notificationId', simpleAuth, async (req, res) => {
 });
 
 // Endpoint para verificar tareas vencidas y enviar notificaciones
-router.post('/check-overdue', simpleAuth, async (req, res) => {
+router.post('/check-overdue', supabaseAuth, async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
 
@@ -303,7 +303,7 @@ router.post('/check-overdue', simpleAuth, async (req, res) => {
 });
 
 // Configurar preferencias de notificación
-router.put('/preferences', simpleAuth, async (req, res) => {
+router.put('/preferences', supabaseAuth, async (req, res) => {
   try {
     const { notify_by_email, notify_by_whatsapp } = req.body;
 

@@ -9,4 +9,6 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+// Configuración global para OpenAI/OpenRouter
+
 module.exports = supabase; 

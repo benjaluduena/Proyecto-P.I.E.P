@@ -1,36 +1,60 @@
 const express = require('express');
 const OpenAI = require('openai');
 const supabase = require('../config/supabase');
-const { simpleAuth } = require('../middleware/auth');
+const { supabaseAuth } = require('../middleware/auth');
+const fs = require('fs');
+const path = require('path');
+const pdfParse = require('pdf-parse');
 
 const router = express.Router();
 
-// Configurar OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Configurar OpenAI para usar la API key desde variable de entorno
+const openai = new OpenAI();
 
-// Función para extraer texto del PDF (simulada por ahora)
+// Función para extraer texto del PDF (ahora real)
 const extractTextFromPDF = async (filePath) => {
-  // En una implementación real, usarías una librería como pdf-parse
-  // Por ahora retornamos texto de ejemplo
-  return `Este es un ejemplo de contenido extraído del PDF. 
-  Contiene información educativa sobre el tema que el usuario ha subido.
-  La IA analizará este contenido para generar recursos educativos personalizados.`;
+  try {
+    const dataBuffer = fs.readFileSync(filePath);
+    const data = await pdfParse(dataBuffer);
+    return data.text;
+  } catch (error) {
+    console.error('Error al extraer texto del PDF:', error);
+    return '';
+  }
+};
+
+// Función para limpiar la respuesta de OpenAI
+const cleanOpenAIResponse = (response) => {
+  let parsed;
+  try {
+    parsed = typeof response === 'string' ? JSON.parse(response) : response;
+  } catch (error) {
+    let cleaned = response;
+    cleaned = cleaned.replace(/```json|```/gi, '');
+    const first = cleaned.indexOf('{');
+    const last = cleaned.lastIndexOf('}');
+    if (first !== -1 && last !== -1 && last > first) {
+      cleaned = cleaned.substring(first, last + 1);
+    }
+    cleaned = cleaned.replace(/\n/g, '').trim();
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch (parseError) {
+      parsed = {};
+    }
+  }
+  return {
+    resumen_general: parsed.resumen_general || '',
+    conceptos_clave: Array.isArray(parsed.conceptos_clave) ? parsed.conceptos_clave : [],
+    aplicaciones_practicas: Array.isArray(parsed.aplicaciones_practicas) ? parsed.aplicaciones_practicas : [],
+    conclusiones: parsed.conclusiones || ''
+  };
 };
 
 // Función para generar contenido educativo con IA
 const generateEducationalContent = async (pdfText, contentType, educationLevel, language = 'español') => {
   const prompts = {
-    resumen: `Genera un resumen educativo del siguiente texto. 
-    Nivel educativo: ${educationLevel}. 
-    Incluye:
-    - Ideas principales
-    - Conceptos clave
-    - Esquema organizado
-    - Puntos importantes para recordar
-    
-    Texto: ${pdfText}`,
+    resumen: `A partir del siguiente texto, genera un resumen educativo en formato JSON ESTRICTAMENTE con la siguiente estructura y sin ningún texto adicional fuera del JSON:\n\n{\n  "resumen_general": "Texto del resumen general aquí.",\n  "conceptos_clave": ["Concepto 1", "Concepto 2", "Concepto 3"],\n  "aplicaciones_practicas": ["Aplicación 1", "Aplicación 2", "Aplicación 3"],\n  "conclusiones": "Texto de las conclusiones aquí."\n}\n\n- Si algún campo no puede generarse, déjalo vacío pero siempre incluye todos los campos.\n- No expliques nada fuera del JSON.\n- Responde solo en español.\n\nTexto a resumir:\n${pdfText}`,
 
     recomendacion_video: `Basándote en el siguiente texto, sugiere 3-5 videos educativos relacionados.
     Nivel educativo: ${educationLevel}.
@@ -96,12 +120,11 @@ const generateEducationalContent = async (pdfText, contentType, educationLevel, 
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: `Eres un asistente educativo experto. Genera contenido educativo de alta calidad, 
-          adaptado al nivel educativo especificado. Responde siempre en ${language} y en formato JSON válido.`
+          content: `Eres un asistente educativo experto. Genera contenido educativo de alta calidad, \n          adaptado al nivel educativo especificado. Responde siempre en ${language} y en formato JSON válido.\n          Para resúmenes, incluye: resumen_general, conceptos_clave (array), aplicaciones_practicas (array), conclusiones.`
         },
         {
           role: "user",
@@ -111,16 +134,17 @@ const generateEducationalContent = async (pdfText, contentType, educationLevel, 
       temperature: 0.7,
       max_tokens: 2000
     });
-
-    return completion.choices[0].message.content;
+    const generatedContent = completion.choices[0].message.content;
+    const cleanedContent = cleanOpenAIResponse(generatedContent);
+    return JSON.stringify(cleanedContent);
   } catch (error) {
     console.error('Error al generar contenido con OpenAI:', error);
-    throw new Error('Error al generar contenido educativo');
+    throw new Error('No se pudo generar el contenido con OpenAI.');
   }
 };
 
 // Generar contenido educativo
-router.post('/generate/:pdfId', simpleAuth, async (req, res) => {
+router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
   try {
     const { pdfId } = req.params;
     const { type } = req.body;
@@ -138,25 +162,38 @@ router.post('/generate/:pdfId', simpleAuth, async (req, res) => {
       });
     }
 
-    // Verificar que el PDF pertenece al usuario
-    const { data: pdf, error: pdfError } = await supabase
-      .from('pdf_uploads')
-      .select('*')
-      .eq('id', pdfId)
-      .eq('user_id', req.user.id)
-      .single();
-
-    if (pdfError || !pdf) {
-      return res.status(404).json({ error: 'PDF no encontrado' });
+    // Obtener el PDF real de la BD
+    let pdf = null;
+    let pdfExists = true;
+    try {
+      const { data, error: pdfError } = await supabase
+        .from('pdf_uploads')
+        .select('*')
+        .eq('id', pdfId)
+        .eq('user_id', req.user.id)
+        .single();
+      if (pdfError || !data) {
+        return res.status(404).json({ error: 'PDF no encontrado en BD' });
+      } else {
+        pdf = data;
+      }
+    } catch (error) {
+      return res.status(500).json({ error: 'Error al verificar PDF' });
     }
 
     // Verificar si ya existe contenido de este tipo
-    const { data: existingContent } = await supabase
-      .from('study_outputs')
-      .select('id')
-      .eq('pdf_id', pdfId)
-      .eq('type', type)
-      .single();
+    let existingContent = null;
+    try {
+      const { data } = await supabase
+        .from('study_outputs')
+        .select('id')
+        .eq('pdf_id', pdfId)
+        .eq('type', type)
+        .single();
+      existingContent = data;
+    } catch (error) {
+      // Si hay error, continuar (no bloquear)
+    }
 
     if (existingContent) {
       return res.status(400).json({ 
@@ -165,30 +202,52 @@ router.post('/generate/:pdfId', simpleAuth, async (req, res) => {
       });
     }
 
-    // Extraer texto del PDF (simulado)
-    const pdfText = await extractTextFromPDF(pdf.file_url);
+    // Extraer texto real del PDF
+    let pdfText = '';
+    if (pdf && pdf.file_url) {
+      const pdfPath = path.join(__dirname, '..', pdf.file_url.startsWith('/') ? pdf.file_url : '/' + pdf.file_url);
+      pdfText = await extractTextFromPDF(pdfPath);
+      if (!pdfText) {
+        return res.status(500).json({ error: 'No se pudo extraer texto del PDF.' });
+      }
+    } else {
+      return res.status(404).json({ error: 'PDF no encontrado o sin ruta válida.' });
+    }
 
     // Generar contenido con IA
-    const aiContent = await generateEducationalContent(
-      pdfText, 
-      type, 
-      req.user.education_level || 'universitario'
-    );
+    let aiContent;
+    try {
+      aiContent = await generateEducationalContent(
+        pdfText, 
+        type, 
+        req.user.education_level || 'universitario'
+      );
+    } catch (error) {
+      return res.status(500).json({ error: error.message || 'Error al generar el contenido con IA.' });
+    }
 
     // Guardar en la base de datos
-    const { data: studyOutput, error: insertError } = await supabase
-      .from('study_outputs')
-      .insert([{
-        pdf_id: pdfId,
-        type: type,
-        content: aiContent
-      }])
-      .select('*')
-      .single();
+    let studyOutput;
+    try {
+      const { data, error: insertError } = await supabase
+        .from('study_outputs')
+        .insert([{
+          pdf_id: pdfId,
+          type: type,
+          content: aiContent
+        }])
+        .select('*')
+        .single();
 
-    if (insertError) {
-      console.error('Error al guardar contenido generado:', insertError);
-      return res.status(500).json({ error: 'Error al guardar el contenido' });
+      if (insertError) {
+        console.error('Error al guardar en BD:', insertError);
+        return res.status(500).json({ error: 'Error al guardar el contenido en la base de datos.' });
+      } else {
+        studyOutput = data;
+      }
+    } catch (dbError) {
+      console.error('Error de BD:', dbError);
+      return res.status(500).json({ error: 'Error de base de datos.' });
     }
 
     res.status(201).json({
@@ -203,46 +262,60 @@ router.post('/generate/:pdfId', simpleAuth, async (req, res) => {
 
   } catch (error) {
     console.error('Error al generar contenido:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    res.status(500).json({ 
+      error: 'Error interno del servidor',
+      details: error.message 
+    });
   }
 });
 
 // Obtener contenido generado
-router.get('/content/:outputId', simpleAuth, async (req, res) => {
+router.get('/content/:outputId', supabaseAuth, async (req, res) => {
   try {
     const { outputId } = req.params;
 
-    const { data: output, error } = await supabase
-      .from('study_outputs')
-      .select(`
-        id,
-        type,
-        content,
-        created_at,
-        pdf_uploads!inner (
+    let output;
+    try {
+      const { data, error } = await supabase
+        .from('study_outputs')
+        .select(`
           id,
-          title,
-          user_id
-        )
-      `)
-      .eq('id', outputId)
-      .eq('pdf_uploads.user_id', req.user.id)
-      .single();
+          type,
+          content,
+          created_at,
+          pdf_uploads!inner (
+            id,
+            title,
+            user_id
+          )
+        `)
+        .eq('id', outputId)
+        .eq('pdf_uploads.user_id', req.user.id)
+        .single();
 
-    if (error || !output) {
-      return res.status(404).json({ error: 'Contenido no encontrado' });
+      if (error || !data) {
+        return res.status(404).json({ error: 'Contenido no encontrado en BD' });
+      } else {
+        output = data;
+      }
+    } catch (dbError) {
+      console.error('Error de BD:', dbError);
+      return res.status(500).json({ error: 'Error de base de datos.' });
     }
 
     res.json({ output });
 
   } catch (error) {
     console.error('Error al obtener contenido:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    res.status(500).json({ 
+      error: 'Error interno del servidor',
+      details: error.message 
+    });
   }
 });
 
 // Listar todo el contenido generado para un PDF
-router.get('/pdf/:pdfId', simpleAuth, async (req, res) => {
+router.get('/pdf/:pdfId', supabaseAuth, async (req, res) => {
   try {
     const { pdfId } = req.params;
 
@@ -278,7 +351,7 @@ router.get('/pdf/:pdfId', simpleAuth, async (req, res) => {
 });
 
 // Regenerar contenido (eliminar y crear nuevo)
-router.post('/regenerate/:outputId', simpleAuth, async (req, res) => {
+router.post('/regenerate/:outputId', supabaseAuth, async (req, res) => {
   try {
     const { outputId } = req.params;
 
@@ -342,7 +415,7 @@ router.post('/regenerate/:outputId', simpleAuth, async (req, res) => {
 });
 
 // Eliminar contenido generado
-router.delete('/content/:outputId', simpleAuth, async (req, res) => {
+router.delete('/content/:outputId', supabaseAuth, async (req, res) => {
   try {
     const { outputId } = req.params;
 

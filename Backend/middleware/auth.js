@@ -1,25 +1,77 @@
 const supabase = require('../config/supabase');
 
-// Middleware para verificar usuario y contraseña en cada request
-async function simpleAuth(req, res, next) {
-  const { email, password } = req.headers;
-  if (!email || !password) {
-    return res.status(401).json({ error: 'Email y contraseña requeridos en los headers' });
+// Middleware para verificar JWT de Supabase Auth
+async function supabaseAuth(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ 
+        error: 'Token de autorización requerido',
+        message: 'Debe incluir un token Bearer en el header Authorization'
+      });
+    }
+
+    const token = authHeader.substring(7); // Remover 'Bearer ' del token
+
+    // Verificar el token con Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      return res.status(401).json({ 
+        error: 'Token inválido',
+        message: 'El token de autorización no es válido o ha expirado'
+      });
+    }
+
+    // Obtener datos adicionales del perfil si existen
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name, role, education_level')
+      .eq('id', user.id)
+      .single();
+
+    // Combinar datos del usuario de auth con el perfil
+    req.user = {
+      id: user.id,
+      email: user.email,
+      name: profile?.name || user.user_metadata?.name || 'Usuario',
+      role: profile?.role || 'estudiante',
+      education_level: profile?.education_level || 'universitario'
+    };
+
+    next();
+  } catch (error) {
+    console.error('Error en autenticación:', error);
+    return res.status(500).json({ 
+      error: 'Error en la autenticación',
+      message: 'Error interno del servidor durante la verificación del token'
+    });
   }
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('id, name, email, password_hash, role, education_level')
-    .eq('email', email)
-    .single();
-  if (error || !user) {
-    return res.status(401).json({ error: 'Usuario no encontrado' });
-  }
-  // Verificar contraseña (en texto plano para simplicidad local)
-  if (user.password_hash !== password) {
-    return res.status(401).json({ error: 'Contraseña incorrecta' });
-  }
-  req.user = user;
-  next();
 }
 
-module.exports = { simpleAuth }; 
+// Middleware para desarrollo que permite peticiones sin autenticación
+function devAuth(req, res, next) {
+  // Para desarrollo, crear un usuario de prueba si no hay autenticación
+  if (!req.headers.authorization) {
+    req.user = {
+      id: '550e8400-e29b-41d4-a716-446655440000', // UUID válido para desarrollo
+      name: 'Usuario de Desarrollo',
+      email: 'dev@test.com',
+      role: 'estudiante',
+      education_level: 'universitario'
+    };
+    return next();
+  }
+  
+  // Si hay token de autorización, usar la autenticación de Supabase
+  return supabaseAuth(req, res, next);
+}
+
+// Middleware legacy para compatibilidad (deprecated)
+async function simpleAuth(req, res, next) {
+  console.warn('⚠️ simpleAuth está deprecado. Use supabaseAuth en su lugar.');
+  return supabaseAuth(req, res, next);
+}
+
+module.exports = { supabaseAuth, devAuth, simpleAuth }; 

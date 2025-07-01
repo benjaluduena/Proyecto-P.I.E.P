@@ -1,0 +1,19 @@
+
+    Este es un documento de prueba sobre inteligencia artificial.
+    
+    La inteligencia artificial (IA) es una rama de la informática que se enfoca en crear sistemas capaces de realizar tareas que normalmente requieren inteligencia humana.
+    
+    Conceptos clave:
+    - Machine Learning: Algoritmos que aprenden de los datos
+    - Deep Learning: Redes neuronales profundas
+    - Natural Language Processing: Procesamiento del lenguaje natural
+    - Computer Vision: Visión por computadora
+    
+    Aplicaciones prácticas:
+    - Asistentes virtuales como Siri y Alexa
+    - Sistemas de recomendación en Netflix y Amazon
+    - Diagnóstico médico asistido por IA
+    - Vehículos autónomos
+    
+    La IA está transformando múltiples industrias y se espera que continúe evolucionando rápidamente en los próximos años.
+  
