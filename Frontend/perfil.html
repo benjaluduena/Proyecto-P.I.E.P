@@ -42,16 +42,18 @@
 
         <h2 class="user-name" id="userName">Juan Pérez</h2>
         <p class="user-email" id="userEmail">juan.perez@email.com</p>
-        <span class="user-role" id="userRole">Estudiante</span>
+        <div class="user-role-container">
+          <span class="user-role" id="userRole">Estudiante</span>
 
-        <button class="edit-profile-btn" onclick="openEditModal()">
-          <span class="buttons-ico">
-            <svg>
-              <use href="/Frontend/Assets/sprite.svg#icon-edit"></use>
-            </svg>
-            Editar Perfil
-          </span>
-        </button>
+          <button class="edit-profile-btn" onclick="openEditModal()">
+            <span class="buttons-ico">
+              <svg>
+                <use href="/Frontend/Assets/sprite.svg#icon-edit"></use>
+              </svg>
+              Editar Perfil
+            </span>
+          </button>
+        </div>
 
         <div class="profile-stats">
           <div class="stat-item">

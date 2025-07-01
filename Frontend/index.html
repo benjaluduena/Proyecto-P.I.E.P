@@ -26,7 +26,7 @@
         <!-- Sidebar Menu -->
         <nav class="menu">
 
-          <button onclick="cargarSeccion('home')" type="button" class="menu-item">
+          <button onclick="cargarSeccion('home')" type="button" class="menu-item active">
             <span class="sidebar-ico">
               <svg>
                 <use href="/Frontend/Assets/sprite.svg#icon-home"></use>
@@ -87,19 +87,34 @@
           </span>
           Salir
         </button>
-
         <!-- Información del Usuario -->
-        <div class="user-profile">
-          <div class="user-avatar">
+        <div class="user-profile" id="userProfile">
+          <div class="user-avatar" id="userAvatar">
             <img src="/Frontend/Assets/Imagenes/photo.png" alt="Foto de perfil" class="avatar-img">
           </div>
           <div class="user-info">
             <div class="user-name">Juan Pérez</div>
             <div class="user-email">juan.perez@email.com</div>
           </div>
-        </div>
+          <!-- Dropdown Menu -->
+          <div class="profile-dropdown" id="profileDropdown">
+            <div class="dropdown-item" onclick="openSettings()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <use href="/Frontend/Assets/sprite.svg#icon-settings"></use>
+              </svg>
+              Ajustes
+            </div>
+            <div class="dropdown-item" onclick="logout()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+              </svg>
+              Cerrar sesión
+            </div>
+          </div>
 
-      </div>
+
+        </div>
 
     </aside>
 
