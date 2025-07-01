@@ -81,7 +81,11 @@ authForm.addEventListener('submit', async function (e) {
 
       if (error) {
         // Si el error es por confirmación de email, mostrar mensaje de éxito
-        if (error.message && error.message.toLowerCase().includes('confirm')) {
+        if (error.message && (
+          error.message.toLowerCase().includes('confirm') ||
+          error.message.toLowerCase().includes('verification') ||
+          error.message.toLowerCase().includes('email')
+        )) {
           mostrarPantallaVerificaEmail();
           authForm.reset();
           return;
@@ -91,7 +95,16 @@ authForm.addEventListener('submit', async function (e) {
         return;
       }
 
-      if (data.user) {
+      // Si no hay error, verificar si el usuario fue creado pero requiere confirmación
+      if (data.user && !data.session) {
+        // Usuario creado pero requiere confirmación de email
+        mostrarPantallaVerificaEmail();
+        authForm.reset();
+        return;
+      }
+
+      if (data.user && data.session) {
+        // Usuario creado y confirmado automáticamente (poco común)
         // Crear perfil en el backend
         const response = await fetch(CONFIG.API.BASE_URL + CONFIG.API.REGISTER, {
           method: 'POST',
@@ -100,8 +113,10 @@ authForm.addEventListener('submit', async function (e) {
         });
 
         if (response.ok) {
-          mostrarPantallaVerificaEmail();
-          authForm.reset();
+          // Guardar sesión y redirigir
+          localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(data.session));
+          localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(data.user));
+          redirectToHome();
         } else {
           // Si falla el backend, mostrar mensaje pero NO eliminar el usuario de auth
           const errorData = await response.json();
@@ -114,6 +129,16 @@ authForm.addEventListener('submit', async function (e) {
       }
     } catch (err) {
       console.error('Error en registro:', err);
+      // Verificar si el error es por confirmación de email
+      if (err.message && (
+        err.message.toLowerCase().includes('confirm') ||
+        err.message.toLowerCase().includes('verification') ||
+        err.message.toLowerCase().includes('email')
+      )) {
+        mostrarPantallaVerificaEmail();
+        authForm.reset();
+        return;
+      }
       alert('Error de red o del servidor');
     }
   } else {

@@ -210,3 +210,48 @@
       height: 22px;
       margin-right: 10px;
     }
+
+    /* Estilos para el contenedor de verificación de email */
+    .verify-email-container {
+      background: #ffffff;
+      padding: 3rem 2.5rem;
+      border-radius: 20px;
+      box-shadow: 0 15px 45px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      min-height: 540px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .verify-email-container h2 {
+      color: #222;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+      font-size: 1.6rem;
+    }
+
+    .verify-email-container p {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .verify-email-container p strong {
+      color: #f18531;
+      font-weight: 600;
+    }
+
+    .verify-email-container .submit-button {
+      margin-top: 2rem;
+      background: #4CAF50;
+      box-shadow: 0 4px 14px rgba(76, 175, 80, 0.5);
+    }
+
+    .verify-email-container .submit-button:hover {
+      background: #45a049;
+    }
