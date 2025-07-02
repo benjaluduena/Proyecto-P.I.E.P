@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Perfil - StudyAI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/Css/perfil.css">
+</head>
+
+<body>
+  <div class="header">
+    <div class="header-content">
+      <img class="logo" src="/Assets/Imagenes/Logo.png" alt="">
+      <button class="back-btn" id="btnBack">
+        <span class="buttons-ico">
+          <svg>
+            <use href="/Assets/sprite.svg#icon-back"></use>
+          </svg>
+          Regresar
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="profile-container">
+      <!-- Profile Card -->
+      <div class="profile-card">
+        <div class="avatar-section">
+          <div class="avatar" id="userAvatar">
+            <img src="/Assets/Imagenes/imagen-cat.jpeg" alt="Avatar" style="display: none;" id="avatarImg">
+            <span id="avatarInitials">JP</span>
+            <div class="avatar-upload" id="btnAvatarUpload">
+              <svg>
+                <use href="/Assets/sprite.svg#icon-camera"></use>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <h2 class="user-name" id="userName">Juan Pérez</h2>
+        <p class="user-email" id="userEmail">juan.perez@email.com</p>
+        <div class="user-role-container">
+          <span class="user-role" id="userRole">Estudiante</span>
+
+          <button class="edit-profile-btn" id="btnEditProfile">
+            <span class="buttons-ico">
+              <svg>
+                <use href="/Assets/sprite.svg#icon-edit"></use>
+              </svg>
+              Editar Perfil
+            </span>
+          </button>
+        </div>
+
+        <div class="profile-stats">
+          <div class="stat-item">
+            <span class="stat-number">24</span>
+            <span class="stat-label">Estudios</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">156</span>
+            <span class="stat-label">Preguntas</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">89%</span>
+            <span class="stat-label">Precisión</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Information Section -->
+      <div class="info-section">
+        <h3 class="section-title">Información Personal</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label class="info-label">Nombre Completo</label>
+            <div class="info-value" id="displayName">Juan Pérez González</div>
+          </div>
+          <div class="info-item">
+            <label class="info-label">Correo Electrónico</label>
+            <div class="info-value" id="displayEmail">juan.perez@email.com</div>
+          </div>
+          <div class="info-item">
+            <label class="info-label">Rol</label>
+            <div class="info-value" id="displayRole">Estudiante</div>
+          </div>
+          <div class="info-item">
+            <label class="info-label">Nivel Educativo</label>
+            <div class="info-value" id="displayEducation">Universitario</div>
+          </div>
+          <div class="info-item">
+            <label class="info-label">Fecha de Registro</label>
+            <div class="info-value">15 de Marzo, 2024</div>
+          </div>
+          <div class="info-item">
+            <label class="info-label">Último Acceso</label>
+            <div class="info-value">Hoy, 14:30</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Section -->
+    <div class="settings-section">
+      <h3 class="section-title">Configuración de Cuenta</h3>
+      <div class="settings-grid">
+        <div class="setting-item">
+          <span class="setting-label">Notificaciones por Email</span>
+          <div class="toggle-switch active" id="toggleEmail"></div>
+        </div>
+        <div class="setting-item">
+          <span class="setting-label">Recordatorios de Estudio</span>
+          <div class="toggle-switch active" id="toggleReminder"></div>
+        </div>
+        <div class="setting-item">
+          <span class="setting-label">Perfil Público</span>
+          <div class="toggle-switch" id="togglePublic"></div>
+        </div>
+        <div class="setting-item">
+          <span class="setting-label">Modo Oscuro</span>
+          <div class="toggle-switch" id="toggleDark"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="btn btn-primary" id="btnSaveChanges">
+        <span class="buttons-ico">
+          <svg>
+            <use href="/Assets/sprite.svg#icon-save"></use>
+          </svg>
+        </span>
+        Guardar Cambios
+      </button>
+
+      <button class="btn btn-secondary" id="btnChangePassword">
+        <span class="buttons-ico">
+          <svg>
+            <use href="/Assets/sprite.svg#icon-lock"></use>
+          </svg>
+        </span>
+        Cambiar Contraseña
+      </button>
+
+      <button class="btn btn-danger" id="btnDeleteAccount">
+        <span class="buttons-ico">
+          <svg>
+            <use href="/Assets/sprite.svg#icon-trash"></use>
+          </svg>
+        </span>
+        Eliminar Cuenta
+      </button>
+    </div>
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="btnCloseEditModal">&times;</span>
+      <h3 style="margin-bottom: 25px;">Editar Perfil</h3>
+
+      <div class="form-group">
+        <label for="editName">Nombre Completo</label>
+        <input type="text" id="editName" value="Juan Pérez González">
+      </div>
+
+      <div class="form-group">
+        <label for="editEmail">Correo Electrónico</label>
+        <input type="email" id="editEmail" value="juan.perez@email.com">
+      </div>
+
+      <div class="form-group">
+        <label for="editRole">Rol</label>
+        <select id="editRole">
+          <option value="estudiante" selected>Estudiante</option>
+          <option value="docente">Docente</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="editEducation">Nivel Educativo</label>
+        <select id="editEducation">
+          <option value="secundario">Secundario</option>
+          <option value="terciario">Terciario</option>
+          <option value="universitario" selected>Universitario</option>
+          <option value="posgrado">Posgrado</option>
+        </select>
+      </div>
+
+      <div class="action-buttons">
+        <button class="btn btn-primary" id="btnSaveProfile">Guardar</button>
+        <button class="btn btn-secondary" id="btnCancelEdit">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/JS/perfil.js"></script>
+</body>
+
+</html>
