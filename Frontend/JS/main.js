@@ -1,3 +1,4 @@
+let isDropdownOpen = false;
 // Carga inicial
 function cargarSeccion(nombre) {
   fetch(`Pages/${nombre}.html`)
@@ -46,6 +47,75 @@ async function logout() {
     clearSession();
     redirectToLogin();
   }
+}
+
+// Función para inicializar los event listeners
+document.addEventListener("DOMContentLoaded", () => {
+  // Dropdown de perfil
+  const userProfile = document.getElementById("userProfile");
+  const profileDropdown = document.getElementById("profileDropdown");
+  const btnAjustes = document.getElementById("btnAjustes");
+  const btnCerrarSesion = document.getElementById("btnCerrarSesion");
+
+  if (userProfile && profileDropdown) {
+    userProfile.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleDropdown();
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!userProfile.contains(e.target)) {
+        closeDropdown();
+      }
+    });
+
+    profileDropdown.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  if (btnAjustes) {
+    btnAjustes.addEventListener("click", () => {
+      closeDropdown();
+      window.location.href = "/perfil.html";
+    });
+  }
+
+  if (btnCerrarSesion) {
+    btnCerrarSesion.addEventListener("click", logout);
+  }
+});
+
+// Función para alternar el dropdown
+function toggleDropdown() {
+  const dropdown = document.getElementById("profileDropdown")
+
+  if (isDropdownOpen) {
+    closeDropdown()
+  } else {
+    openDropdown()
+  }
+}
+
+// Función para abrir el dropdown
+function openDropdown() {
+  const dropdown = document.getElementById("profileDropdown")
+  dropdown.classList.add("show")
+  isDropdownOpen = true
+}
+
+// Función para cerrar el dropdown
+function closeDropdown() {
+  const dropdown = document.getElementById("profileDropdown")
+  dropdown.classList.remove("show")
+  isDropdownOpen = false
+}
+
+// Función para abrir configuraciones
+function openSettings() {
+  alert("Abriendo configuraciones...")
+  closeDropdown()
+  window.location.href = 'perfil.html';
 }
 
 // Asignar logout al botón 'Salir' de forma robusta

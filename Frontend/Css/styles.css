@@ -169,9 +169,11 @@ body {
   transform: translateY(10px);
   transition: all 0.2s ease;
   z-index: 1000;
+  display: none;
 }
 
 .profile-dropdown.show {
+  display: block;
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
