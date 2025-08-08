@@ -4,6 +4,7 @@ const CONFIG = {
   ROUTES: {
     LOGIN: '/login.html',
     HOME: '/index.html',
+    DASHBOARD: '/dashboard.html',
     ROOT: '/'
   },
   
@@ -66,6 +67,11 @@ function redirectToLogin() {
 // Función para redirigir a home
 function redirectToHome() {
   window.location.replace(CONFIG.ROUTES.HOME);
+}
+
+// Función para redirigir al dashboard
+function redirectToDashboard() {
+  window.location.replace(CONFIG.ROUTES.DASHBOARD);
 }
 
 // Función para limpiar sesión

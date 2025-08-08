@@ -11,6 +11,7 @@ const pdfRoutes = require('./routes/pdfs');
 const aiRoutes = require('./routes/ai');
 const studyRoutes = require('./routes/study');
 const notificationRoutes = require('./routes/notifications');
+const dashboardRoutes = require('./routes/dashboard');
 
 const app = express();
 const PORT = process.env.PORT || 5500;
@@ -65,6 +66,7 @@ app.use('/api/pdfs', pdfRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/study', studyRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../Frontend')));
@@ -96,6 +98,11 @@ app.get('/api/health', (req, res) => {
 // Ruta para resumen.html
 app.get('/Frontend/resumen.html', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend', 'resumen.html'));
+});
+
+// Ruta para dashboard.html
+app.get('/dashboard.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend', 'dashboard.html'));
 });
 
 // Ruta fallback para SPA (opcional, si usas rutas en el frontend)

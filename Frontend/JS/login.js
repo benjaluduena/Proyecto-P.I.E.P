@@ -116,7 +116,7 @@ authForm.addEventListener('submit', async function (e) {
           // Guardar sesión y redirigir
           localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(data.session));
           localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(data.user));
-          redirectToHome();
+          redirectToDashboard();
         } else {
           // Si falla el backend, mostrar mensaje pero NO eliminar el usuario de auth
           const errorData = await response.json();
@@ -170,8 +170,8 @@ authForm.addEventListener('submit', async function (e) {
           console.warn('No se pudo obtener el perfil:', profileError);
         }
 
-        // Redirigir al home
-        redirectToHome();
+        // Redirigir al dashboard
+        redirectToDashboard();
       }
     } catch (err) {
       console.error('Error en login:', err);
@@ -185,10 +185,10 @@ window.addEventListener('load', async () => {
   const { data: { session } } = await supabase.auth.getSession();
   
   if (session) {
-    // Hay una sesión activa, redirigir al home
+    // Hay una sesión activa, redirigir al dashboard
     localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
     localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(session.user));
-    redirectToHome();
+    redirectToDashboard();
   }
 });
 
