@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multiple Choice</title>
+  <link rel="stylesheet" href="/Css/styles.css">
+  <link rel="stylesheet" href="/Css/vf.css">
+</head>
+<body>
+  <main class="container vf-container">
+    <header class="vf-header">
+      <div class="vf-header-left">
+        <button class="back-btn" aria-label="Volver">⟵ Volver</button>
+        <div>
+          <h1 class="section-title">Examen de Opción Múltiple</h1>
+          <div id="mcMeta" class="vf-meta"></div>
+        </div>
+      </div>
+      <div class="vf-header-right">
+        <div class="vf-stats" id="mcStats">Preguntas: 0</div>
+        <button id="downloadBtn" class="btn btn-primary">Descargar</button>
+        <button id="shareBtn" class="btn">Compartir</button>
+      </div>
+    </header>
+
+    <section id="mcList" class="vf-grid"></section>
+  </main>
+
+  <script src="/lib/supabase.js"></script>
+  <script src="/JS/config.js"></script>
+  <script src="/JS/auth-check.js"></script>
+  <script src="/JS/multiple-choice.js"></script>
+</body>
+</html>
+

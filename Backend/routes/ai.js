@@ -69,11 +69,20 @@ const generateEducationalContent = async (pdfText, contentType, educationLevel, 
 
     multiple_choice: `Genera 10 preguntas de opción múltiple basadas en el siguiente texto.
     Nivel educativo: ${educationLevel}.
-    Para cada pregunta incluye:
-    - Pregunta clara
-    - 4 opciones (A, B, C, D)
-    - Respuesta correcta
-    - Explicación de por qué es correcta
+    Devuelve ESTRICTAMENTE un JSON con esta estructura (sin texto adicional):
+    {
+      "preguntas": [
+        {
+          "enunciado": "...",
+          "opciones": ["Opción A", "Opción B", "Opción C", "Opción D"],
+          "respuesta": 0,
+          "explicacion": "..."
+        }
+      ]
+    }
+    - "respuesta" es el índice (0-3) de la opción correcta.
+    - Siempre 10 preguntas.
+    - No incluyas nada fuera del JSON.
     
     Texto: ${pdfText}`,
 
@@ -148,6 +157,37 @@ const generateEducationalContent = async (pdfText, contentType, educationLevel, 
         return { preguntas: parsed.preguntas };
       }
       return { preguntas: [] };
+    }
+    if (contentType === 'multiple_choice') {
+      let preguntas = [];
+      const src = Array.isArray(parsed?.preguntas) ? parsed.preguntas : (Array.isArray(parsed) ? parsed : []);
+      preguntas = src.map((q) => {
+        const enunciado = q.enunciado || q.pregunta || '';
+        let opciones = Array.isArray(q.opciones) ? q.opciones.slice(0, 4) : [];
+        if (opciones.length < 4 && Array.isArray(q.opciones)) {
+          while (opciones.length < 4) opciones.push('');
+        }
+        // Normalizar respuesta: índice 0-3
+        let respuesta = q.respuesta;
+        if (typeof respuesta === 'string') {
+          const letter = respuesta.trim().toUpperCase();
+          const map = { A: 0, B: 1, C: 2, D: 3 };
+          if (letter in map) respuesta = map[letter];
+          else {
+            // Buscar coincidencia por texto
+            const idx = opciones.findIndex(o => (o || '').toString().trim().toLowerCase() === respuesta.toString().trim().toLowerCase());
+            respuesta = idx >= 0 ? idx : 0;
+          }
+        }
+        if (typeof respuesta !== 'number' || respuesta < 0 || respuesta > 3) respuesta = 0;
+        return {
+          enunciado,
+          opciones,
+          respuesta,
+          explicacion: q.explicacion || ''
+        };
+      });
+      return { preguntas };
     }
     // Otros tipos: devolver lo parseado tal cual
     return parsed || {};
