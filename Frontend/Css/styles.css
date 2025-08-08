@@ -1,7 +1,7 @@
 body {
   font-family: 'Poppins', Arial, sans-serif;
   margin: 0;
-  background: white;
+  background: rgb(248, 247, 247);
 }
 
 .container {
@@ -12,9 +12,9 @@ body {
 
 /* Sidebar */
 .sidebar {
-  min-height: 100vh; /* altura mínima de la barra lateral */
-  width: 230px; /* ya lo tienes */
-  flex-shrink: 0; /* evita que se reduzca */
+  min-height: 100vh;
+  width: 230px;
+  flex-shrink: 0;
   background: white;
   border-right: 2px solid #f1f1f1;
   display: flex;
@@ -24,9 +24,7 @@ body {
   position: relative;
 }
 
-
 /* Logo */
-
 .logo-container {
   display: flex;
   flex-direction: left;
@@ -43,45 +41,41 @@ body {
   max-width: 200px;
 }
 
-
 /* Sidebar Menu */
-
 .menu {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   padding-left: 20px;
   padding-right: 20px;
 }
 
-
 .menu-item {
-  all: unset; /* elimina estilos nativos del button */
+  all: unset;
   cursor: pointer;
   text-decoration: none;
   color: black;
   font-size: 0.8rem;
-  background: #F5F5F5;
-  border-radius: 10px;
-  padding: 10px 10px;
+  background: transparent;
+  border-radius: 6px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.1s, color 0.2s;
   font-weight: 600;
 }
 
 .menu-item.active {
-  background: #f2edfe;
-  color: #a259fa;
+  background: #ededed;
+  color: black;
+  border-left: 4px solid #a259fa;;
 }
 
 .menu-item:hover:not(.active) {
   background: #ededed;
 }
 
-
 /* Sidebar Iconos */
-
 .sidebar-ico svg {
   display: flex;
   align-items: center;
@@ -89,14 +83,12 @@ body {
   height: 20px;
 }
 
-
 .menu-item .sidebar-ico {
   font-size: 1.25rem;
   margin-right: 5px;
 }
 
-/*Sidebar Footer */
-
+/* Sidebar Footer */
 .sidebar-footer {
   display: flex;
   flex-direction: column;
@@ -107,13 +99,118 @@ body {
 }
 
 
-.sidebar-footer .menu-item {
-  background: #f5f6f7;
+/* Perfil de Usuario */
+/* Perfil de Usuario */
+.user-profile {
+  background: transparent;
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.user-profile:hover {
+  background: #ededed;
+}
+
+.user-avatar {
+  flex-shrink: 0;
+}
+
+.avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #dee2e6;
+  background: #e9ecef;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email {
+  font-size: 0.7rem;
+  color: #6c757d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Profile Dropdown */
+.profile-dropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  background: rgb(255, 253, 253);
+  border: 1px solid white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-bottom: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.profile-dropdown.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: black;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-radius: 6px;
+  margin: 4px;
+}
+
+.dropdown-item:hover {
+  background: #ededed;
+}
+
+.dropdown-item:first-child {
+  margin-top: 8px;
+}
+
+.dropdown-item:last-child {
+  margin-bottom: 8px;
+}
+
+.dropdown-item svg {
+  color: black;
+  flex-shrink: 0;
 }
 
 
-/*Main */
 
+/* Main */
 main#contenido {
   flex-grow: 1;
   padding: 20px;
@@ -121,4 +218,21 @@ main#contenido {
 }
 
 /* Responsive */
-
+@media (max-width: 768px) {
+  .user-profile {
+    padding: 12px;
+  }
+  
+  .avatar-img {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .user-name {
+    font-size: 0.8rem;
+  }
+  
+  .user-email {
+    font-size: 0.65rem;
+  }
+}
