@@ -44,6 +44,9 @@ const upload = multer({
 // Subir PDF
 router.post('/upload', supabaseAuth, upload.single('pdf'), async (req, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'No autenticado' });
+    }
     if (!req.file) {
       return res.status(400).json({ error: 'No se proporcionó ningún archivo' });
     }
@@ -54,8 +57,9 @@ router.post('/upload', supabaseAuth, upload.single('pdf'), async (req, res) => {
     const fileUrl = `/uploads/${req.file.filename}`;
     
     // Guardar en la base de datos. Si falla, limpiar el archivo y responder error.
+    const s = req.supabase || supabase;
     try {
-      const { data, error } = await supabase
+      const { data, error } = await s
         .from('pdf_uploads')
         .insert([{
           user_id: req.user.id,
@@ -70,7 +74,10 @@ router.post('/upload', supabaseAuth, upload.single('pdf'), async (req, res) => {
         console.error('Error de Supabase al insertar pdf_uploads:', error);
         // Intentar borrar el archivo físico subido
         try { await fs.unlink(filePath); } catch (_) {}
-        return res.status(500).json({ error: 'No se pudo registrar el PDF en la base de datos' });
+        return res.status(500).json({ 
+          error: 'No se pudo registrar el PDF en la base de datos',
+          details: process.env.NODE_ENV === 'development' && error ? (error.message || error) : undefined
+        });
       }
 
       return res.status(201).json({
@@ -101,7 +108,8 @@ router.post('/upload', supabaseAuth, upload.single('pdf'), async (req, res) => {
 // Listar PDFs del usuario
 router.get('/my-pdfs', supabaseAuth, async (req, res) => {
   try {
-    const { data: pdfs, error } = await supabase
+    const s = req.supabase || supabase;
+    const { data: pdfs, error } = await s
       .from('pdf_uploads')
       .select(`
         id,
@@ -131,7 +139,8 @@ router.get('/:id', supabaseAuth, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data: pdf, error } = await supabase
+    const s = req.supabase || supabase;
+    const { data: pdf, error } = await s
       .from('pdf_uploads')
       .select(`
         id,
@@ -172,7 +181,8 @@ router.put('/:id', supabaseAuth, async (req, res) => {
       return res.status(400).json({ error: 'El título es requerido' });
     }
 
-    const { data: pdf, error } = await supabase
+    const s = req.supabase || supabase;
+    const { data: pdf, error } = await s
       .from('pdf_uploads')
       .update({ title })
       .eq('id', id)
@@ -201,7 +211,8 @@ router.delete('/:id', supabaseAuth, async (req, res) => {
     const { id } = req.params;
 
     // Primero obtener información del archivo
-    const { data: pdf, error: fetchError } = await supabase
+    const s = req.supabase || supabase;
+    const { data: pdf, error: fetchError } = await s
       .from('pdf_uploads')
       .select('file_url')
       .eq('id', id)
@@ -213,7 +224,7 @@ router.delete('/:id', supabaseAuth, async (req, res) => {
     }
 
     // Eliminar de la base de datos (esto también eliminará los study_outputs relacionados por CASCADE)
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await s
       .from('pdf_uploads')
       .delete()
       .eq('id', id)
@@ -247,7 +258,8 @@ router.get('/file/:filename', supabaseAuth, async (req, res) => {
     const filePath = path.join(__dirname, '../uploads', filename);
 
     // Verificar que el archivo existe y pertenece al usuario
-    const { data: pdf } = await supabase
+    const s = req.supabase || supabase;
+    const { data: pdf } = await s
       .from('pdf_uploads')
       .select('id')
       .eq('file_url', `/uploads/${filename}`)

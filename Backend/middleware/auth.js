@@ -1,4 +1,5 @@
 const supabase = require('../config/supabase');
+const { createClient } = require('@supabase/supabase-js');
 
 // Middleware para verificar JWT de Supabase Auth
 async function supabaseAuth(req, res, next) {
@@ -39,6 +40,20 @@ async function supabaseAuth(req, res, next) {
       role: profile?.role || 'estudiante',
       education_level: profile?.education_level || 'universitario'
     };
+
+    // Crear un cliente de Supabase "scopeado" al usuario usando su token,
+    // para que las policies RLS vean auth.uid()
+    try {
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_ANON_KEY;
+      if (supabaseUrl && supabaseKey) {
+        req.supabase = createClient(supabaseUrl, supabaseKey, {
+          global: { headers: { Authorization: `Bearer ${token}` } }
+        });
+      }
+    } catch (e) {
+      // Si falla la creación, continuamos sin bloquear
+    }
 
     next();
   } catch (error) {
