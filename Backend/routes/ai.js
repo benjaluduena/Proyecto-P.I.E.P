@@ -23,32 +23,21 @@ const extractTextFromPDF = async (filePath) => {
   }
 };
 
-// Función para limpiar la respuesta de OpenAI
-const cleanOpenAIResponse = (response) => {
-  let parsed;
-  try {
-    parsed = typeof response === 'string' ? JSON.parse(response) : response;
-  } catch (error) {
-    let cleaned = response;
-    cleaned = cleaned.replace(/```json|```/gi, '');
-    const first = cleaned.indexOf('{');
-    const last = cleaned.lastIndexOf('}');
-    if (first !== -1 && last !== -1 && last > first) {
-      cleaned = cleaned.substring(first, last + 1);
-    }
-    cleaned = cleaned.replace(/\n/g, '').trim();
-    try {
-      parsed = JSON.parse(cleaned);
-    } catch (parseError) {
-      parsed = {};
-    }
+// Utilidad: intentar extraer JSON de texto con o sin fences
+const parseJsonFromText = (text) => {
+  if (typeof text !== 'string') return text;
+  let cleaned = text.trim();
+  cleaned = cleaned.replace(/```json|```/gi, '');
+  const first = cleaned.indexOf('{');
+  const last = cleaned.lastIndexOf('}');
+  if (first !== -1 && last !== -1 && last > first) {
+    cleaned = cleaned.substring(first, last + 1);
   }
-  return {
-    resumen_general: parsed.resumen_general || '',
-    conceptos_clave: Array.isArray(parsed.conceptos_clave) ? parsed.conceptos_clave : [],
-    aplicaciones_practicas: Array.isArray(parsed.aplicaciones_practicas) ? parsed.aplicaciones_practicas : [],
-    conclusiones: parsed.conclusiones || ''
-  };
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    return {};
+  }
 };
 
 // Función para generar contenido educativo con IA
@@ -90,10 +79,15 @@ const generateEducationalContent = async (pdfText, contentType, educationLevel, 
 
     verdadero_falso: `Genera 10 preguntas de verdadero/falso basadas en el siguiente texto.
     Nivel educativo: ${educationLevel}.
-    Para cada pregunta incluye:
-    - Afirmación clara
-    - Respuesta (verdadero/falso)
-    - Explicación
+    Devuelve ESTRICTAMENTE un JSON válido con la siguiente estructura, sin texto adicional:
+    {
+      "preguntas": [
+        { "enunciado": "...", "respuesta": "verdadero|falso", "explicacion": "..." }
+      ]
+    }
+    - "respuesta" debe ser exactamente "verdadero" o "falso".
+    - "preguntas" debe tener 10 elementos.
+    - No incluyas nada fuera del JSON.
     
     Texto: ${pdfText}`,
 
@@ -135,9 +129,28 @@ const generateEducationalContent = async (pdfText, contentType, educationLevel, 
       max_tokens: 2000
     });
     const generatedContent = completion.choices[0].message.content;
-    const cleanedContent = cleanOpenAIResponse(generatedContent);
-    // Devolver como objeto JSON (no string) para almacenar en jsonb correctamente
-    return cleanedContent;
+    const parsed = parseJsonFromText(generatedContent);
+    // Normalizar según tipo
+    if (contentType === 'resumen') {
+      return {
+        resumen_general: parsed.resumen_general || parsed.summary || '',
+        conceptos_clave: Array.isArray(parsed.conceptos_clave) ? parsed.conceptos_clave : [],
+        aplicaciones_practicas: Array.isArray(parsed.aplicaciones_practicas) ? parsed.aplicaciones_practicas : [],
+        conclusiones: parsed.conclusiones || ''
+      };
+    }
+    if (contentType === 'verdadero_falso') {
+      // Asegurar estructura { preguntas: [...] }
+      if (Array.isArray(parsed)) {
+        return { preguntas: parsed };
+      }
+      if (parsed && Array.isArray(parsed.preguntas)) {
+        return { preguntas: parsed.preguntas };
+      }
+      return { preguntas: [] };
+    }
+    // Otros tipos: devolver lo parseado tal cual
+    return parsed || {};
   } catch (error) {
     console.error('Error al generar contenido con OpenAI:', error);
     throw new Error('No se pudo generar el contenido con OpenAI.');
@@ -166,8 +179,9 @@ router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
     // Obtener el PDF real de la BD
     let pdf = null;
     let pdfExists = true;
+    const s = req.supabase || supabase;
     try {
-      const { data, error: pdfError } = await supabase
+      const { data, error: pdfError } = await s
         .from('pdf_uploads')
         .select('*')
         .eq('id', pdfId)
@@ -185,7 +199,7 @@ router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
     // Verificar si ya existe contenido de este tipo
     let existingContent = null;
     try {
-      const { data } = await supabase
+      const { data } = await s
         .from('study_outputs')
         .select('id')
         .eq('pdf_id', pdfId)
@@ -232,7 +246,7 @@ router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
     // Guardar en la base de datos
     let studyOutput;
     try {
-      const { data, error: insertError } = await supabase
+      const { data, error: insertError } = await s
         .from('study_outputs')
         .insert([{
           pdf_id: pdfId,
@@ -276,10 +290,11 @@ router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
 router.get('/content/:outputId', supabaseAuth, async (req, res) => {
   try {
     const { outputId } = req.params;
+    const s = req.supabase || supabase;
 
     let output;
     try {
-      const { data, error } = await supabase
+      const { data, error } = await s
         .from('study_outputs')
         .select(`
           id,
@@ -321,9 +336,10 @@ router.get('/content/:outputId', supabaseAuth, async (req, res) => {
 router.get('/pdf/:pdfId', supabaseAuth, async (req, res) => {
   try {
     const { pdfId } = req.params;
+    const s = req.supabase || supabase;
 
     // Verificar que el PDF pertenece al usuario
-    const { data: pdf } = await supabase
+    const { data: pdf } = await s
       .from('pdf_uploads')
       .select('id')
       .eq('id', pdfId)
@@ -334,7 +350,7 @@ router.get('/pdf/:pdfId', supabaseAuth, async (req, res) => {
       return res.status(404).json({ error: 'PDF no encontrado' });
     }
 
-    const { data: outputs, error } = await supabase
+    const { data: outputs, error } = await s
       .from('study_outputs')
       .select('id, type, created_at')
       .eq('pdf_id', pdfId)

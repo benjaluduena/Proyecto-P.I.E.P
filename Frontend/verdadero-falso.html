@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verdadero o Falso</title>
+  <link rel="stylesheet" href="/Css/styles.css">
+  <link rel="stylesheet" href="/Css/resumen.css">
+  <link rel="stylesheet" href="/Css/vf.css">
+</head>
+<body>
+  <main class="container vf-container">
+    <header class="vf-header">
+      <div class="vf-header-left">
+        <button class="back-btn" aria-label="Volver">⟵ Volver</button>
+        <div>
+          <h1 class="section-title">Preguntas: Verdadero o Falso</h1>
+          <div id="vfMeta" class="vf-meta"></div>
+        </div>
+      </div>
+      <div class="vf-header-right">
+        <div class="vf-stats" id="vfStats">V: 0 · F: 0</div>
+        <label class="vf-switch">
+          <input type="checkbox" id="toggleExplain" />
+          <span>Ver explicaciones</span>
+        </label>
+        <button id="downloadBtn" class="btn btn-primary">Descargar</button>
+        <button id="shareBtn" class="btn">Compartir</button>
+      </div>
+    </header>
+
+    <section id="vfList" class="vf-grid"></section>
+  </main>
+
+  <script src="/JS/config.js"></script>
+  <script src="/lib/supabase.js"></script>
+  <script src="/JS/verdadero-falso.js"></script>
+</body>
+</html>
+
