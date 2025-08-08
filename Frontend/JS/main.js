@@ -84,6 +84,17 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnCerrarSesion) {
     btnCerrarSesion.addEventListener("click", logout);
   }
+
+  // Rellenar información del usuario en el sidebar
+  populateUserInfo();
+
+  // Mostrar título completo solo si hay truncado
+  const up = document.getElementById('userProfile');
+  if (up) {
+    up.addEventListener('mouseenter', updateUserProfileTitles);
+    up.addEventListener('mousemove', updateUserProfileTitles);
+  }
+  window.addEventListener('resize', updateUserProfileTitles);
 });
 
 // Función para alternar el dropdown
@@ -138,4 +149,123 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', asignarLogout);
 } else {
   asignarLogout();
+}
+
+// Ruta por defecto para el avatar
+const DEFAULT_AVATAR = '/Assets/Imagenes/usuario-sin-foto.png';
+
+function setAvatarImage(imgEl, url) {
+  if (!imgEl) return;
+  imgEl.onerror = () => {
+    imgEl.onerror = null;
+    imgEl.src = DEFAULT_AVATAR;
+  };
+  imgEl.src = url || DEFAULT_AVATAR;
+}
+
+// Obtiene el usuario guardado en localStorage o desde Supabase
+function getStoredUser() {
+  try {
+    const raw = localStorage.getItem(CONFIG.STORAGE_KEYS.USER);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (_) {
+    return null;
+  }
+}
+
+function getBestDisplayName(user) {
+  if (!user) return 'Usuario';
+  const metaName = user.user_metadata && (user.user_metadata.name || user.user_metadata.full_name);
+  const directName = user.name;
+  const fromEmail = user.email ? user.email.split('@')[0] : null;
+  return directName || metaName || fromEmail || 'Usuario';
+}
+
+function getBestAvatarUrl(user) {
+  if (!user) return null;
+  // Priorizar campos comunes de proveedores (Google) y metadata personalizada
+  return (
+    user.avatar_url ||
+    (user.user_metadata && (user.user_metadata.avatar_url || user.user_metadata.picture)) ||
+    null
+  );
+}
+
+async function populateUserInfo() {
+  const nameEl = document.querySelector('.user-info .user-name');
+  const emailEl = document.querySelector('.user-info .user-email');
+  const avatarImg = document.querySelector('#userAvatar img');
+
+  if (!nameEl || !emailEl) return;
+
+  // Establecer avatar por defecto inicialmente
+  setAvatarImage(avatarImg, null);
+
+  // Intentar con el usuario guardado
+  let user = getStoredUser();
+
+  // Si no existe aún, intentar obtenerlo desde Supabase
+  if (!user && window.supabase) {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && session.user) {
+        user = session.user;
+        localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(user));
+        localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
+      }
+    } catch (_) {
+      // Ignorar errores silenciosamente
+    }
+  }
+
+  if (!user) return;
+
+  nameEl.textContent = getBestDisplayName(user);
+  if (user.email) {
+    emailEl.textContent = user.email;
+  }
+
+  const avatarUrl = getBestAvatarUrl(user);
+  setAvatarImage(avatarImg, avatarUrl);
+
+  // Actualizar títulos por si hay truncado
+  updateUserProfileTitles();
+}
+
+// Actualizar UI si cambia el estado de autenticación
+if (window.supabase && supabase.auth && typeof supabase.auth.onAuthStateChange === 'function') {
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (session && session.user) {
+      try {
+        localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(session.user));
+        localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
+      } catch (_) {}
+      populateUserInfo();
+    }
+  });
+}
+
+function isTruncated(element) {
+  if (!element) return false;
+  return element.scrollWidth > element.clientWidth;
+}
+
+function updateUserProfileTitles() {
+  const nameEl = document.querySelector('.user-info .user-name');
+  const emailEl = document.querySelector('.user-info .user-email');
+  if (nameEl) {
+    if (isTruncated(nameEl)) {
+      nameEl.title = nameEl.textContent || '';
+    } else {
+      nameEl.removeAttribute('title');
+    }
+  }
+  if (emailEl) {
+    if (isTruncated(emailEl)) {
+      emailEl.title = emailEl.textContent || '';
+    } else {
+      emailEl.removeAttribute('title');
+    }
+  }
 }

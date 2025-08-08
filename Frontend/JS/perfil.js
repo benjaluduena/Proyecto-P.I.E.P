@@ -1,5 +1,8 @@
 // Funciones para manejar la interactividad
 document.addEventListener('DOMContentLoaded', function () {
+  // Poblar datos del usuario
+  populateProfileFromUser();
+
   document.getElementById('btnBack').addEventListener('click', function () {
     window.location.href = 'index.html';
   });
@@ -98,4 +101,126 @@ window.onclick = function (event) {
   if (event.target === modal) {
     modal.style.display = 'none';
   }
+}
+
+// Avatar por defecto
+const DEFAULT_AVATAR = '/Assets/Imagenes/usuario-sin-foto.png';
+
+function setAvatarImage(imgEl, url) {
+  if (!imgEl) return;
+  imgEl.onerror = () => {
+    imgEl.onerror = null;
+    imgEl.src = DEFAULT_AVATAR;
+  };
+  imgEl.src = url || DEFAULT_AVATAR;
+}
+
+function getStoredUser() {
+  try {
+    const raw = localStorage.getItem(CONFIG.STORAGE_KEYS.USER);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (_) {
+    return null;
+  }
+}
+
+function getBestDisplayName(user) {
+  if (!user) return 'Usuario';
+  const metaName = user.user_metadata && (user.user_metadata.name || user.user_metadata.full_name);
+  const directName = user.name;
+  const fromEmail = user.email ? user.email.split('@')[0] : null;
+  return directName || metaName || fromEmail || 'Usuario';
+}
+
+function getBestAvatarUrl(user) {
+  if (!user) return null;
+  return (
+    user.avatar_url ||
+    (user.user_metadata && (user.user_metadata.avatar_url || user.user_metadata.picture)) ||
+    null
+  );
+}
+
+function getBestRole(user) {
+  if (!user) return 'Estudiante';
+  return (user.role || (user.user_metadata && user.user_metadata.role) || 'estudiante')
+    .toString()
+    .toLowerCase()
+    .replace(/^./, c => c.toUpperCase());
+}
+
+function getBestEducation(user) {
+  if (!user) return 'Universitario';
+  const value = (user.education_level || (user.user_metadata && user.user_metadata.education_level) || 'universitario').toString();
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+async function populateProfileFromUser() {
+  const nameEl = document.getElementById('userName');
+  const emailEl = document.getElementById('userEmail');
+  const roleEl = document.getElementById('userRole');
+  const displayNameEl = document.getElementById('displayName');
+  const displayEmailEl = document.getElementById('displayEmail');
+  const displayRoleEl = document.getElementById('displayRole');
+  const displayEducationEl = document.getElementById('displayEducation');
+  const avatarImg = document.getElementById('avatarImg');
+  const avatarInitials = document.getElementById('avatarInitials');
+
+  // avatar default
+  setAvatarImage(avatarImg, null);
+
+  let user = getStoredUser();
+
+  if (!user && window.supabase) {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && session.user) {
+        user = session.user;
+        localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(user));
+        localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
+      }
+    } catch (_) {}
+  }
+
+  if (!user) return;
+
+  const fullName = getBestDisplayName(user);
+  const email = user.email || '';
+  const role = getBestRole(user);
+  const education = getBestEducation(user);
+
+  if (nameEl) nameEl.textContent = fullName;
+  if (emailEl) emailEl.textContent = email;
+  if (roleEl) roleEl.textContent = role;
+  if (displayNameEl) displayNameEl.textContent = fullName;
+  if (displayEmailEl) displayEmailEl.textContent = email;
+  if (displayRoleEl) displayRoleEl.textContent = role;
+  if (displayEducationEl) displayEducationEl.textContent = education;
+
+  // Avatar imagen o iniciales
+  const url = getBestAvatarUrl(user);
+  if (url) {
+    avatarImg.style.display = 'block';
+    avatarInitials.style.display = 'none';
+    setAvatarImage(avatarImg, url);
+  } else {
+    avatarImg.style.display = 'none';
+    const initials = fullName.split(' ').map(n => n[0]).join('').toUpperCase();
+    avatarInitials.textContent = initials;
+    avatarInitials.style.display = 'block';
+  }
+}
+
+// Actualizar si cambia el estado de autenticación
+if (window.supabase && supabase.auth && typeof supabase.auth.onAuthStateChange === 'function') {
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (session && session.user) {
+      try {
+        localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(session.user));
+        localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
+      } catch (_) {}
+      populateProfileFromUser();
+    }
+  });
 }
