@@ -29,7 +29,7 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
+        scriptSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://unpkg.com'],
         styleSrc: [
           "'self'",
           "'unsafe-inline'",
@@ -93,6 +93,11 @@ app.get('/api/health', (req, res) => {
 // Ruta para resumen.html
 app.get('/Frontend/resumen.html', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend', 'resumen.html'));
+});
+
+// Ruta para mapa-mental.html
+app.get('/Frontend/mapa-mental.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend', 'mapa-mental.html'));
 });
 
 // Ruta fallback para SPA (opcional, si usas rutas en el frontend)

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapa mental - Study AI</title>
+  <link rel="stylesheet" href="/Css/resumen.css" />
+  <style>
+    .markmap-container { width: 100%; height: calc(100vh - 160px); border-radius: 12px; background: #fff; }
+    .summary-title { display: flex; align-items: center; gap: 8px; }
+  </style>
+  <script src="/lib/supabase.js"></script>
+  <script src="/JS/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/markmap-lib@0.15.3/dist/browser/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/markmap-view@0.15.3/dist/browser/index.min.js"></script>
+</head>
+<body>
+  <div class="top-header">
+    <div class="header-content">
+      <div class="logo">Study<span class="ai-badge">AI</span></div>
+      <button class="back-btn">← Volver al inicio</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="file-info">
+      <div class="file-name" id="fileName">Cargando...</div>
+      <div class="file-details">
+        <span>🧠 Mapa mental (Markmap)</span>
+        <span id="fileTime">⏱️ Generado ahora</span>
+      </div>
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <small style="color: #666;" id="progressText">Cargando mapa...</small>
+    </div>
+
+    <div class="summary-container">
+      <div class="summary-header">
+        <div class="summary-icon"><span style="color: white; font-size: 20px;">🧠</span></div>
+        <h1 class="summary-title">Mapa mental</h1>
+      </div>
+
+      <div id="markmapWrapper" class="markmap-container">
+        <svg id="markmap"></svg>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" id="downloadBtn">Descargar Markdown</button>
+        <button class="btn btn-secondary" id="copyBtn">Copiar Markdown</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/JS/mapa-mental.js"></script>
+</body>
+</html>
+
