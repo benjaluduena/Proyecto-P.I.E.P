@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - P.I.E.P</title>
+  <link rel="stylesheet" href="/Frontend/Css/dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <img src="Frontend/Assets/Imagenes/Logo.png" alt="Logo P.I.E.P" class="logo">
+        <h1>Dashboard</h1>
+      </div>
+      <div class="header-right">
+        <div class="user-info">
+          <img src="Frontend/Assets/Imagenes/photo.png" alt="Usuario" class="user-avatar" id="userAvatar">
+          <span class="user-name" id="userName">Usuario</span>
+          <button class="logout-btn" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i>
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+      <!-- Welcome Section -->
+      <section class="welcome-section">
+        <div class="welcome-card">
+          <div class="welcome-content">
+            <h2>¡Bienvenido de vuelta!</h2>
+            <p id="welcomeMessage">Esperamos que tengas un excelente día de estudio.</p>
+            <div class="quick-stats">
+              <div class="quick-stat">
+                <i class="fas fa-file-pdf"></i>
+                <span id="totalPdfs">0</span>
+                <label>PDFs procesados</label>
+              </div>
+              <div class="quick-stat">
+                <i class="fas fa-brain"></i>
+                <span id="totalOutputs">0</span>
+                <label>Contenido generado</label>
+              </div>
+              <div class="quick-stat">
+                <i class="fas fa-tasks"></i>
+                <span id="completedTasks">0</span>
+                <label>Tareas completadas</label>
+              </div>
+            </div>
+          </div>
+          <div class="welcome-image">
+            <img src="Frontend/Assets/Imagenes/Mascota1.png" alt="Mascota" class="mascot">
+          </div>
+        </div>
+      </section>
+
+      <!-- Statistics Grid -->
+      <section class="stats-section">
+        <h3>Estadísticas Generales</h3>
+        <div class="stats-grid">
+          <!-- Total Users -->
+          <div class="stat-card">
+            <div class="stat-icon users">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+              <h4>Usuarios Registrados</h4>
+              <div class="stat-number" id="totalUsers">0</div>
+              <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i>
+                <span id="usersGrowth">0%</span> este mes
+              </div>
+            </div>
+          </div>
+
+          <!-- Total PDFs -->
+          <div class="stat-card">
+            <div class="stat-icon pdfs">
+              <i class="fas fa-file-pdf"></i>
+            </div>
+            <div class="stat-content">
+              <h4>PDFs Procesados</h4>
+              <div class="stat-number" id="totalPdfsProcessed">0</div>
+              <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i>
+                <span id="pdfsGrowth">0%</span> este mes
+              </div>
+            </div>
+          </div>
+
+          <!-- Content Generated -->
+          <div class="stat-card">
+            <div class="stat-icon content">
+              <i class="fas fa-brain"></i>
+            </div>
+            <div class="stat-content">
+              <h4>Contenido Generado</h4>
+              <div class="stat-number" id="totalContentGenerated">0</div>
+              <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i>
+                <span id="contentGrowth">0%</span> este mes
+              </div>
+            </div>
+          </div>
+
+          <!-- Study Plans -->
+          <div class="stat-card">
+            <div class="stat-icon plans">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-content">
+              <h4>Planes de Estudio</h4>
+              <div class="stat-number" id="totalStudyPlans">0</div>
+              <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i>
+                <span id="plansGrowth">0%</span> este mes
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Content Type Distribution -->
+      <section class="content-section">
+        <div class="content-grid">
+          <!-- Content Types -->
+          <div class="content-card">
+            <h3>Tipos de Contenido Generado</h3>
+            <div class="content-types">
+              <div class="content-type">
+                <div class="type-icon resumen">
+                  <i class="fas fa-book"></i>
+                </div>
+                <div class="type-info">
+                  <h4>Resúmenes</h4>
+                  <span id="resumenCount">0</span>
+                </div>
+              </div>
+              <div class="content-type">
+                <div class="type-icon verdadero-falso">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="type-info">
+                  <h4>Verdadero/Falso</h4>
+                  <span id="verdaderoFalsoCount">0</span>
+                </div>
+              </div>
+              <div class="content-type">
+                <div class="type-icon multiple-choice">
+                  <i class="fas fa-list-ul"></i>
+                </div>
+                <div class="type-info">
+                  <h4>Opción Múltiple</h4>
+                  <span id="multipleChoiceCount">0</span>
+                </div>
+              </div>
+              <div class="content-type">
+                <div class="type-icon flashcards">
+                  <i class="fas fa-credit-card"></i>
+                </div>
+                <div class="type-info">
+                  <h4>Flashcards</h4>
+                  <span id="flashcardsCount">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="content-card">
+            <h3>Actividad Reciente</h3>
+            <div class="recent-activity" id="recentActivity">
+              <div class="activity-item">
+                <div class="activity-icon">
+                  <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <div class="activity-content">
+                  <p>Cargando actividad reciente...</p>
+                  <span class="activity-time">Hace un momento</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- User Performance -->
+      <section class="performance-section">
+        <h3>Tu Rendimiento</h3>
+        <div class="performance-grid">
+          <div class="performance-card">
+            <h4>Progreso del Mes</h4>
+            <div class="progress-circle">
+              <div class="progress-ring">
+                <svg width="120" height="120">
+                  <circle cx="60" cy="60" r="50" stroke="#e6e6e6" stroke-width="8" fill="none"/>
+                  <circle cx="60" cy="60" r="50" stroke="#4CAF50" stroke-width="8" fill="none" 
+                          stroke-dasharray="314" stroke-dashoffset="157" id="progressCircle"/>
+                </svg>
+                <div class="progress-text">
+                  <span id="progressPercentage">50%</span>
+                </div>
+              </div>
+            </div>
+            <p>Has completado <span id="completedThisMonth">0</span> tareas este mes</p>
+          </div>
+
+          <div class="performance-card">
+            <h4>Estadísticas Personales</h4>
+            <div class="personal-stats">
+              <div class="personal-stat">
+                <span class="stat-label">PDFs subidos:</span>
+                <span class="stat-value" id="personalPdfs">0</span>
+              </div>
+              <div class="personal-stat">
+                <span class="stat-label">Contenido creado:</span>
+                <span class="stat-value" id="personalContent">0</span>
+              </div>
+              <div class="personal-stat">
+                <span class="stat-label">Planes activos:</span>
+                <span class="stat-value" id="personalPlans">0</span>
+              </div>
+              <div class="personal-stat">
+                <span class="stat-label">Tareas completadas:</span>
+                <span class="stat-value" id="personalTasks">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Actions -->
+      <section class="actions-section">
+        <h3>Acciones Rápidas</h3>
+        <div class="actions-grid">
+          <button class="action-btn" onclick="window.location.href='/index.html'">
+            <i class="fas fa-upload"></i>
+            <span>Subir PDF</span>
+          </button>
+          <button class="action-btn" onclick="window.location.href='/resumen.html'">
+            <i class="fas fa-book"></i>
+            <span>Ver Resúmenes</span>
+          </button>
+          <button class="action-btn" onclick="window.location.href='/perfil.html'">
+            <i class="fas fa-user"></i>
+            <span>Mi Perfil</span>
+          </button>
+          <button class="action-btn" id="createPlanBtn">
+            <i class="fas fa-calendar-plus"></i>
+            <span>Crear Plan</span>
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+    <div class="loading-spinner"></div>
+    <p>Cargando dashboard...</p>
+  </div>
+
+</body>
+
+</html> 

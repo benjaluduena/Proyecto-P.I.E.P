@@ -1,180 +1,261 @@
 * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Poppins', sans-serif;
-    }
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+}
 
-    body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background: linear-gradient(to right, #f9f9f9, #f1f1f1);
-      gap: 2rem;
-      padding: 2rem 1rem;
-    }
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(to right, #f9f9f9, #f1f1f1);
+  gap: 2rem;
+  padding: 2rem 1rem;
+}
 
-    .image-placeholder {
-      width: 100%;
-      max-width: 420px;
-      height: 540px;
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
+.image-placeholder {
+  width: 100%;
+  max-width: 420px;
+  height: 540px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
 
-    .image-placeholder img {
-      max-width: 100%;
-      max-height: 100%;
-      height: auto;
-      width: auto;
-    }
+.image-placeholder img {
+  max-width: 100%;
+  max-height: 100%;
+  height: auto;
+  width: auto;
+}
 
-    .form-container {
-      background: #ffffff;
-      padding: 3rem 2.5rem;
-      border-radius: 20px;
-      box-shadow: 0 15px 45px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 420px;
-      text-align: center;
-      transition: transform 0.3s ease, height 0.3s ease;
-      min-height: 540px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-    }
+.form-container {
+  background: #ffffff;
+  padding: 3rem 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  transition: transform 0.3s ease, height 0.3s ease;
+  min-height: 540px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
 
-    .form-container:hover {
-      transform: translateY(-5px);
-    }
+.form-container:hover {
+  transform: translateY(-5px);
+}
 
-    .logo {
-      width: 80px;
-      height: 80px;
-      margin: 0 auto 1.5rem auto;
-      object-fit: contain;
-    }
+.logo {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem auto;
+  object-fit: contain;
+}
 
-    .form-container h2 {
-      color: #222;
-      margin-bottom: 2rem;
-      font-weight: 600;
-      font-size: 1.6rem;
-    }
+.form-container h2 {
+  color: #222;
+  margin-bottom: 2rem;
+  font-weight: 600;
+  font-size: 1.6rem;
+}
 
-    .form-toggle {
-      display: flex;
-      margin-bottom: 2rem;
-      border-radius: 25px;
-      overflow: hidden;
-      border: 1px solid #ddd;
-    }
+.form-toggle {
+  display: flex;
+  margin-bottom: 2rem;
+  border-radius: 25px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+}
 
-    .toggle-btn {
-      flex: 1;
-      padding: 0.7rem;
-      background: #f8f8f8;
-      border: none;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      color: #666;
-    }
+.toggle-btn {
+  flex: 1;
+  padding: 0.7rem;
+  background: #f8f8f8;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  color: #666;
+}
 
-    .toggle-btn.active {
-      background: #f18531;
-      color: white;
-    }
+.toggle-btn.active {
+  background: #f18531;
+  color: white;
+}
 
-    .input-group {
-      margin-bottom: 1.5rem;
-      text-align: left;
-      opacity: 1;
-      max-height: 100px;
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
+.input-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+  opacity: 1;
+  max-height: 100px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
 
-    .input-group.hidden {
-      opacity: 0;
-      max-height: 0;
-      margin-bottom: 0;
-    }
+.input-group.hidden {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+}
 
-    .input-group label {
-      display: block;
-      color: #444;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      font-size: 0.95rem;
-    }
+.input-group label {
+  display: block;
+  color: #444;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
 
-    .input-group input,
-    .input-group select {
-      width: 100%;
-      padding: 0.85rem 1rem;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      background: #fdfdfd;
-      color: #333;
-      font-size: 1rem;
-      transition: border-color 0.3s;
-    }
+.input-group input,
+.input-group select {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: #fdfdfd;
+  color: #333;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
 
-    .input-group input:focus,
-    .input-group select:focus {
-      outline: none;
-      border-color: #f18531;
-      background: #fff;
-    }
+.input-group input:focus,
+.input-group select:focus {
+  outline: none;
+  border-color: #f18531;
+  background: #fff;
+}
 
-    .submit-button {
-      width: 100%;
-      padding: 0.9rem;
-      background: #f18531;
-      border: none;
-      color: white;
-      font-weight: 600;
-      font-size: 1rem;
-      border-radius: 25px;
-      cursor: pointer;
-      transition: background 0.3s ease, transform 0.2s;
-      box-shadow: 0 4px 14px rgba(241, 133, 49, 0.5);
-      letter-spacing: 0.5px;
-      margin-top: 1rem;
-    }
+.submit-button {
+  width: 100%;
+  padding: 0.9rem;
+  background: #f18531;
+  border: none;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s;
+  box-shadow: 0 4px 14px rgba(241, 133, 49, 0.5);
+  letter-spacing: 0.5px;
+  margin-top: 1rem;
+}
 
-    .submit-button:hover {
-      background: #e07a2f;
-      transform: scale(1.04);
-    }
+.submit-button:hover {
+  background: #e07a2f;
+  transform: scale(1.04);
+}
 
-    .extra {
-      margin-top: 1.7rem;
-      text-align: center;
-    }
+.extra {
+  margin-top: 1.7rem;
+  text-align: center;
+}
 
-    .extra a {
-      color: #4e9af1;
-      text-decoration: none;
-      font-size: 0.9rem;
-    }
+.extra a {
+  color: #4e9af1;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
 
-    .extra a:hover {
-      text-decoration: underline;
-    }
+.extra a:hover {
+  text-decoration: underline;
+}
 
-    @media (max-width: 768px) {
-      body {
-        flex-direction: column;
-        gap: 1rem;
-      }
-      
-      .image-placeholder {
-        height: 200px;
-      }
-    }
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .image-placeholder {
+    height: 200px;
+  }
+}
+
+.google-auth-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.google-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: #444;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  padding: 0.9rem;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: box-shadow 0.2s, transform 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+
+
+.google-btn:hover {
+  box-shadow: 0 4px 8px rgba(66, 133, 244, 0.10);
+  transform: scale(1.04);
+}
+
+.google-icon {
+  width: 22px;
+  height: 22px;
+  margin-right: 10px;
+}
+
+/* Estilos para el contenedor de verificación de email */
+.verify-email-container {
+  background: #ffffff;
+  padding: 3rem 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  min-height: 540px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.verify-email-container h2 {
+  color: #222;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  font-size: 1.6rem;
+}
+
+.verify-email-container p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.verify-email-container p strong {
+  color: #f18531;
+  font-weight: 600;
+}
+
+.verify-email-container .submit-button {
+  margin-top: 2rem;
+  background: #4CAF50;
+  box-shadow: 0 4px 14px rgba(76, 175, 80, 0.5);
+}
+
+.verify-email-container .submit-button:hover {
+  background: #45a049;
+}
