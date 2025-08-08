@@ -7,6 +7,11 @@ const submitBtn = document.getElementById('submit-btn');
 const nameGroup = document.getElementById('name-group');
 const roleGroup = document.getElementById('role-group');
 const educationGroup = document.getElementById('education-group');
+
+// Campos
+const nameInput = document.getElementById('name');
+const roleSelect = document.getElementById('role');
+const educationSelect = document.getElementById('education_level');
 const loginExtra = document.getElementById('login-extra');
 
 const authForm = document.getElementById('auth-form');
@@ -21,6 +26,14 @@ function showLogin() {
   educationGroup.classList.add('hidden');
   loginExtra.style.display = '';
   document.getElementById('google-btn-text').textContent = 'Iniciar con Google';
+
+  // Deshabilitar y quitar required de campos de registro para evitar bloqueo de validación HTML
+  nameInput.disabled = true;
+  roleSelect.disabled = true;
+  educationSelect.disabled = true;
+  nameInput.removeAttribute('required');
+  roleSelect.removeAttribute('required');
+  educationSelect.removeAttribute('required');
 }
 
 function showRegister() {
@@ -33,6 +46,13 @@ function showRegister() {
   educationGroup.classList.remove('hidden');
   loginExtra.style.display = 'none';
   document.getElementById('google-btn-text').textContent = 'Registrarte con Google';
+
+  // Habilitar y marcar required los campos necesarios de registro
+  nameInput.disabled = false;
+  roleSelect.disabled = false;
+  educationSelect.disabled = false;
+  nameInput.setAttribute('required', 'true');
+  roleSelect.setAttribute('required', 'true');
 }
 
 loginToggle.addEventListener('click', showLogin);

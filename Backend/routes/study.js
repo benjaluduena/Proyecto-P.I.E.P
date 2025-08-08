@@ -393,10 +393,15 @@ router.get('/progress/stats', supabaseAuth, async (req, res) => {
       .order('interacted_at', { ascending: false })
       .limit(10);
 
-    // Tareas completadas vs pendientes
+    // Tareas completadas vs pendientes (asegurar alcance por usuario via join)
     const { data: tasks, error: tasksError } = await supabase
       .from('plan_tasks')
-      .select('completed')
+      .select(`
+        completed,
+        study_plans!inner (
+          user_id
+        )
+      `)
       .eq('study_plans.user_id', req.user.id);
 
     if (interactionsError || contentError || tasksError) {
@@ -407,8 +412,8 @@ router.get('/progress/stats', supabaseAuth, async (req, res) => {
     const stats = {
       totalInteractions: totalInteractions?.length || 0,
       topContent: topContent || [],
-      completedTasks: tasks?.filter(t => t.completed).length || 0,
-      pendingTasks: tasks?.filter(t => !t.completed).length || 0
+      completedTasks: (tasks || []).filter(t => t.completed).length || 0,
+      pendingTasks: (tasks || []).filter(t => !t.completed).length || 0
     };
 
     res.json({ stats });

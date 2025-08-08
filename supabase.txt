@@ -1,2 +1,87 @@
 const projectUrl = "https://fqmpmseabhtvahzdavej.supabase.co"
 const apiKey= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxbXBtc2VhYmh0dmFoemRhdmVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4ODc1ODgsImV4cCI6MjA2NjQ2MzU4OH0.LT1av0qw6GR8DmQkSmH1OzFPONsT8yEZJ2lMI1ARohE"
+
+
+bd: 
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.notifications (
+  id integer NOT NULL DEFAULT nextval('notifications_id_seq'::regclass),
+  user_id uuid NOT NULL,
+  task_id integer,
+  method character varying NOT NULL CHECK (method::text = ANY (ARRAY['email'::character varying::text, 'whatsapp'::character varying::text])),
+  scheduled_at timestamp without time zone NOT NULL,
+  sent boolean DEFAULT false,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT notifications_pkey PRIMARY KEY (id),
+  CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT notifications_task_id_fkey FOREIGN KEY (task_id) REFERENCES public.plan_tasks(id)
+);
+CREATE TABLE public.pdf_uploads (
+  id integer NOT NULL DEFAULT nextval('pdf_uploads_id_seq'::regclass),
+  user_id uuid NOT NULL,
+  file_name character varying NOT NULL,
+  file_url text NOT NULL,
+  title character varying,
+  uploaded_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT pdf_uploads_pkey PRIMARY KEY (id),
+  CONSTRAINT pdf_uploads_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.plan_tasks (
+  id integer NOT NULL DEFAULT nextval('plan_tasks_id_seq'::regclass),
+  plan_id integer NOT NULL,
+  title character varying NOT NULL,
+  description text,
+  due_date date,
+  completed boolean DEFAULT false,
+  related_output_id integer,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT plan_tasks_pkey PRIMARY KEY (id),
+  CONSTRAINT plan_tasks_related_output_id_fkey FOREIGN KEY (related_output_id) REFERENCES public.study_outputs(id),
+  CONSTRAINT plan_tasks_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.study_plans(id)
+);
+CREATE TABLE public.profiles (
+  id uuid NOT NULL,
+  name character varying NOT NULL,
+  role character varying NOT NULL CHECK (role::text = ANY (ARRAY['estudiante'::character varying::text, 'docente'::character varying::text])),
+  education_level character varying,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.progress_tracking (
+  id integer NOT NULL DEFAULT nextval('progress_tracking_id_seq'::regclass),
+  user_id uuid NOT NULL,
+  output_id integer NOT NULL,
+  interacted_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  interaction_type character varying NOT NULL CHECK (interaction_type::text = ANY (ARRAY['leido'::character varying::text, 'completado'::character varying::text, 'respondido'::character varying::text])),
+  score numeric,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT progress_tracking_pkey PRIMARY KEY (id),
+  CONSTRAINT progress_tracking_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT progress_tracking_output_id_fkey FOREIGN KEY (output_id) REFERENCES public.study_outputs(id)
+);
+CREATE TABLE public.study_outputs (
+  id integer NOT NULL DEFAULT nextval('study_outputs_id_seq'::regclass),
+  pdf_id integer NOT NULL,
+  type character varying NOT NULL CHECK (type::text = ANY (ARRAY['resumen'::character varying::text, 'recomendacion_video'::character varying::text, 'recomendacion_texto'::character varying::text, 'multiple_choice'::character varying::text, 'verdadero_falso'::character varying::text, 'flashcards'::character varying::text, 'problema'::character varying::text])),
+  content jsonb NOT NULL,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT study_outputs_pkey PRIMARY KEY (id),
+  CONSTRAINT study_outputs_pdf_id_fkey FOREIGN KEY (pdf_id) REFERENCES public.pdf_uploads(id)
+);
+CREATE TABLE public.study_plans (
+  id integer NOT NULL DEFAULT nextval('study_plans_id_seq'::regclass),
+  user_id uuid NOT NULL,
+  title character varying NOT NULL,
+  description text,
+  start_date date,
+  end_date date,
+  notify_by_email boolean DEFAULT false,
+  notify_by_whatsapp boolean DEFAULT false,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT study_plans_pkey PRIMARY KEY (id),
+  CONSTRAINT study_plans_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);

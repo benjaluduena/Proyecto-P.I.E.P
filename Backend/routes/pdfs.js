@@ -53,12 +53,8 @@ router.post('/upload', supabaseAuth, upload.single('pdf'), async (req, res) => {
     const filePath = req.file.path;
     const fileUrl = `/uploads/${req.file.filename}`;
     
-    // Para desarrollo, crear un ID simulado si hay error en la BD
-    let pdfId;
-    let pdfUpload;
-    
+    // Guardar en la base de datos. Si falla, limpiar el archivo y responder error.
     try {
-      // Intentar guardar en la base de datos
       const { data, error } = await supabase
         .from('pdf_uploads')
         .insert([{
@@ -69,45 +65,29 @@ router.post('/upload', supabaseAuth, upload.single('pdf'), async (req, res) => {
         }])
         .select('*')
         .single();
-        
-      if (error) {
-        console.error('Error de Supabase:', error);
-        // Si hay error en la BD, crear un objeto simulado para desarrollo
-        pdfId = Math.floor(Math.random() * 1000000); // ID temporal más pequeño
-        pdfUpload = {
-          id: pdfId,
-          title: title || fileName,
-          file_name: fileName,
-          file_url: fileUrl,
-          uploaded_at: new Date().toISOString()
-        };
-      } else {
-        pdfUpload = data;
-        pdfId = data.id;
+
+      if (error || !data) {
+        console.error('Error de Supabase al insertar pdf_uploads:', error);
+        // Intentar borrar el archivo físico subido
+        try { await fs.unlink(filePath); } catch (_) {}
+        return res.status(500).json({ error: 'No se pudo registrar el PDF en la base de datos' });
       }
+
+      return res.status(201).json({
+        message: 'PDF subido exitosamente',
+        pdf: {
+          id: data.id,
+          title: data.title,
+          fileName: data.file_name,
+          fileUrl: data.file_url,
+          uploadedAt: data.uploaded_at
+        }
+      });
     } catch (dbError) {
       console.error('Error al conectar con la BD:', dbError);
-      // Crear objeto simulado para desarrollo
-      pdfId = Date.now();
-      pdfUpload = {
-        id: pdfId,
-        title: title || fileName,
-        file_name: fileName,
-        file_url: fileUrl,
-        uploaded_at: new Date().toISOString()
-      };
+      try { await fs.unlink(filePath); } catch (_) {}
+      return res.status(500).json({ error: 'Error de base de datos al registrar el PDF' });
     }
-    
-    res.status(201).json({
-      message: 'PDF subido exitosamente',
-      pdf: {
-        id: pdfUpload.id,
-        title: pdfUpload.title,
-        fileName: pdfUpload.file_name,
-        fileUrl: pdfUpload.file_url,
-        uploadedAt: pdfUpload.uploaded_at
-      }
-    });
     
   } catch (error) {
     console.error('Error completo:', error);

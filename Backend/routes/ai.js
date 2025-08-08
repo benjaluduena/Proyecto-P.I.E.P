@@ -136,7 +136,8 @@ const generateEducationalContent = async (pdfText, contentType, educationLevel, 
     });
     const generatedContent = completion.choices[0].message.content;
     const cleanedContent = cleanOpenAIResponse(generatedContent);
-    return JSON.stringify(cleanedContent);
+    // Devolver como objeto JSON (no string) para almacenar en jsonb correctamente
+    return cleanedContent;
   } catch (error) {
     console.error('Error al generar contenido con OpenAI:', error);
     throw new Error('No se pudo generar el contenido con OpenAI.');
@@ -205,7 +206,9 @@ router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
     // Extraer texto real del PDF
     let pdfText = '';
     if (pdf && pdf.file_url) {
-      const pdfPath = path.join(__dirname, '..', pdf.file_url.startsWith('/') ? pdf.file_url : '/' + pdf.file_url);
+      // Normalizar a ruta relativa dentro del proyecto (Backend/uploads/...)
+      const relativeFileUrl = pdf.file_url.replace(/^\//, '');
+      const pdfPath = path.join(__dirname, '..', relativeFileUrl);
       pdfText = await extractTextFromPDF(pdfPath);
       if (!pdfText) {
         return res.status(500).json({ error: 'No se pudo extraer texto del PDF.' });
@@ -234,7 +237,7 @@ router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
         .insert([{
           pdf_id: pdfId,
           type: type,
-          content: aiContent
+          content: aiContent // objeto JSON directo para jsonb
         }])
         .select('*')
         .single();
@@ -375,8 +378,20 @@ router.post('/regenerate/:outputId', supabaseAuth, async (req, res) => {
       return res.status(404).json({ error: 'Contenido no encontrado' });
     }
 
-    // Extraer texto del PDF (simulado)
-    const pdfText = await extractTextFromPDF(existingOutput.pdf_uploads.title);
+    // Volver a extraer texto del PDF real usando file_url
+    const { data: pdfRecord } = await supabase
+      .from('pdf_uploads')
+      .select('file_url, user_id')
+      .eq('id', existingOutput.pdf_uploads.id)
+      .single();
+
+    if (!pdfRecord || pdfRecord.user_id !== req.user.id) {
+      return res.status(404).json({ error: 'PDF no encontrado para regeneración' });
+    }
+
+    const relativeFileUrl = (pdfRecord.file_url || '').replace(/^\//, '');
+    const pdfPath = path.join(__dirname, '..', relativeFileUrl);
+    const pdfText = await extractTextFromPDF(pdfPath);
 
     // Generar nuevo contenido
     const newContent = await generateEducationalContent(

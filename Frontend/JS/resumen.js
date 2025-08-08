@@ -41,18 +41,27 @@ async function loadSummary() {
 
         const { output } = await response.json();
         
-        // Parsear el contenido JSON del resumen
+        // Parsear el contenido JSON del resumen si viniera como string.
+        // Si el backend guarda jsonb nativo, output.content ya será un objeto.
         let summaryData;
-        try {
+        if (typeof output.content === 'string') {
+          try {
             summaryData = JSON.parse(output.content);
-        } catch (e) {
-            // Si no es JSON válido, usar el texto como está
+          } catch (e) {
             summaryData = {
-                resumen_general: output.content,
-                conceptos_clave: [],
-                aplicaciones_practicas: [],
-                conclusiones: "Resumen generado exitosamente."
+              resumen_general: output.content,
+              conceptos_clave: [],
+              aplicaciones_practicas: [],
+              conclusiones: 'Resumen generado exitosamente.'
             };
+          }
+        } else {
+          summaryData = output.content || {
+            resumen_general: '',
+            conceptos_clave: [],
+            aplicaciones_practicas: [],
+            conclusiones: ''
+          };
         }
 
         // Renderizar el resumen
@@ -109,7 +118,7 @@ function renderSummary(data) {
 
 // Event listeners
 document.querySelector('.back-btn').addEventListener('click', function () {
-    window.location.href = '/Frontend/Pages/home.html';
+    window.location.href = '/index.html';
 });
 
 document.addEventListener('DOMContentLoaded', loadSummary);

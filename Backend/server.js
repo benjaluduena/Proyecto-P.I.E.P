@@ -79,10 +79,7 @@ app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend', 'login.html'));
 });
 
-// Ruta para index.html (redirige al login)
-app.get('/index.html', (req, res) => {
-  res.sendFile(path.join(__dirname, '../Frontend', 'login.html'));
-});
+// Permitir que /index.html sirva el home real desde estáticos
 
 // Ruta de prueba
 app.get('/api/health', (req, res) => {
