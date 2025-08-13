@@ -18,6 +18,69 @@
     </div>
     <div class="header-right"></div>
   </div>
+  
+  <!-- Modal Calendario -->
+  <div id="calendarModal" class="calendar-modal">
+    <div class="calendar-container">
+      <div class="calendar-header">
+        <h3>Calendario de Tareas</h3>
+        <div class="calendar-actions">
+          <button id="btnNewPlanToggle" class="btn-small btn-ghost">Nuevo Plan</button>
+          <button id="btnNewTask" class="btn-small">Nueva Tarea</button>
+          <button id="btnCloseCalendar" class="btn-small btn-ghost">Cerrar</button>
+        </div>
+      </div>
+      <div id="calendar"></div>
+      <div id="newPlanContainer" class="new-plan" style="display:none; margin-top:10px;">
+        <h4 style="margin:0 0 6px 0;">Crear nuevo plan</h4>
+        <input id="planTitle" placeholder="Título del plan" />
+        <textarea id="planDescription" placeholder="Descripción (opcional)"></textarea>
+        <div class="row">
+          <input id="planStart" type="text" placeholder="Fecha de inicio" />
+          <input id="planEnd" type="text" placeholder="Fecha de fin" />
+        </div>
+        <div class="row">
+          <label><input type="checkbox" id="planNotifyEmail" /> Recordatorios por email</label>
+          <label><input type="checkbox" id="planNotifyWhats" /> Recordatorios por WhatsApp</label>
+        </div>
+        <div class="actions">
+          <button id="btnSavePlan" class="btn-small">Guardar plan</button>
+          <button id="btnCancelPlan" class="btn-small btn-ghost">Cancelar</button>
+        </div>
+      </div>
+
+      <div id="managePlansContainer" class="manage-plans" style="display:none;">
+        <h4 style="margin:10px 0;">Mis planes</h4>
+        <div id="plansList"></div>
+      </div>
+      <div id="taskFormContainer" class="task-form" style="display:none;">
+        <input id="taskTitle" placeholder="Título" />
+        <textarea id="taskDescription" placeholder="Descripción (opcional)"></textarea>
+        <div class="row">
+          <input id="taskDueDate" type="text" placeholder="Fecha y hora" />
+          <select id="taskPlan">
+            <option value="">Selecciona plan</option>
+          </select>
+        </div>
+        <div class="row">
+          <label><input type="checkbox" id="taskCompleted" /> Completada</label>
+          <div>
+            <label style="font-weight:600;">Recordatorios:</label>
+            <div style="display:flex; gap:8px; margin-top:4px;">
+              <label><input type="checkbox" id="remEmail" /> Email</label>
+              <label><input type="checkbox" id="remWhatsapp" /> WhatsApp</label>
+              <input id="remDateTime" type="text" placeholder="Fecha y hora de recordatorio" />
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="btnSaveTask" class="btn-small">Guardar</button>
+          <button id="btnDeleteTask" class="btn-small btn-ghost" style="display:none;">Eliminar</button>
+          <button id="btnCancelTask" class="btn-small btn-ghost">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="cards"> <!-- Verdadero o Falso -->
     <div class="card active" data-type="verdadero-falso">
       <div class="container-card-badge">
