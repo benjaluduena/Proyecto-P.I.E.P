@@ -13,7 +13,10 @@ router.post('/plans', supabaseAuth, async (req, res) => {
       return res.status(400).json({ error: 'Título, fecha de inicio y fecha de fin son requeridos' });
     }
 
-    const { data: plan, error } = await supabase
+    // Use request-scoped client so RLS policies can read auth.uid()
+    const sb = req.supabase || supabase;
+
+    const { data: plan, error } = await sb
       .from('study_plans')
       .insert([{
         user_id: req.user.id,
@@ -46,7 +49,8 @@ router.post('/plans', supabaseAuth, async (req, res) => {
 // Listar planes de estudio del usuario
 router.get('/plans', supabaseAuth, async (req, res) => {
   try {
-    const { data: plans, error } = await supabase
+    const sb = req.supabase || supabase;
+    const { data: plans, error } = await sb
       .from('study_plans')
       .select(`
         id,
@@ -60,7 +64,9 @@ router.get('/plans', supabaseAuth, async (req, res) => {
         plan_tasks (
           id,
           title,
+          description,
           due_date,
+          due_at,
           completed
         )
       `)
@@ -85,7 +91,8 @@ router.get('/plans/:planId', supabaseAuth, async (req, res) => {
   try {
     const { planId } = req.params;
 
-    const { data: plan, error } = await supabase
+    const sb = req.supabase || supabase;
+    const { data: plan, error } = await sb
       .from('study_plans')
       .select(`
         id,
@@ -140,7 +147,8 @@ router.put('/plans/:planId', supabaseAuth, async (req, res) => {
     if (notify_by_email !== undefined) updateData.notify_by_email = notify_by_email;
     if (notify_by_whatsapp !== undefined) updateData.notify_by_whatsapp = notify_by_whatsapp;
 
-    const { data: plan, error } = await supabase
+    const sb = req.supabase || supabase;
+    const { data: plan, error } = await sb
       .from('study_plans')
       .update(updateData)
       .eq('id', planId)
@@ -168,7 +176,8 @@ router.delete('/plans/:planId', supabaseAuth, async (req, res) => {
   try {
     const { planId } = req.params;
 
-    const { error } = await supabase
+    const sb = req.supabase || supabase;
+    const { error } = await sb
       .from('study_plans')
       .delete()
       .eq('id', planId)
@@ -198,7 +207,8 @@ router.post('/plans/:planId/tasks', supabaseAuth, async (req, res) => {
     }
 
     // Verificar que el plan pertenece al usuario
-    const { data: plan } = await supabase
+    const sb = req.supabase || supabase;
+    const { data: plan } = await sb
       .from('study_plans')
       .select('id')
       .eq('id', planId)
@@ -209,7 +219,7 @@ router.post('/plans/:planId/tasks', supabaseAuth, async (req, res) => {
       return res.status(404).json({ error: 'Plan de estudio no encontrado' });
     }
 
-    const { data: task, error } = await supabase
+    const { data: task, error } = await sb
       .from('plan_tasks')
       .insert([{
         plan_id: planId,
@@ -250,7 +260,8 @@ router.put('/tasks/:taskId', supabaseAuth, async (req, res) => {
     if (completed !== undefined) updateData.completed = completed;
     if (related_output_id !== undefined) updateData.related_output_id = related_output_id;
 
-    const { data: task, error } = await supabase
+    const sb = req.supabase || supabase;
+    const { data: task, error } = await sb
       .from('plan_tasks')
       .update(updateData)
       .eq('id', taskId)
@@ -283,7 +294,8 @@ router.delete('/tasks/:taskId', supabaseAuth, async (req, res) => {
     const { taskId } = req.params;
 
     // Verificar que la tarea pertenece al usuario
-    const { data: task } = await supabase
+    const sb = req.supabase || supabase;
+    const { data: task } = await sb
       .from('plan_tasks')
       .select(`
         id,
@@ -298,7 +310,7 @@ router.delete('/tasks/:taskId', supabaseAuth, async (req, res) => {
       return res.status(404).json({ error: 'Tarea no encontrada' });
     }
 
-    const { error } = await supabase
+    const { error } = await sb
       .from('plan_tasks')
       .delete()
       .eq('id', taskId);

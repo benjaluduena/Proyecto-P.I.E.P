@@ -471,3 +471,273 @@ body {
         transform: rotate(360deg);
     }
 }
+
+/* Calendario Fullscreen modal */
+.calendar-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1500;
+}
+
+.calendar-modal.show { display: flex; }
+
+.calendar-container {
+    width: 95%;
+    max-width: 1100px;
+    background: #fff;
+    border-radius: 14px;
+    border: 2px solid #f1f1f1;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    padding: 18px;
+    max-height: 90vh;
+    overflow: auto;
+}
+
+.calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 2;
+}
+
+.calendar-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-small {
+    background: #a259fa;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-ghost {
+    background: #f5f5f5;
+    color: #333;
+}
+
+/* FullCalendar overrides */
+.fc .fc-toolbar-title { font-family: 'Poppins', Arial, sans-serif; font-weight: 600; }
+.fc .fc-button-primary { background: #a259fa; border: none; }
+.fc .fc-button-primary:hover { background: #8f47e8; }
+.fc .fc-daygrid-event { border-radius: 8px; padding: 2px 4px; border: 1px solid #eee; }
+.fc .fc-event.completed { background: #e8f5e8; color: #2e7d32; border-color:#c8e6c9; }
+.fc .fc-event.overdue { background: #ffebee; color: #c62828; border-color:#ffcdd2; }
+
+/* Formulario tarea */
+.task-form { display: grid; gap: 10px; margin-top: 10px; }
+.task-form input, .task-form textarea, .task-form select { width: 100%; padding: 10px; border: 1px solid #e1e1e1; border-radius: 10px; font-family: 'Poppins', Arial, sans-serif; }
+.task-form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.task-form .actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* Nuevo plan inline */
+.new-plan { border: 1px dashed #e1e1e1; border-radius: 10px; padding: 10px; background: #fafafa; }
+.new-plan .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.new-plan .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+
+/* Gestión de planes */
+.manage-plans { border: 1px solid #f1f1f1; border-radius: 10px; padding: 10px; background: #fff; margin-top: 10px; }
+.manage-plans .row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; }
+.manage-plans .actions { display: flex; gap: 8px; }
+.manage-plans .edit-form { margin-top: 8px; border-top: 1px dashed #eee; padding-top: 8px; }
+.manage-plans .edit-form .row { grid-template-columns: 1fr 1fr; }
+
+/* Quick Task Menu */
+.quick-task-menu {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 8px 0;
+  min-width: 150px;
+  font-size: 14px;
+}
+
+.quick-task-menu .menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quick-task-menu .menu-item:hover {
+  background-color: #f5f5f5;
+}
+
+.quick-task-menu .menu-item:first-child {
+  border-radius: 8px 8px 0 0;
+}
+
+.quick-task-menu .menu-item:last-child {
+  border-radius: 0 0 8px 8px;
+}
+
+/* Quick Task Form */
+.quick-task-form {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  padding: 24px;
+  min-width: 320px;
+  max-width: 400px;
+  border: 1px solid #e0e0e0;
+}
+
+.quick-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.quick-form-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.quick-task-form input,
+.quick-task-form select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.quick-task-form input:focus,
+.quick-task-form select:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.quick-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+/* Toast Notifications */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border-left: 4px solid #2196F3;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 10000;
+  max-width: 300px;
+  font-size: 14px;
+}
+
+.toast.show {
+  transform: translateX(0);
+}
+
+.toast-success {
+  border-left-color: #4CAF50;
+  background: #f1f8e9;
+}
+
+.toast-error {
+  border-left-color: #f44336;
+  background: #ffebee;
+}
+
+.toast-info {
+  border-left-color: #2196F3;
+  background: #e3f2fd;
+}
+
+/* Enhanced Calendar Event Styles */
+.fc-event {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.fc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.fc-event.completed {
+  opacity: 0.8;
+  text-decoration: line-through;
+}
+
+.fc-event.overdue {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .calendar-container { width: 96%; padding: 12px; }
+  .task-form .row { grid-template-columns: 1fr; }
+  .new-plan .row { grid-template-columns: 1fr; }
+  .quick-task-form {
+    min-width: 280px;
+    margin: 20px;
+  }
+  
+  .quick-task-menu {
+    min-width: 120px;
+  }
+  
+  .toast {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}
+
+.calendar-actions .btn-small { margin-left: 6px; }

@@ -11,6 +11,7 @@ const pdfRoutes = require('./routes/pdfs');
 const aiRoutes = require('./routes/ai');
 const studyRoutes = require('./routes/study');
 const notificationRoutes = require('./routes/notifications');
+const tasksRoutes = require('./routes/tasks');
 
 const app = express();
 const PORT = process.env.PORT || 5500;
@@ -29,14 +30,25 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          'https://cdn.jsdelivr.net',
+          'https://unpkg.com'
+        ],
         styleSrc: [
           "'self'",
           "'unsafe-inline'",
           'https://fonts.googleapis.com',
+          'https://cdnjs.cloudflare.com',
+          'https://cdn.jsdelivr.net'
+        ],
+        fontSrc: [
+          "'self'",
+          'data:',
+          'https://fonts.gstatic.com',
+          'https://cdnjs.cloudflare.com',
           'https://cdnjs.cloudflare.com'
         ],
-        fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com'],
         imgSrc: ["'self'", 'data:'],
         connectSrc: [
           "'self'",
@@ -66,6 +78,7 @@ app.use('/api/pdfs', pdfRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/study', studyRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/tasks', tasksRoutes);
 
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../Frontend'), { index: false }));
@@ -91,8 +104,7 @@ app.get('/landing', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
-    message: 'P.I.E.P. Backend funcionando correctamente',
-    timestamp: new Date().toISOString()
+    time: new Date().toISOString()
   });
 });
 

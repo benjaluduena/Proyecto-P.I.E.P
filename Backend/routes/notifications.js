@@ -46,8 +46,8 @@ router.post('/', supabaseAuth, async (req, res) => {
       });
     }
 
-    if (!['email'].includes(method)) {
-      return res.status(400).json({ error: 'Método debe ser email' });
+    if (!['email', 'whatsapp'].includes(method)) {
+      return res.status(400).json({ error: 'Método debe ser email o whatsapp' });
     }
 
     // Verificar que la tarea pertenece al usuario
