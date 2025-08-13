@@ -248,6 +248,62 @@ cardActionBtns.forEach(btn => {
         return;
       }
 
+      if (type === "mapa-mental") {
+        const formData = new FormData();
+        formData.append('pdf', fileInput.files[0]);
+
+        const response = await apiCall('/api/pdfs/upload', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Authorization': getAuthHeaders().Authorization
+          }
+        });
+
+        if (!response || !response.ok) {
+          throw new Error('Error al subir el PDF');
+        }
+
+        const { pdf } = await response.json();
+        const pdfId = pdf.id;
+
+        let mapResponse = await apiCall(`/api/ai/generate/${pdfId}`, {
+          method: 'POST',
+          body: JSON.stringify({ type: 'mapa_mental' })
+        });
+        // Manejar caso 400 por contenido existente
+        if (mapResponse && mapResponse.status === 400) {
+          try {
+            const data = await mapResponse.json();
+            if (data && data.outputId) {
+              const params = new URLSearchParams({
+                pdfId: String(pdfId),
+                outputId: String(data.outputId),
+                fileName: fileInput.files[0].name
+              });
+              window.location.href = `/Frontend/mapa-mental.html?${params.toString()}`;
+              return;
+            }
+          } catch (_) {
+            // Ignorar parse error y continuar como error genérico
+          }
+        }
+
+        if (!mapResponse || !mapResponse.ok) {
+          throw new Error('Error al generar el mapa mental');
+        }
+
+        const { output } = await mapResponse.json();
+
+        const params = new URLSearchParams({
+          pdfId: String(pdfId),
+          outputId: String(output.id),
+          fileName: fileInput.files[0].name
+        });
+        window.location.href = `/Frontend/mapa-mental.html?${params.toString()}`;
+        return;
+      }
+
       // Para otros tipos de contenido (mantener lógica existente)
       setTimeout(() => {
         loadingOverlay.classList.remove("show");

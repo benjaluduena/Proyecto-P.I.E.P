@@ -42,6 +42,14 @@ const parseJsonFromText = (text) => {
 
 // Función para generar contenido educativo con IA
 const generateEducationalContent = async (pdfText, contentType, educationLevel, language = 'español') => {
+  const getTruncatedText = (text, maxChars = 12000) => {
+    if (typeof text !== 'string') return '';
+    const cleaned = text.replace(/\s+/g, ' ').trim();
+    if (cleaned.length <= maxChars) return cleaned;
+    return cleaned.slice(0, maxChars);
+  };
+  const truncatedForMindmap = getTruncatedText(pdfText, 8000);
+
   const prompts = {
     resumen: `A partir del siguiente texto, genera un resumen educativo en formato JSON ESTRICTAMENTE con la siguiente estructura y sin ningún texto adicional fuera del JSON:\n\n{\n  "resumen_general": "Texto del resumen general aquí.",\n  "conceptos_clave": ["Concepto 1", "Concepto 2", "Concepto 3"],\n  "aplicaciones_practicas": ["Aplicación 1", "Aplicación 2", "Aplicación 3"],\n  "conclusiones": "Texto de las conclusiones aquí."\n}\n\n- Si algún campo no puede generarse, déjalo vacío pero siempre incluye todos los campos.\n- No expliques nada fuera del JSON.\n- Responde solo en español.\n\nTexto a resumir:\n${pdfText}`,
 
@@ -119,26 +127,69 @@ const generateEducationalContent = async (pdfText, contentType, educationLevel, 
     - Explicación del proceso
     
     Texto: ${pdfText}`
+    ,
+    mapa_mental: `A partir del siguiente texto, genera UN mapa mental en formato Markdown compatible con Markmap, y devuelve ESTRICTAMENTE un JSON con esta estructura SIN texto adicional:
+    {
+      "titulo": "Título del mapa mental",
+      "markmap": "# Título del mapa\n- Tema principal\n  - Concepto 1\n    - Definición breve\n    - Ejemplos:\n      - Ejemplo 1\n      - Ejemplo 2\n  - Concepto 2\n    - Definición breve\n    - Ejemplos:\n      - Ejemplo 1\n      - Ejemplo 2",
+      "notas": ["Sugerencia o nota 1", "Sugerencia o nota 2"]
+    }
+    Requisitos:
+    - El campo "markmap" DEBE ser Markdown plano (sin fences de bloque), iniciando por un encabezado (#) y usando listas con guiones para nodos e indentación de dos espacios para subniveles.
+    - Incluye bajo cada concepto una subsección "Ejemplos:" con 1-3 ejemplos puntuales.
+    - Mantén frases breves en cada nodo (máx. 10-12 palabras) y 4-6 conceptos principales.
+    - Responde SOLO el JSON solicitado, en español.
+    
+    Nivel educativo: ${educationLevel}.
+    Texto base:
+    ${truncatedForMindmap}`
   };
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `Eres un asistente educativo experto. Genera contenido educativo de alta calidad, \n          adaptado al nivel educativo especificado. Responde siempre en ${language} y en formato JSON válido.\n          Para resúmenes, incluye: resumen_general, conceptos_clave (array), aplicaciones_practicas (array), conclusiones.`
-        },
-        {
-          role: "user",
-          content: prompts[contentType]
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 2000
-    });
-    const generatedContent = completion.choices[0].message.content;
-    const parsed = parseJsonFromText(generatedContent);
+    let parsed;
+    try {
+      const messages = contentType === 'mapa_mental'
+        ? [
+            {
+              role: 'system',
+              content: `Eres un asistente educativo experto. BASA tus respuestas UNICAMENTE en el texto proporcionado. Responde en ${language}. Devuelve SOLO JSON válido. No incluyas fences, ni texto fuera del JSON.`
+            },
+            {
+              role: 'user',
+              content: prompts[contentType]
+            }
+          ]
+        : [
+            {
+              role: 'system',
+              content: `Eres un asistente educativo experto. Genera contenido educativo de alta calidad, adaptado al nivel educativo especificado. Responde siempre en ${language} y en formato JSON válido.`
+            },
+            {
+              role: 'user',
+              content: prompts[contentType]
+            }
+          ];
+
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages,
+        temperature: 0.5,
+        max_tokens: contentType === 'mapa_mental' ? 1500 : 2000
+      });
+      const generatedContent = completion.choices?.[0]?.message?.content || '';
+      parsed = parseJsonFromText(generatedContent);
+    } catch (modelError) {
+      // Fallback para mapa mental si el modelo falla
+      if (contentType === 'mapa_mental') {
+        const lines = (pdfText || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        const head = lines.slice(0, 6);
+        let bullets = head.map((l) => `  - ${l.substring(0, 70)}`);
+        if (bullets.length === 0) bullets = ['  - Concepto 1', '  - Concepto 2'];
+        const markmap = ['# Mapa mental', '- Tema principal', ...bullets].join('\n');
+        return { titulo: 'Mapa mental', markmap, notas: ['Generado en modo de respaldo (sin IA).'] };
+      }
+      throw modelError;
+    }
     // Normalizar según tipo
     if (contentType === 'resumen') {
       return {
@@ -189,6 +240,37 @@ const generateEducationalContent = async (pdfText, contentType, educationLevel, 
       });
       return { preguntas };
     }
+    if (contentType === 'mapa_mental') {
+      // Normalizar salida de mapa mental
+      const titulo = parsed.titulo || parsed.title || 'Mapa mental';
+      let markmap = parsed.markmap || parsed.markdown || '';
+      if (typeof markmap !== 'string') markmap = '';
+      const notas = Array.isArray(parsed.notas) ? parsed.notas : [];
+
+      const looksValid = (mm) => typeof mm === 'string' && mm.includes('#') && /\n\s*-\s+/m.test(mm) && mm.length > 60;
+      if (!looksValid(markmap)) {
+        // Reintentar una vez con un prompt más directo en caso de salida vacía o genérica
+        try {
+          const retryMsg = [
+            { role: 'system', content: `Devuelve SOLO JSON válido con las claves {"titulo","markmap","notas"}. Basado EXCLUSIVAMENTE en el texto. No inventes.` },
+            { role: 'user', content: `Crea un mapa mental en formato Markmap. Requisitos: encabezado con #, 5-7 conceptos principales con subpuntos y ejemplos, frases breves. Texto base:\n${truncatedForMindmap}` }
+          ];
+          const retry = await openai.chat.completions.create({ model: 'gpt-4o-mini', messages: retryMsg, temperature: 0.4, max_tokens: 1400 });
+          const out = retry.choices?.[0]?.message?.content || '';
+          const parsedRetry = parseJsonFromText(out);
+          if (parsedRetry && typeof parsedRetry.markmap === 'string' && looksValid(parsedRetry.markmap)) {
+            return { titulo: parsedRetry.titulo || titulo, markmap: parsedRetry.markmap, notas: Array.isArray(parsedRetry.notas) ? parsedRetry.notas : notas };
+          }
+        } catch (e) {
+          // Continuar con fallback simple
+        }
+        const lines = (truncatedForMindmap || '').split(/\.?\s+/).filter(Boolean).slice(0, 6);
+        const bullets = lines.map((l) => `  - ${l.substring(0, 70)}`);
+        const fallbackMap = ['# ' + (titulo || 'Mapa mental'), '- Tema principal', ...bullets].join('\n');
+        return { titulo, markmap: fallbackMap, notas: notas.length ? notas : ['Mapa generado parcialmente por contenido insuficiente.'] };
+      }
+      return { titulo, markmap, notas };
+    }
     // Otros tipos: devolver lo parseado tal cual
     return parsed || {};
   } catch (error) {
@@ -202,14 +284,17 @@ router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
   try {
     const { pdfId } = req.params;
     const { type } = req.body;
+    // Normalizar tipo (permitir alias con guion)
+    const normalizedType = (type || '').toString().trim().replace(/-/g, '_');
+    const storageType = normalizedType === 'mapa_mental' ? 'flashcards' : normalizedType;
 
     // Validar tipo de contenido
     const validTypes = [
       'resumen', 'recomendacion_video', 'recomendacion_texto', 
-      'multiple_choice', 'verdadero_falso', 'flashcards', 'problema'
+      'multiple_choice', 'verdadero_falso', 'flashcards', 'problema', 'mapa_mental'
     ];
 
-    if (!validTypes.includes(type)) {
+    if (!validTypes.includes(normalizedType)) {
       return res.status(400).json({ 
         error: 'Tipo de contenido inválido',
         validTypes 
@@ -239,12 +324,15 @@ router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
     // Verificar si ya existe contenido de este tipo
     let existingContent = null;
     try {
-      const { data } = await s
+      let query = s
         .from('study_outputs')
         .select('id')
         .eq('pdf_id', pdfId)
-        .eq('type', type)
-        .single();
+        .eq('type', storageType);
+      if (normalizedType === 'mapa_mental') {
+        query = query.contains('content', { __type: 'mapa_mental' });
+      }
+      const { data } = await query.single();
       existingContent = data;
     } catch (error) {
       // Si hay error, continuar (no bloquear)
@@ -276,7 +364,7 @@ router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
     try {
       aiContent = await generateEducationalContent(
         pdfText, 
-        type, 
+        normalizedType, 
         req.user.education_level || 'universitario'
       );
     } catch (error) {
@@ -286,12 +374,13 @@ router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
     // Guardar en la base de datos
     let studyOutput;
     try {
+      const contentToSave = normalizedType === 'mapa_mental' ? { __type: 'mapa_mental', ...aiContent } : aiContent;
       const { data, error: insertError } = await s
         .from('study_outputs')
         .insert([{
           pdf_id: pdfId,
-          type: type,
-          content: aiContent // objeto JSON directo para jsonb
+          type: storageType,
+          content: contentToSave // objeto JSON directo para jsonb
         }])
         .select('*')
         .single();
@@ -420,6 +509,7 @@ router.post('/regenerate/:outputId', supabaseAuth, async (req, res) => {
       .select(`
         id,
         type,
+        content,
         pdf_uploads!inner (
           id,
           title,
@@ -450,16 +540,19 @@ router.post('/regenerate/:outputId', supabaseAuth, async (req, res) => {
     const pdfText = await extractTextFromPDF(pdfPath);
 
     // Generar nuevo contenido
+    const isMindmapAlias = existingOutput.type === 'flashcards' && existingOutput.content && existingOutput.content.__type === 'mapa_mental';
+    const effectiveType = isMindmapAlias ? 'mapa_mental' : existingOutput.type;
     const newContent = await generateEducationalContent(
       pdfText,
-      existingOutput.type,
+      effectiveType,
       req.user.education_level || 'universitario'
     );
 
     // Actualizar en la base de datos
+    const contentToSave = isMindmapAlias ? { __type: 'mapa_mental', ...newContent } : newContent;
     const { data: updatedOutput, error: updateError } = await supabase
       .from('study_outputs')
-      .update({ content: newContent })
+      .update({ content: contentToSave })
       .eq('id', outputId)
       .select('*')
       .single();
