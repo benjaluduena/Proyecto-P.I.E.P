@@ -226,7 +226,7 @@ document.getElementById('google-auth-btn').addEventListener('click', async funct
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin + '/Frontend/index.html'
+      redirectTo: window.location.origin + '/index.html'
     }
   });
   if (error) {
