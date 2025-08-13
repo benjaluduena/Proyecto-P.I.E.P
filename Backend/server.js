@@ -33,9 +33,10 @@ app.use(
         styleSrc: [
           "'self'",
           "'unsafe-inline'",
-          'https://fonts.googleapis.com'
+          'https://fonts.googleapis.com',
+          'https://cdnjs.cloudflare.com'
         ],
-        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com'],
         imgSrc: ["'self'", 'data:'],
         connectSrc: [
           "'self'",
@@ -67,16 +68,21 @@ app.use('/api/study', studyRoutes);
 app.use('/api/notifications', notificationRoutes);
 
 // Servir archivos estáticos del frontend
-app.use(express.static(path.join(__dirname, '../Frontend')));
+app.use(express.static(path.join(__dirname, '../Frontend'), { index: false }));
 
-// Ruta para la página principal
+// Ruta para la página principal (landing page)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../Frontend', 'login.html'));
+  res.sendFile(path.join(__dirname, '../Frontend', 'landing.html'));
 });
 
 // Ruta para login
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend', 'login.html'));
+});
+
+// Ruta para landing page
+app.get('/landing', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend', 'landing.html'));
 });
 
 // Permitir que /index.html sirva el home real desde estáticos
@@ -97,7 +103,12 @@ app.get('/Frontend/resumen.html', (req, res) => {
 
 // Ruta fallback para SPA (opcional, si usas rutas en el frontend)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../Frontend', 'login.html'));
+  // Si la ruta no es una ruta de API, servir la landing page
+  if (!req.path.startsWith('/api/')) {
+    res.sendFile(path.join(__dirname, '../Frontend', 'landing.html'));
+  } else {
+    res.status(404).json({ error: 'Ruta no encontrada' });
+  }
 });
 
 // Middleware de manejo de errores

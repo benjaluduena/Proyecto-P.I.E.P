@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P.I.E.P. - Plataforma Inteligente de Estudio Personalizado</title>
+    <meta name="description" content="Transforma tus materiales de estudio en recursos educativos personalizados con inteligencia artificial. Resúmenes, ejercicios, flashcards y más.">
+    <meta name="keywords" content="estudio, IA, educación, resúmenes, flashcards, ejercicios, aprendizaje personalizado">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="P.I.E.P. - Plataforma Inteligente de Estudio Personalizado">
+    <meta property="og:description" content="Transforma tus materiales de estudio en recursos educativos personalizados con inteligencia artificial.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://piep.com">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="Css/landing.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="Assets/Imagenes/Logo.png" alt="P.I.E.P. Logo" class="logo-img">
+                <span class="logo-text">P.I.E.P.</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#features" class="nav-link">Características</a>
+                <a href="#how-it-works" class="nav-link">Cómo funciona</a>
+                <a href="#testimonials" class="nav-link">Testimonios</a>
+                <a href="#pricing" class="nav-link">Precios</a>
+            </div>
+            <div class="nav-buttons">
+                <a href="login.html" class="btn btn-secondary">Iniciar Sesión</a>
+                <a href="#register" class="btn btn-primary">Registrarse</a>
+            </div>
+            <div class="nav-toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    Transforma tu <span class="highlight">estudio</span> con 
+                    <span class="highlight">Inteligencia Artificial</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Sube tus PDFs y obtén automáticamente resúmenes, ejercicios, flashcards y recursos educativos personalizados adaptados a tu nivel de estudio.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#register" class="btn btn-primary btn-large">
+                        <i class="fas fa-rocket"></i>
+                        Comenzar Gratis
+                    </a>
+                    <a href="#demo" class="btn btn-outline btn-large">
+                        <i class="fas fa-play"></i>
+                        Ver Demo
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number">10,000+</span>
+                        <span class="stat-label">Estudiantes</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">50,000+</span>
+                        <span class="stat-label">Documentos Procesados</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">95%</span>
+                        <span class="stat-label">Satisfacción</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="Assets/Imagenes/Mascota1.png" alt="P.I.E.P. Mascot" class="hero-mascot">
+                <div class="hero-cards">
+                    <div class="floating-card card-1">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>Sube tu PDF</span>
+                    </div>
+                    <div class="floating-card card-2">
+                        <i class="fas fa-brain"></i>
+                        <span>IA Procesa</span>
+                    </div>
+                    <div class="floating-card card-3">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>¡Aprende!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Todo lo que necesitas para estudiar mejor</h2>
+                <p class="section-subtitle">Herramientas inteligentes diseñadas para optimizar tu tiempo de estudio</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card" data-aos="fade-up">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3>Resúmenes Automáticos</h3>
+                    <p>Extrae las ideas principales, conceptos clave y conclusiones de cualquier documento de forma automática.</p>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <h3>Ejercicios Interactivos</h3>
+                    <p>Genera preguntas de opción múltiple, verdadero/falso y problemas prácticos basados en tu material.</p>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <h3>Flashcards Inteligentes</h3>
+                    <p>Crea tarjetas de memoria personalizadas para repasar conceptos clave de manera eficiente.</p>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3>Planes de Estudio</h3>
+                    <p>Organiza tu tiempo con planes personalizados y recibe recordatorios para mantener el ritmo.</p>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Seguimiento de Progreso</h3>
+                    <p>Monitorea tu avance con estadísticas detalladas y métricas de rendimiento.</p>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="500">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3>Notificaciones Inteligentes</h3>
+                    <p>Recibe recordatorios por email y WhatsApp para no perder el ritmo de estudio.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Cómo funciona P.I.E.P.</h2>
+                <p class="section-subtitle">En solo 3 pasos simples, transforma tu material de estudio</p>
+            </div>
+            <div class="steps-container">
+                <div class="step" data-aos="fade-right">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Sube tu PDF</h3>
+                        <p>Arrastra y suelta tu documento PDF o selecciónalo desde tu dispositivo. Soporta cualquier tipo de material educativo.</p>
+                        <div class="step-image">
+                            <img src="Assets/Imagenes/file.png" alt="Subir PDF">
+                        </div>
+                    </div>
+                </div>
+                <div class="step" data-aos="fade-left">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>IA Procesa el Contenido</h3>
+                        <p>Nuestra inteligencia artificial analiza el contenido y genera recursos educativos personalizados según tu nivel.</p>
+                        <div class="step-image">
+                            <img src="Assets/Imagenes/Mascota2.png" alt="IA Procesando">
+                        </div>
+                    </div>
+                </div>
+                <div class="step" data-aos="fade-right">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>¡Estudia y Aprende!</h3>
+                        <p>Accede a resúmenes, ejercicios, flashcards y más. Todo organizado y listo para optimizar tu aprendizaje.</p>
+                        <div class="step-image">
+                            <img src="Assets/Imagenes/Mascota3.png" alt="Estudiar">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="demo">
+        <div class="container">
+            <div class="demo-content">
+                <div class="demo-text">
+                    <h2>Ve P.I.E.P. en acción</h2>
+                    <p>Descubre cómo nuestra plataforma transforma un documento PDF en recursos educativos completos en segundos.</p>
+                    <div class="demo-features">
+                        <div class="demo-feature">
+                            <i class="fas fa-check"></i>
+                            <span>Procesamiento en tiempo real</span>
+                        </div>
+                        <div class="demo-feature">
+                            <i class="fas fa-check"></i>
+                            <span>Múltiples formatos de salida</span>
+                        </div>
+                        <div class="demo-feature">
+                            <i class="fas fa-check"></i>
+                            <span>Adaptación automática al nivel</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="demo-screenshots">
+                    <div class="screenshot-container">
+                        <img src="Assets/Imagenes/Resumen.png" alt="Resumen generado" class="screenshot">
+                        <div class="screenshot-overlay">
+                            <span>Resumen Automático</span>
+                        </div>
+                    </div>
+                    <div class="screenshot-container">
+                        <img src="Assets/Imagenes/Multiplechoice.png" alt="Ejercicios" class="screenshot">
+                        <div class="screenshot-overlay">
+                            <span>Ejercicios Interactivos</span>
+                        </div>
+                    </div>
+                    <div class="screenshot-container">
+                        <img src="Assets/Imagenes/VerdaderoFalso.png" alt="Verdadero/Falso" class="screenshot">
+                        <div class="screenshot-overlay">
+                            <span>Preguntas V/F</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Lo que dicen nuestros usuarios</h2>
+                <p class="section-subtitle">Estudiantes y docentes que han transformado su forma de estudiar</p>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card" data-aos="fade-up">
+                    <div class="testimonial-content">
+                        <p>"P.I.E.P. me ha ahorrado horas de tiempo. Antes pasaba días resumiendo documentos, ahora lo hago en minutos."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="author-info">
+                            <h4>María González</h4>
+                            <span>Estudiante Universitaria</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="testimonial-content">
+                        <p>"Las flashcards generadas automáticamente son perfectas para repasar antes de los exámenes. ¡Altamente recomendado!"</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="author-info">
+                            <h4>Carlos Rodríguez</h4>
+                            <span>Estudiante de Medicina</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="testimonial-content">
+                        <p>"Como docente, P.I.E.P. me ayuda a crear material educativo de calidad en minutos. Mis estudiantes están más comprometidos."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="author-info">
+                            <h4>Dra. Ana Martínez</h4>
+                            <span>Profesora Universitaria</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Planes que se adaptan a ti</h2>
+                <p class="section-subtitle">Elige el plan perfecto para tus necesidades de estudio</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card" data-aos="fade-up">
+                    <div class="pricing-header">
+                        <h3>Gratis</h3>
+                        <div class="price">
+                            <span class="currency">$</span>
+                            <span class="amount">0</span>
+                            <span class="period">/mes</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> 5 PDFs por mes</li>
+                        <li><i class="fas fa-check"></i> Resúmenes básicos</li>
+                        <li><i class="fas fa-check"></i> 10 ejercicios por PDF</li>
+                        <li><i class="fas fa-check"></i> Acceso básico a flashcards</li>
+                        <li><i class="fas fa-check"></i> Soporte por email</li>
+                    </ul>
+                    <a href="#register" class="btn btn-outline btn-full">Comenzar Gratis</a>
+                </div>
+                <div class="pricing-card featured" data-aos="fade-up" data-aos-delay="100">
+                    <div class="pricing-badge">Más Popular</div>
+                    <div class="pricing-header">
+                        <h3>Estudiante</h3>
+                        <div class="price">
+                            <span class="currency">$</span>
+                            <span class="amount">9.99</span>
+                            <span class="period">/mes</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> PDFs ilimitados</li>
+                        <li><i class="fas fa-check"></i> Todos los tipos de contenido</li>
+                        <li><i class="fas fa-check"></i> Planes de estudio avanzados</li>
+                        <li><i class="fas fa-check"></i> Notificaciones personalizadas</li>
+                        <li><i class="fas fa-check"></i> Estadísticas detalladas</li>
+                        <li><i class="fas fa-check"></i> Soporte prioritario</li>
+                    </ul>
+                    <a href="#register" class="btn btn-primary btn-full">Elegir Plan</a>
+                </div>
+                <div class="pricing-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="pricing-header">
+                        <h3>Docente</h3>
+                        <div class="price">
+                            <span class="currency">$</span>
+                            <span class="amount">19.99</span>
+                            <span class="period">/mes</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Todo del plan Estudiante</li>
+                        <li><i class="fas fa-check"></i> Biblioteca compartida</li>
+                        <li><i class="fas fa-check"></i> Gestión de estudiantes</li>
+                        <li><i class="fas fa-check"></i> Reportes de progreso</li>
+                        <li><i class="fas fa-check"></i> Plantillas personalizadas</li>
+                        <li><i class="fas fa-check"></i> Soporte dedicado</li>
+                    </ul>
+                    <a href="#register" class="btn btn-outline btn-full">Elegir Plan</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="register" class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>¿Listo para transformar tu estudio?</h2>
+                <p>Únete a miles de estudiantes que ya están optimizando su aprendizaje con P.I.E.P.</p>
+                <div class="cta-form">
+                    <form class="register-form">
+                        <div class="form-group">
+                            <input type="text" placeholder="Nombre completo" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" placeholder="Correo electrónico" required>
+                        </div>
+                        <div class="form-group">
+                            <select required>
+                                <option value="">Selecciona tu rol</option>
+                                <option value="estudiante">Estudiante</option>
+                                <option value="docente">Docente</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-large">
+                            <i class="fas fa-rocket"></i>
+                            Comenzar Ahora
+                        </button>
+                    </form>
+                </div>
+                <p class="cta-note">✅ Registro gratuito • ✅ Sin tarjeta de crédito • ✅ Acceso inmediato</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="Assets/Imagenes/Logo.png" alt="P.I.E.P. Logo">
+                        <span>P.I.E.P.</span>
+                    </div>
+                    <p>Transformando la educación con inteligencia artificial para crear experiencias de aprendizaje personalizadas y efectivas.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Producto</h4>
+                    <ul>
+                        <li><a href="#features">Características</a></li>
+                        <li><a href="#pricing">Precios</a></li>
+                        <li><a href="#demo">Demo</a></li>
+                        <li><a href="#">API</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Recursos</h4>
+                    <ul>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Tutoriales</a></li>
+                        <li><a href="#">Centro de Ayuda</a></li>
+                        <li><a href="#">Comunidad</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Empresa</h4>
+                    <ul>
+                        <li><a href="#">Acerca de</a></li>
+                        <li><a href="#">Contacto</a></li>
+                        <li><a href="#">Privacidad</a></li>
+                        <li><a href="#">Términos</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 P.I.E.P. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="JS/landing.js"></script>
+</body>
+</html>

@@ -167,6 +167,87 @@ cardActionBtns.forEach(btn => {
         return;
       }
 
+      if (type === "verdadero-falso") {
+        // Subir PDF y generar preguntas de verdadero/falso
+        const formData = new FormData();
+        formData.append('pdf', fileInput.files[0]);
+
+        const response = await apiCall('/api/pdfs/upload', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Authorization': getAuthHeaders().Authorization
+          }
+        });
+
+        if (!response || !response.ok) {
+          throw new Error('Error al subir el PDF');
+        }
+
+        const { pdf } = await response.json();
+        const pdfId = pdf.id;
+
+        // Generar verdadero/falso con IA
+        const vfResponse = await apiCall(`/api/ai/generate/${pdfId}`, {
+          method: 'POST',
+          body: JSON.stringify({ type: 'verdadero_falso' })
+        });
+
+        if (!vfResponse || !vfResponse.ok) {
+          throw new Error('Error al generar las preguntas de Verdadero/Falso');
+        }
+
+        const { output } = await vfResponse.json();
+
+        // Redirigir a la vista de verdadero/falso
+        const params = new URLSearchParams({
+          pdfId: String(pdfId),
+          outputId: String(output.id),
+          fileName: fileInput.files[0].name
+        });
+        window.location.href = `/verdadero-falso.html?${params.toString()}`;
+        return;
+      }
+
+      if (type === "multiple-choice") {
+        const formData = new FormData();
+        formData.append('pdf', fileInput.files[0]);
+
+        const response = await apiCall('/api/pdfs/upload', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Authorization': getAuthHeaders().Authorization
+          }
+        });
+
+        if (!response || !response.ok) {
+          throw new Error('Error al subir el PDF');
+        }
+
+        const { pdf } = await response.json();
+        const pdfId = pdf.id;
+
+        const mcResponse = await apiCall(`/api/ai/generate/${pdfId}`, {
+          method: 'POST',
+          body: JSON.stringify({ type: 'multiple_choice' })
+        });
+
+        if (!mcResponse || !mcResponse.ok) {
+          throw new Error('Error al generar el examen Multiple Choice');
+        }
+
+        const { output } = await mcResponse.json();
+
+        const params = new URLSearchParams({
+          pdfId: String(pdfId),
+          outputId: String(output.id),
+          fileName: fileInput.files[0].name
+        });
+        window.location.href = `/multiple-choice.html?${params.toString()}`;
+        return;
+      }
+
       // Para otros tipos de contenido (mantener lógica existente)
       setTimeout(() => {
         loadingOverlay.classList.remove("show");
