@@ -12,6 +12,7 @@ const aiRoutes = require('./routes/ai');
 const studyRoutes = require('./routes/study');
 const notificationRoutes = require('./routes/notifications');
 const tasksRoutes = require('./routes/tasks');
+const paymentsRoutes = require('./routes/payments');
 
 const app = express();
 const PORT = process.env.PORT || 5500;
@@ -80,6 +81,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/study', studyRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/tasks', tasksRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../Frontend'), { index: false }));

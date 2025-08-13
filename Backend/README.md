@@ -22,6 +22,7 @@ Este backend proporciona una API REST completa para gestionar:
 - **Multer** - Manejo de archivos
 - **Nodemailer** - Envío de emails
 - **Twilio** - Notificaciones WhatsApp
+- **Mercado Pago** - Suscripciones mensuales
 
 ## 📦 Instalación
 
@@ -64,6 +65,11 @@ EMAIL_PASS=tu_password_de_aplicacion
 TWILIO_ACCOUNT_SID=tu_twilio_account_sid
 TWILIO_AUTH_TOKEN=tu_twilio_auth_token
 TWILIO_PHONE_NUMBER=whatsapp:+14155238886
+
+# Mercado Pago
+MP_ACCESS_TOKEN=tu_access_token_de_mercado_pago
+# URL a la que Mercado Pago volverá después del alta (puede ser tu frontend)
+MP_BACK_URL=http://localhost:5500/
 ```
 
 ### 4. Configurar la base de datos

@@ -85,6 +85,19 @@ document.addEventListener("DOMContentLoaded", () => {
     btnCerrarSesion.addEventListener("click", logout);
   }
 
+  // Botón Cambiar plan
+  const btnCambiarPlan = document.getElementById('btnCambiarPlan');
+  if (btnCambiarPlan) {
+    btnCambiarPlan.addEventListener('click', async () => {
+      try {
+        // Ajusta el monto al mínimo permitido por tu cuenta/región en MP
+        await PIEP.startSubscription({ amount: 1500, currency: 'ARS' });
+      } catch (e) {
+        alert('No se pudo iniciar el cambio de plan. Intenta de nuevo.');
+      }
+    });
+  }
+
   // Rellenar información del usuario en el sidebar
   populateUserInfo();
 

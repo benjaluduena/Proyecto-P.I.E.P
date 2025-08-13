@@ -13,7 +13,8 @@ const CONFIG = {
     LOGIN: '/api/auth/login',
     REGISTER: '/api/auth/register',
     LOGOUT: '/api/auth/logout',
-    PROFILE: '/api/auth/profile'
+    PROFILE: '/api/auth/profile',
+    CREATE_SUBSCRIPTION: '/api/payments/mp/create-subscription'
   },
   
   // Claves de localStorage
@@ -106,3 +107,37 @@ async function apiCall(url, options = {}) {
     throw error;
   }
 } 
+
+// Iniciar suscripción de Mercado Pago desde el frontend
+async function startSubscription(options = {}) {
+  const payload = {};
+  if (options.reason) payload.reason = String(options.reason);
+  if (options.amount != null) payload.amount = Number(options.amount);
+  if (options.currency) payload.currency = String(options.currency);
+  if (options.frequency) payload.frequency = Number(options.frequency);
+  if (options.frequencyType) payload.frequencyType = String(options.frequencyType);
+  // Enviar backUrl solo si es HTTPS válido
+  if (options.backUrl) {
+    try {
+      const u = new URL(String(options.backUrl));
+      if (u.protocol === 'https:') payload.backUrl = u.href;
+    } catch (_) {}
+  }
+  const resp = await apiCall(CONFIG.API.CREATE_SUBSCRIPTION, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+  if (!resp || !resp.ok) {
+    throw new Error('No se pudo iniciar la suscripción');
+  }
+  const data = await resp.json();
+  if (data && (data.init_point || data.sandbox_init_point)) {
+    const url = data.init_point || data.sandbox_init_point;
+    window.location.href = url;
+  }
+  return data;
+}
+
+// Exponer helper global simple
+window.PIEP = window.PIEP || {};
+window.PIEP.startSubscription = startSubscription;
