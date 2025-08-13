@@ -200,6 +200,29 @@ authForm.addEventListener('submit', async function (e) {
   }
 });
 
+// Recuperar contraseña
+document.getElementById('forgot-password-link').addEventListener('click', async function (e) {
+  e.preventDefault();
+  const email = (document.getElementById('email').value || '').trim();
+  if (!email) {
+    alert('Ingresa tu correo en el campo Email para enviarte el enlace de recuperación.');
+    return;
+  }
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/update-password.html'
+    });
+    if (error) {
+      alert(error.message || 'No se pudo iniciar la recuperación de contraseña');
+      return;
+    }
+    alert('Te enviamos un correo con el enlace para restablecer tu contraseña. Revisa tu bandeja de entrada.');
+  } catch (err) {
+    console.error('Error al solicitar recuperación:', err);
+    alert('Error de red o del servidor');
+  }
+});
+
 // Verificar si ya hay una sesión activa al cargar la página
 window.addEventListener('load', async () => {
   const { data: { session } } = await supabase.auth.getSession();
