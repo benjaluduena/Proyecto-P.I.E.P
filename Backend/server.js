@@ -123,11 +123,6 @@ app.get('/Frontend/mapa-mental.html', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend', 'mapa-mental.html'));
 });
 
-// Ruta para diagnostico-suscripcion.html
-app.get('/diagnostico-suscripcion.html', (req, res) => {
-  res.sendFile(path.join(__dirname, '../Frontend', 'diagnostico-suscripcion.html'));
-});
-
 // Ruta fallback para SPA (opcional, si usas rutas en el frontend)
 app.get('*', (req, res) => {
   // Si la ruta no es una ruta de API, servir la landing page

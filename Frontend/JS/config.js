@@ -9,7 +9,7 @@ const CONFIG = {
   
   // URLs de la API
   API: {
-    BASE_URL: 'http://localhost:5500',
+    BASE_URL: window.location.origin,
     LOGIN: '/api/auth/login',
     REGISTER: '/api/auth/register',
     LOGOUT: '/api/auth/logout',
@@ -117,13 +117,11 @@ async function startSubscription(options = {}) {
   if (options.frequency) payload.frequency = Number(options.frequency);
   if (options.frequencyType) payload.frequencyType = String(options.frequencyType);
   if (options.plan) payload.plan = String(options.plan); // Agregar plan al payload
-  // Enviar backUrl solo si es HTTPS válido
-  if (options.backUrl) {
-    try {
-      const u = new URL(String(options.backUrl));
-      if (u.protocol === 'https:') payload.backUrl = u.href;
-    } catch (_) {}
-  }
+  
+  // Usar la URL del perfil como backUrl por defecto
+  const defaultBackUrl = `${window.location.origin}/perfil.html`;
+  payload.backUrl = defaultBackUrl;
+  
   const resp = await apiCall(CONFIG.API.CREATE_SUBSCRIPTION, {
     method: 'POST',
     body: JSON.stringify(payload)

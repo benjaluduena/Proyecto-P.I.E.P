@@ -104,4 +104,54 @@ router.get('/subscription/diagnostic', supabaseAuth, async (req, res) => {
   }
 });
 
+// Diagnóstico completo del sistema
+router.get('/system/health', async (req, res) => {
+  try {
+    const health = {
+      timestamp: new Date().toISOString(),
+      database: {
+        connected: false,
+        tables: {}
+      },
+      mercadopago: {
+        configured: !!process.env.MP_ACCESS_TOKEN,
+        back_url: process.env.MP_BACK_URL || null
+      },
+      environment: {
+        node_env: process.env.NODE_ENV || 'development',
+        port: process.env.PORT || 5500
+      }
+    };
+
+    // Verificar conexión a BD y tablas
+    try {
+      // Verificar tabla subscriptions
+      const { data: subscriptions, error: subError } = await supabase
+        .from('subscriptions')
+        .select('user_id')
+        .limit(1);
+      
+      health.database.connected = true;
+      health.database.tables.subscriptions = !subError;
+      
+      // Verificar tabla profiles
+      const { data: profiles, error: profError } = await supabase
+        .from('profiles')
+        .select('id')
+        .limit(1);
+      
+      health.database.tables.profiles = !profError;
+      
+    } catch (dbError) {
+      health.database.connected = false;
+      health.database.error = dbError.message;
+    }
+
+    res.json(health);
+  } catch (error) {
+    console.error('Error en health check:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 module.exports = router;

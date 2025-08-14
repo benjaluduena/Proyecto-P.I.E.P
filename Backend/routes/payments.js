@@ -10,16 +10,20 @@ function getMpClient() {
   if (!accessToken) {
     throw new Error('Falta MP_ACCESS_TOKEN en variables de entorno');
   }
+  
+  // Log temporal para debugging
+  console.log('🔍 MP Token configurado:', accessToken.substring(0, 15) + '...');
+  
   return new MercadoPagoConfig({ accessToken });
 }
 
 // Crear suscripción (preapproval)
-// Protegido con auth para conocer el usuario
 router.post('/mp/create-subscription', supabaseAuth, async (req, res) => {
   try {
     if (!process.env.MP_ACCESS_TOKEN) {
       return res.status(500).json({ error: 'Configuración faltante: MP_ACCESS_TOKEN no definido en el servidor' });
     }
+    
     const {
       reason = 'Suscripción mensual P.I.E.P.',
       amount = 100,
@@ -27,7 +31,7 @@ router.post('/mp/create-subscription', supabaseAuth, async (req, res) => {
       frequency = 1,
       frequencyType = 'months',
       backUrl: bodyBackUrl,
-      plan // Nuevo parámetro para identificar el plan
+      plan = 'estudiante'
     } = req.body || {};
 
     // Validar y forzar back_url a ser HTTPS válido
@@ -38,13 +42,14 @@ router.post('/mp/create-subscription', supabaseAuth, async (req, res) => {
         backUrl = candidate.href;
       }
     } catch (_) {
-      // Ignorar; usamos el de entorno o fallback https
+      // Si no hay MP_BACK_URL configurado, usar la URL del perfil
+      backUrl = `${req.protocol}://${req.get('host')}/perfil.html`;
     }
 
     const client = getMpClient();
     const preApproval = new PreApproval(client);
 
-    console.log('MP back_url usado:', backUrl);
+    console.log('Creando suscripción MP para usuario:', req.user.id, 'con back_url:', backUrl);
 
     const result = await preApproval.create({
       body: {
@@ -61,9 +66,11 @@ router.post('/mp/create-subscription', supabaseAuth, async (req, res) => {
       }
     });
 
-    // Guardar/actualizar en BD el intento de suscripción (si existe tabla)
+    console.log('Suscripción MP creada:', { id: result.id, status: result.status });
+
+    // Guardar en BD
     try {
-      await supabase
+      const { error } = await supabase
         .from('subscriptions')
         .upsert({
           user_id: req.user.id,
@@ -77,11 +84,17 @@ router.post('/mp/create-subscription', supabaseAuth, async (req, res) => {
           next_payment_date: result.auto_recurring?.next_payment_date || null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          metadata: {
-            plan: plan || 'estudiante' // Guardar el plan en metadata
-          }
+          metadata: { plan }
         }, { onConflict: 'user_id' });
-    } catch (_) {}
+
+      if (error) {
+        console.error('Error al guardar suscripción en BD:', error);
+      } else {
+        console.log('Suscripción guardada en BD para usuario:', req.user.id);
+      }
+    } catch (dbError) {
+      console.error('Error de BD al guardar suscripción:', dbError);
+    }
 
     return res.json({
       ok: true,
@@ -97,37 +110,39 @@ router.post('/mp/create-subscription', supabaseAuth, async (req, res) => {
   }
 });
 
-// Webhook de Mercado Pago para eventos de suscripciones
+// Webhook de Mercado Pago
 router.post('/mp/webhook', async (req, res) => {
   try {
-    // Mercado Pago envía diferentes formatos; soportamos ambos
-    const queryType = req.query.type || req.body?.type;
-    const action = req.query.action || req.body?.action;
     const resourceId = req.query.id || req.query['data.id'] || req.body?.data?.id || req.body?.id;
 
     if (!resourceId) {
+      console.log('Webhook recibido sin ID de recurso');
       return res.status(200).json({ received: true });
     }
+
+    console.log('Procesando webhook MP para ID:', resourceId);
 
     const client = getMpClient();
     const preApproval = new PreApproval(client);
 
-    let preapprovalData = null;
+    let preapprovalData;
     try {
       preapprovalData = await preApproval.get({ id: String(resourceId) });
     } catch (e) {
-      // Si no es un preapproval válido, confirmamos recepción para evitar reintentos
+      console.error('Error al obtener datos de suscripción de MP:', e);
       return res.status(200).json({ received: true });
     }
 
     const userId = preapprovalData.external_reference;
-    const status = preapprovalData.status; // authorized | paused | cancelled | pending
+    const status = preapprovalData.status;
     const nextPayment = preapprovalData.auto_recurring?.next_payment_date || null;
 
+    console.log('Actualizando suscripción:', { userId, status, nextPayment });
+
     if (userId) {
-      // Actualizar tabla subscriptions si existe
+      // Actualizar tabla subscriptions
       try {
-        await supabase
+        const { error } = await supabase
           .from('subscriptions')
           .upsert({
             user_id: userId,
@@ -136,55 +151,40 @@ router.post('/mp/webhook', async (req, res) => {
             next_payment_date: nextPayment,
             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id' });
-      } catch (_) {}
 
-      // También opcionalmente actualizar profiles con un flag simple
+        if (error) {
+          console.error('Error al actualizar suscripción en BD:', error);
+        } else {
+          console.log('Suscripción actualizada en BD para usuario:', userId);
+        }
+      } catch (dbError) {
+        console.error('Error de BD al actualizar suscripción:', dbError);
+      }
+
+      // Actualizar profiles
       try {
-        await supabase
+        const { error } = await supabase
           .from('profiles')
           .update({
             subscription_status: status,
             updated_at: new Date().toISOString()
           })
           .eq('id', userId);
-      } catch (_) {}
-      
-      // Enviar notificación al usuario sobre cambio de estado
-      try {
-        const { data: user } = await supabase
-          .from('profiles')
-          .select('email, name')
-          .eq('id', userId)
-          .single();
-        
-        if (user && user.email) {
-          // Enviar email de notificación (usando nodemailer configurado en notifications.js)
-          const subject = status === 'authorized' 
-            ? '✅ Tu suscripción P.I.E.P. está activa' 
-            : status === 'cancelled' 
-              ? '⚠️ Tu suscripción P.I.E.P. ha sido cancelada'
-              : 'ℹ️ Actualización de tu suscripción P.I.E.P.';
-          
-          const html = `
-            <h2>Hola ${user.name},</h2>
-            <p>Tu suscripción P.I.E.P. ha sido actualizada.</p>
-            <p><strong>Nuevo estado:</strong> ${status}</p>
-            ${nextPayment ? `<p><strong>Próximo pago:</strong> ${new Date(nextPayment).toLocaleDateString()}</p>` : ''}
-            <p>Accede a tu cuenta para más detalles.</p>
-          `;
-          
-          // Aquí deberías llamar a la función de envío de email
-          // sendEmail(user.email, subject, html);
+
+        if (error) {
+          console.error('Error al actualizar perfil:', error);
+        } else {
+          console.log('Perfil actualizado para usuario:', userId);
         }
-      } catch (emailError) {
-        console.error('Error al enviar notificación por email:', emailError);
+      } catch (profileError) {
+        console.error('Error al actualizar perfil:', profileError);
       }
     }
 
     return res.status(200).json({ received: true });
   } catch (error) {
     console.error('Error en webhook MP:', error);
-    return res.status(200).json({ received: true }); // Evitar reintentos masivos
+    return res.status(200).json({ received: true });
   }
 });
 
@@ -199,12 +199,8 @@ router.get('/subscription/status', supabaseAuth, async (req, res) => {
       .eq('user_id', req.user.id)
       .single();
 
-    // Log para debugging
-    console.log('Resultado de la consulta:', { subscription, error });
-
     if (error || !subscription) {
-      // Si no hay suscripción, devolver estado por defecto
-      console.log('No se encontró suscripción para el usuario');
+      console.log('No se encontró suscripción para usuario:', req.user.id);
       return res.json({
         status: 'inactive',
         plan: 'gratis',
@@ -228,10 +224,74 @@ router.get('/subscription/status', supabaseAuth, async (req, res) => {
   }
 });
 
+// Sincronizar suscripción con Mercado Pago
+router.post('/subscription/sync', supabaseAuth, async (req, res) => {
+  try {
+    console.log('Sincronizando suscripción para usuario:', req.user.id);
+    
+    const { data: subscription, error: fetchError } = await supabase
+      .from('subscriptions')
+      .select('mp_preapproval_id')
+      .eq('user_id', req.user.id)
+      .single();
+
+    if (fetchError || !subscription || !subscription.mp_preapproval_id) {
+      return res.status(404).json({ error: 'Suscripción no encontrada para sincronizar' });
+    }
+
+    if (!process.env.MP_ACCESS_TOKEN) {
+      return res.status(500).json({ error: 'Configuración faltante: MP_ACCESS_TOKEN no definido en el servidor' });
+    }
+
+    const client = getMpClient();
+    const preApproval = new PreApproval(client);
+
+    console.log('Consultando estado en MP para ID:', subscription.mp_preapproval_id);
+    const preapprovalData = await preApproval.get({ id: String(subscription.mp_preapproval_id) });
+    const status = preapprovalData.status;
+    const nextPayment = preapprovalData.auto_recurring?.next_payment_date || null;
+
+    console.log('Estado en MP:', { status, nextPayment });
+
+    // Actualizar tabla subscriptions
+    const { error: updateError } = await supabase
+      .from('subscriptions')
+      .update({
+        status,
+        next_payment_date: nextPayment,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', req.user.id);
+
+    if (updateError) {
+      console.error('Error al actualizar suscripción en BD:', updateError);
+      return res.status(500).json({ error: 'Error al actualizar la suscripción en la base de datos' });
+    }
+
+    // Actualizar profiles
+    try {
+      await supabase
+        .from('profiles')
+        .update({ 
+          subscription_status: status, 
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', req.user.id);
+    } catch (profileError) {
+      console.error('Error al actualizar perfil:', profileError);
+    }
+
+    console.log('Suscripción sincronizada exitosamente');
+    return res.json({ ok: true, status, next_payment_date: nextPayment });
+  } catch (error) {
+    console.error('Error al sincronizar suscripción:', error);
+    return res.status(500).json({ error: 'No se pudo sincronizar la suscripción' });
+  }
+});
+
 // Cancelar suscripción
 router.post('/subscription/cancel', supabaseAuth, async (req, res) => {
   try {
-    // Obtener la suscripción actual del usuario
     const { data: subscription, error: fetchError } = await supabase
       .from('subscriptions')
       .select('mp_preapproval_id')
@@ -248,9 +308,7 @@ router.post('/subscription/cancel', supabaseAuth, async (req, res) => {
     
     const result = await preApproval.update({
       id: subscription.mp_preapproval_id,
-      body: {
-        status: 'cancelled'
-      }
+      body: { status: 'cancelled' }
     });
 
     // Actualizar en la base de datos
@@ -276,9 +334,7 @@ router.post('/subscription/cancel', supabaseAuth, async (req, res) => {
   }
 });
 
-module.exports = router;
-
-// Endpoint de salud/diagnóstico (no expone secretos)
+// Endpoint de salud/diagnóstico
 router.get('/mp/health', async (req, res) => {
   const hasToken = !!process.env.MP_ACCESS_TOKEN;
   const configuredBackUrl = process.env.MP_BACK_URL || null;
@@ -287,13 +343,14 @@ router.get('/mp/health', async (req, res) => {
     const u = new URL(configuredBackUrl || '');
     isBackUrlHttps = u.protocol === 'https:';
   } catch (_) {}
+  
   let subscriptionsTableOk = true;
   try {
-    // Intento mínimo para verificar existencia de tabla
     await supabase.from('subscriptions').select('user_id').limit(1);
   } catch (_) {
     subscriptionsTableOk = false;
   }
+  
   return res.json({
     mp_access_token_configured: hasToken,
     mp_back_url_configured: !!configuredBackUrl,
@@ -302,5 +359,7 @@ router.get('/mp/health', async (req, res) => {
     subscriptions_table_exists: subscriptionsTableOk
   });
 });
+
+module.exports = router;
 
 

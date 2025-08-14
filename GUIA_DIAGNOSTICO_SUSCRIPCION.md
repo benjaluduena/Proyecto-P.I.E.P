@@ -4,9 +4,9 @@
 
 ### 1. Verificar en el Frontend
 
-1.1. Accede a la página de diagnóstico:
-   - Ve a `http://localhost:5500/diagnostico-suscripcion.html` (o la URL donde esté tu aplicación)
-   - Esta página mostrará información detallada sobre el usuario y su suscripción
+1.1. Accede a tu perfil:
+   - Ve a `https://8b686a73f8bb.ngrok-free.app/perfil.html` (o la URL donde esté tu aplicación)
+   - Esta página mostrará el estado de tu suscripción en la sección "Suscripción"
 
 1.2. Verifica los datos mostrados:
    - ¿Se muestra correctamente el ID, email y nombre del usuario?
@@ -31,7 +31,7 @@ SELECT * FROM subscriptions WHERE user_id = 'ID_DEL_USUARIO';
 
 3.1. Ingresa a tu panel de Mercado Pago
 3.2. Busca la suscripción por el `mp_preapproval_id`
-3.3. Verifica que el estado sea \"authorized\"
+3.3. Verifica que el estado sea "authorized"
 
 ### 4. Verificar Webhook
 
@@ -40,7 +40,7 @@ SELECT * FROM subscriptions WHERE user_id = 'ID_DEL_USUARIO';
 
 ### 5. Soluciones Comunes
 
-5.1. Si la suscripción aparece como \"pending\" en tu base de datos:
+5.1. Si la suscripción aparece como "pending" en tu base de datos:
    - Puede que el usuario no haya completado el proceso de pago
    - Verifica en Mercado Pago si el pago fue procesado
 
@@ -83,20 +83,34 @@ Puedes probar directamente los endpoints de la API usando herramientas como curl
 
 ### Obtener estado de suscripción:
 ```bash
-curl -H \"Authorization: Bearer TU_TOKEN_DE_ACCESO\" \
-http://localhost:5500/api/payments/subscription/status
+curl -H "Authorization: Bearer TU_TOKEN_DE_ACCESO" \
+https://8b686a73f8bb.ngrok-free.app/api/payments/subscription/status
 ```
 
-### Diagnóstico de suscripción:
+### Sincronizar suscripción manualmente:
 ```bash
-curl -H \"Authorization: Bearer TU_TOKEN_DE_ACCESO\" \
-http://localhost:5500/api/diagnostic/subscription
+curl -X POST -H "Authorization: Bearer TU_TOKEN_DE_ACCESO" \
+https://8b686a73f8bb.ngrok-free.app/api/payments/subscription/sync
 ```
+
+### Verificar salud del sistema:
+```bash
+curl https://8b686a73f8bb.ngrok-free.app/api/diagnostic/system/health
+```
+
+## Flujo de Suscripción Actualizado
+
+1. **Usuario hace clic en "Cambiar plan"** desde el sidebar
+2. **Se crea la suscripción** en Mercado Pago y se guarda en BD
+3. **Usuario completa el pago** en Mercado Pago
+4. **Webhook actualiza el estado** a 'authorized' en BD
+5. **Usuario regresa automáticamente** a su perfil (`/perfil.html`)
+6. **El perfil muestra el estado actualizado** de la suscripción
 
 ## Contacto
 
 Si después de seguir estos pasos el problema persiste, por favor proporciona:
-1. Captura de pantalla de la página de diagnóstico
+1. Captura de pantalla del perfil mostrando el estado de suscripción
 2. Registros del servidor (logs) del momento en que se accede al perfil
 3. Información de la suscripción en la base de datos
 4. ID de suscripción en Mercado Pago

@@ -5,11 +5,16 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 async function loadSubscriptionStatus() {
   try {
+    console.log('Cargando estado de suscripción...');
     const response = await apiCall('/api/payments/subscription/status');
+    console.log('Respuesta de estado de suscripción:', response);
+    
     if (response && response.ok) {
       const data = await response.json();
+      console.log('Datos de suscripción recibidos:', data);
       updateSubscriptionUI(data);
     } else {
+      console.warn('Respuesta no OK al cargar estado de suscripción:', response);
       document.getElementById('subscriptionStatus').textContent = 'No disponible';
     }
   } catch (error) {
