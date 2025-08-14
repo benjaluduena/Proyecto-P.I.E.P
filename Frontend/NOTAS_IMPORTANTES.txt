@@ -1,0 +1,3 @@
+// En el frontend, asegúrate de incluir el archivo de suscripciones en index.html
+// Agrega esta línea en la sección de scripts de index.html:
+// <script src="/JS/suscripciones.js"></script>

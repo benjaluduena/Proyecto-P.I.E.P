@@ -26,7 +26,8 @@ router.post('/mp/create-subscription', supabaseAuth, async (req, res) => {
       currency = 'ARS',
       frequency = 1,
       frequencyType = 'months',
-      backUrl: bodyBackUrl
+      backUrl: bodyBackUrl,
+      plan // Nuevo parámetro para identificar el plan
     } = req.body || {};
 
     // Validar y forzar back_url a ser HTTPS válido
@@ -75,7 +76,10 @@ router.post('/mp/create-subscription', supabaseAuth, async (req, res) => {
           frequency_type: frequencyType,
           next_payment_date: result.auto_recurring?.next_payment_date || null,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          metadata: {
+            plan: plan || 'estudiante' // Guardar el plan en metadata
+          }
         }, { onConflict: 'user_id' });
     } catch (_) {}
 
@@ -144,12 +148,122 @@ router.post('/mp/webhook', async (req, res) => {
           })
           .eq('id', userId);
       } catch (_) {}
+      
+      // Enviar notificación al usuario sobre cambio de estado
+      try {
+        const { data: user } = await supabase
+          .from('profiles')
+          .select('email, name')
+          .eq('id', userId)
+          .single();
+        
+        if (user && user.email) {
+          // Enviar email de notificación (usando nodemailer configurado en notifications.js)
+          const subject = status === 'authorized' 
+            ? '✅ Tu suscripción P.I.E.P. está activa' 
+            : status === 'cancelled' 
+              ? '⚠️ Tu suscripción P.I.E.P. ha sido cancelada'
+              : 'ℹ️ Actualización de tu suscripción P.I.E.P.';
+          
+          const html = `
+            <h2>Hola ${user.name},</h2>
+            <p>Tu suscripción P.I.E.P. ha sido actualizada.</p>
+            <p><strong>Nuevo estado:</strong> ${status}</p>
+            ${nextPayment ? `<p><strong>Próximo pago:</strong> ${new Date(nextPayment).toLocaleDateString()}</p>` : ''}
+            <p>Accede a tu cuenta para más detalles.</p>
+          `;
+          
+          // Aquí deberías llamar a la función de envío de email
+          // sendEmail(user.email, subject, html);
+        }
+      } catch (emailError) {
+        console.error('Error al enviar notificación por email:', emailError);
+      }
     }
 
     return res.status(200).json({ received: true });
   } catch (error) {
     console.error('Error en webhook MP:', error);
     return res.status(200).json({ received: true }); // Evitar reintentos masivos
+  }
+});
+
+// Obtener estado de suscripción del usuario
+router.get('/subscription/status', supabaseAuth, async (req, res) => {
+  try {
+    const { data: subscription, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', req.user.id)
+      .single();
+
+    if (error) {
+      // Si no hay suscripción, devolver estado por defecto
+      return res.json({
+        status: 'inactive',
+        plan: 'gratis',
+        next_payment_date: null,
+        created_at: null
+      });
+    }
+
+    res.json({
+      status: subscription.status,
+      plan: subscription.metadata?.plan || 'estudiante',
+      next_payment_date: subscription.next_payment_date,
+      created_at: subscription.created_at
+    });
+  } catch (error) {
+    console.error('Error al obtener estado de suscripción:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Cancelar suscripción
+router.post('/subscription/cancel', supabaseAuth, async (req, res) => {
+  try {
+    // Obtener la suscripción actual del usuario
+    const { data: subscription, error: fetchError } = await supabase
+      .from('subscriptions')
+      .select('mp_preapproval_id')
+      .eq('user_id', req.user.id)
+      .single();
+
+    if (fetchError || !subscription) {
+      return res.status(404).json({ error: 'Suscripción no encontrada' });
+    }
+
+    // Cancelar en Mercado Pago
+    const client = getMpClient();
+    const preApproval = new PreApproval(client);
+    
+    const result = await preApproval.update({
+      id: subscription.mp_preapproval_id,
+      body: {
+        status: 'cancelled'
+      }
+    });
+
+    // Actualizar en la base de datos
+    const { error: updateError } = await supabase
+      .from('subscriptions')
+      .update({ 
+        status: 'cancelled',
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', req.user.id);
+
+    if (updateError) {
+      console.error('Error al actualizar suscripción:', updateError);
+    }
+
+    res.json({ 
+      message: 'Suscripción cancelada correctamente',
+      mp_result: result
+    });
+  } catch (error) {
+    console.error('Error al cancelar suscripción:', error);
+    res.status(500).json({ error: 'Error al cancelar la suscripción' });
   }
 });
 

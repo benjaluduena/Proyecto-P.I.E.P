@@ -1,8 +1,3 @@
-const projectUrl = "https://fqmpmseabhtvahzdavej.supabase.co"
-const apiKey= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxbXBtc2VhYmh0dmFoemRhdmVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4ODc1ODgsImV4cCI6MjA2NjQ2MzU4OH0.LT1av0qw6GR8DmQkSmH1OzFPONsT8yEZJ2lMI1ARohE"
-
-
-bd: 
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
 
@@ -37,6 +32,7 @@ CREATE TABLE public.plan_tasks (
   completed boolean DEFAULT false,
   related_output_id integer,
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  due_at text,
   CONSTRAINT plan_tasks_pkey PRIMARY KEY (id),
   CONSTRAINT plan_tasks_related_output_id_fkey FOREIGN KEY (related_output_id) REFERENCES public.study_outputs(id),
   CONSTRAINT plan_tasks_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.study_plans(id)
@@ -48,6 +44,7 @@ CREATE TABLE public.profiles (
   education_level character varying,
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  subscription_status text DEFAULT 'none'::text,
   CONSTRAINT profiles_pkey PRIMARY KEY (id),
   CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
 );
@@ -66,7 +63,7 @@ CREATE TABLE public.progress_tracking (
 CREATE TABLE public.study_outputs (
   id integer NOT NULL DEFAULT nextval('study_outputs_id_seq'::regclass),
   pdf_id integer NOT NULL,
-  type character varying NOT NULL CHECK (type::text = ANY (ARRAY['resumen'::character varying::text, 'recomendacion_video'::character varying::text, 'recomendacion_texto'::character varying::text, 'multiple_choice'::character varying::text, 'verdadero_falso'::character varying::text, 'flashcards'::character varying::text, 'problema'::character varying::text])),
+  type character varying NOT NULL CHECK (type::text = ANY (ARRAY['resumen'::character varying, 'recomendacion_video'::character varying, 'recomendacion_texto'::character varying, 'multiple_choice'::character varying, 'verdadero_falso'::character varying, 'flashcards'::character varying, 'problema'::character varying, 'mapa_mental'::character varying]::text[])),
   content jsonb NOT NULL,
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT study_outputs_pkey PRIMARY KEY (id),
@@ -84,4 +81,19 @@ CREATE TABLE public.study_plans (
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT study_plans_pkey PRIMARY KEY (id),
   CONSTRAINT study_plans_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.subscriptions (
+  user_id uuid NOT NULL,
+  mp_preapproval_id text,
+  status text DEFAULT 'pending'::text CHECK (status = ANY (ARRAY['authorized'::text, 'paused'::text, 'cancelled'::text, 'pending'::text])),
+  reason text,
+  amount numeric,
+  currency character varying,
+  frequency integer,
+  frequency_type text,
+  next_payment_date timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT subscriptions_pkey PRIMARY KEY (user_id),
+  CONSTRAINT subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );

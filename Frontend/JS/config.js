@@ -116,6 +116,7 @@ async function startSubscription(options = {}) {
   if (options.currency) payload.currency = String(options.currency);
   if (options.frequency) payload.frequency = Number(options.frequency);
   if (options.frequencyType) payload.frequencyType = String(options.frequencyType);
+  if (options.plan) payload.plan = String(options.plan); // Agregar plan al payload
   // Enviar backUrl solo si es HTTPS válido
   if (options.backUrl) {
     try {

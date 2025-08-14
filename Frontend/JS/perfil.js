@@ -2,6 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
   // Poblar datos del usuario
   populateProfileFromUser();
+  loadSubscriptionInfo();
 
   document.getElementById('btnBack').addEventListener('click', function () {
     window.location.href = 'index.html';
@@ -22,6 +23,10 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('btnCloseEditModal').addEventListener('click', closeEditModal);
   document.getElementById('btnSaveProfile').addEventListener('click', saveProfile);
   document.getElementById('btnCancelEdit').addEventListener('click', closeEditModal);
+  
+  document.getElementById('btnManageSubscriptionFromProfile').addEventListener('click', () => {
+    window.location.href = '/Pages/suscripciones.html';
+  });
 });
 
 function toggleSetting(element) {
@@ -223,4 +228,34 @@ if (window.supabase && supabase.auth && typeof supabase.auth.onAuthStateChange =
       populateProfileFromUser();
     }
   });
+}
+
+// Funciones para suscripciones
+async function loadSubscriptionInfo() {
+  try {
+    const response = await apiCall('/api/payments/subscription/status');
+    if (response && response.ok) {
+      const data = await response.json();
+      updateSubscriptionInfoUI(data);
+    }
+  } catch (error) {
+    console.error('Error al cargar información de suscripción:', error);
+  }
+}
+
+function updateSubscriptionInfoUI(data) {
+  const statusElement = document.getElementById('subscriptionStatusValue');
+  const nextPaymentElement = document.getElementById('nextPaymentValue');
+  
+  if (data.status === 'authorized') {
+    statusElement.textContent = 'Activa';
+    statusElement.className = 'setting-value status-active';
+    nextPaymentElement.textContent = data.next_payment_date 
+      ? new Date(data.next_payment_date).toLocaleDateString() 
+      : 'No disponible';
+  } else {
+    statusElement.textContent = 'Inactiva';
+    statusElement.className = 'setting-value status-inactive';
+    nextPaymentElement.textContent = '--';
+  }
 }
