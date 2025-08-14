@@ -13,6 +13,7 @@ const studyRoutes = require('./routes/study');
 const notificationRoutes = require('./routes/notifications');
 const tasksRoutes = require('./routes/tasks');
 const paymentsRoutes = require('./routes/payments');
+const diagnosticRoutes = require('./routes/diagnostic');
 
 const app = express();
 const PORT = process.env.PORT || 5500;
@@ -82,6 +83,7 @@ app.use('/api/study', studyRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/tasks', tasksRoutes);
 app.use('/api/payments', paymentsRoutes);
+app.use('/api/diagnostic', diagnosticRoutes);
 
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../Frontend'), { index: false }));
@@ -119,6 +121,11 @@ app.get('/Frontend/resumen.html', (req, res) => {
 // Ruta para mapa-mental.html
 app.get('/Frontend/mapa-mental.html', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend', 'mapa-mental.html'));
+});
+
+// Ruta para diagnostico-suscripcion.html
+app.get('/diagnostico-suscripcion.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend', 'diagnostico-suscripcion.html'));
 });
 
 // Ruta fallback para SPA (opcional, si usas rutas en el frontend)

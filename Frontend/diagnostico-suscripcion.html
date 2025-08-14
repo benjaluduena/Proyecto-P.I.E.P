@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnóstico de Suscripción - P.I.E.P.</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      background-color: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+    .info-section {
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      background-color: #f8f9fa;
+    }
+    .info-section h3 {
+      margin-top: 0;
+      color: #2c3e50;
+    }
+    .status-active {
+      color: #27ae60;
+      font-weight: bold;
+    }
+    .status-inactive {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+    .status-pending {
+      color: #f39c12;
+      font-weight: bold;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    pre {
+      background-color: #2c3e50;
+      color: #ecf0f1;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Diagnóstico de Suscripción</h1>
+  
+  <div class="container">
+    <div class="info-section">
+      <h3>Información del Usuario</h3>
+      <p><strong>ID:</strong> <span id="userId">Cargando...</span></p>
+      <p><strong>Email:</strong> <span id="userEmail">Cargando...</span></p>
+      <p><strong>Nombre:</strong> <span id="userName">Cargando...</span></p>
+    </div>
+    
+    <div class="info-section">
+      <h3>Estado de Suscripción</h3>
+      <p><strong>Estado:</strong> <span id="subscriptionStatus">Cargando...</span></p>
+      <p><strong>Plan:</strong> <span id="subscriptionPlan">Cargando...</span></p>
+      <p><strong>Próximo Pago:</strong> <span id="nextPayment">Cargando...</span></p>
+    </div>
+    
+    <div class="info-section">
+      <h3>Información Técnica</h3>
+      <p><strong>Token de Acceso:</strong> <span id="accessToken">Cargando...</span></p>
+    </div>
+    
+    <div>
+      <button onclick="refreshData()">Actualizar Datos</button>
+      <button onclick="checkSubscriptionDirectly()">Verificar Suscripción Directamente</button>
+    </div>
+    
+    <div class="info-section">
+      <h3>Respuesta del Servidor</h3>
+      <pre id="serverResponse">Esperando datos...</pre>
+    </div>
+  </div>
+
+  <script src="/lib/supabase.js"></script>
+  <script src="/JS/config.js"></script>
+  
+  <script>
+    // Función para obtener datos del usuario
+    async function getUserData() {
+      try {
+        // Obtener datos del localStorage
+        const user = getStoredUser();
+        if (user) {
+          document.getElementById('userId').textContent = user.id || 'No disponible';
+          document.getElementById('userEmail').textContent = user.email || 'No disponible';
+          document.getElementById('userName').textContent = getBestDisplayName(user);
+        } else {
+          document.getElementById('userId').textContent = 'No encontrado';
+          document.getElementById('userEmail').textContent = 'No encontrado';
+          document.getElementById('userName').textContent = 'No encontrado';
+        }
+        
+        // Obtener token
+        const token = getAccessToken();
+        document.getElementById('accessToken').textContent = token ? 'Presente' : 'No encontrado';
+        
+        return user;
+      } catch (error) {
+        console.error('Error al obtener datos del usuario:', error);
+        return null;
+      }
+    }
+    
+    // Función para obtener el estado de suscripción
+    async function getSubscriptionStatus() {
+      try {
+        const response = await apiCall('/api/payments/subscription/status');
+        const responseText = JSON.stringify(response, null, 2);
+        document.getElementById('serverResponse').textContent = responseText;
+        
+        if (response && response.ok) {
+          const data = await response.json();
+          updateSubscriptionUI(data);
+          return data;
+        } else {
+          document.getElementById('subscriptionStatus').textContent = 'Error en la respuesta';
+          document.getElementById('subscriptionStatus').className = 'status-inactive';
+          document.getElementById('subscriptionPlan').textContent = 'No disponible';
+          document.getElementById('nextPayment').textContent = 'No disponible';
+        }
+      } catch (error) {
+        console.error('Error al obtener estado de suscripción:', error);
+        document.getElementById('serverResponse').textContent = 'Error: ' + error.message;
+        document.getElementById('subscriptionStatus').textContent = 'Error de conexión';
+        document.getElementById('subscriptionStatus').className = 'status-inactive';
+        document.getElementById('subscriptionPlan').textContent = 'No disponible';
+        document.getElementById('nextPayment').textContent = 'No disponible';
+      }
+    }
+    
+    // Función para actualizar la UI con datos de suscripción
+    function updateSubscriptionUI(data) {
+      const statusElement = document.getElementById('subscriptionStatus');
+      const planElement = document.getElementById('subscriptionPlan');
+      const nextPaymentElement = document.getElementById('nextPayment');
+      
+      statusElement.textContent = data.status || 'No disponible';
+      planElement.textContent = data.plan || 'No disponible';
+      nextPaymentElement.textContent = data.next_payment_date 
+        ? new Date(data.next_payment_date).toLocaleDateString() 
+        : 'No disponible';
+      
+      // Aplicar clase según estado
+      statusElement.className = '';
+      if (data.status === 'authorized') {
+        statusElement.classList.add('status-active');
+      } else if (data.status === 'pending') {
+        statusElement.classList.add('status-pending');
+      } else {
+        statusElement.classList.add('status-inactive');
+      }
+    }
+    
+    // Función para verificar suscripción directamente
+    async function checkSubscriptionDirectly() {
+      try {
+        const token = getAccessToken();
+        if (!token) {
+          alert('No se encontró token de acceso');
+          return;
+        }
+        
+        const response = await fetch(CONFIG.API.BASE_URL + '/api/payments/subscription/status', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const responseText = await response.text();
+        document.getElementById('serverResponse').textContent = responseText;
+        
+        if (response.ok) {
+          const data = JSON.parse(responseText);
+          updateSubscriptionUI(data);
+        } else {
+          document.getElementById('subscriptionStatus').textContent = `Error ${response.status}`;
+          document.getElementById('subscriptionStatus').className = 'status-inactive';
+        }
+      } catch (error) {
+        console.error('Error en verificación directa:', error);
+        document.getElementById('serverResponse').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Función para refrescar todos los datos
+    async function refreshData() {
+      await getUserData();
+      await getSubscriptionStatus();
+    }
+    
+    // Funciones auxiliares (copiadas de config.js y perfil.js)
+    function getStoredUser() {
+      try {
+        const raw = localStorage.getItem(CONFIG.STORAGE_KEYS.USER);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (_) {
+        return null;
+      }
+    }
+    
+    function getAccessToken() {
+      const session = localStorage.getItem(CONFIG.STORAGE_KEYS.SESSION);
+      if (session) {
+        const sessionData = JSON.parse(session);
+        return sessionData.access_token;
+      }
+      return null;
+    }
+    
+    function getBestDisplayName(user) {
+      if (!user) return 'Usuario';
+      const metaName = user.user_metadata && (user.user_metadata.name || user.user_metadata.full_name);
+      const directName = user.name;
+      const fromEmail = user.email ? user.email.split('@')[0] : null;
+      return directName || metaName || fromEmail || 'Usuario';
+    }
+    
+    // Cargar datos al iniciar
+    document.addEventListener('DOMContentLoaded', function() {
+      refreshData();
+    });
+  </script>
+</body>
+</html>

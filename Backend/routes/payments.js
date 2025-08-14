@@ -191,14 +191,20 @@ router.post('/mp/webhook', async (req, res) => {
 // Obtener estado de suscripción del usuario
 router.get('/subscription/status', supabaseAuth, async (req, res) => {
   try {
+    console.log('Obteniendo estado de suscripción para usuario:', req.user.id);
+    
     const { data: subscription, error } = await supabase
       .from('subscriptions')
       .select('*')
       .eq('user_id', req.user.id)
       .single();
 
-    if (error) {
+    // Log para debugging
+    console.log('Resultado de la consulta:', { subscription, error });
+
+    if (error || !subscription) {
       // Si no hay suscripción, devolver estado por defecto
+      console.log('No se encontró suscripción para el usuario');
       return res.json({
         status: 'inactive',
         plan: 'gratis',
@@ -207,12 +213,15 @@ router.get('/subscription/status', supabaseAuth, async (req, res) => {
       });
     }
 
-    res.json({
+    const responseData = {
       status: subscription.status,
       plan: subscription.metadata?.plan || 'estudiante',
       next_payment_date: subscription.next_payment_date,
       created_at: subscription.created_at
-    });
+    };
+    
+    console.log('Enviando datos de suscripción:', responseData);
+    res.json(responseData);
   } catch (error) {
     console.error('Error al obtener estado de suscripción:', error);
     res.status(500).json({ error: 'Error interno del servidor' });

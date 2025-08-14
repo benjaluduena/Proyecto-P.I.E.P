@@ -2,6 +2,8 @@
 document.addEventListener('DOMContentLoaded', function () {
   // Poblar datos del usuario
   populateProfileFromUser();
+  
+  // Cargar información de suscripción
   loadSubscriptionInfo();
 
   document.getElementById('btnBack').addEventListener('click', function () {
@@ -27,6 +29,12 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('btnManageSubscriptionFromProfile').addEventListener('click', () => {
     window.location.href = '/Pages/suscripciones.html';
   });
+  
+  // Verificar si el elemento de suscripción existe
+  const subscriptionStatusElement = document.getElementById('subscriptionStatusValue');
+  if (!subscriptionStatusElement) {
+    console.error('Elemento subscriptionStatusValue no encontrado en el DOM');
+  }
 });
 
 function toggleSetting(element) {
@@ -234,12 +242,31 @@ if (window.supabase && supabase.auth && typeof supabase.auth.onAuthStateChange =
 async function loadSubscriptionInfo() {
   try {
     const response = await apiCall('/api/payments/subscription/status');
-    if (response && response.ok) {
-      const data = await response.json();
-      updateSubscriptionInfoUI(data);
+    const statusElement = document.getElementById('subscriptionStatusValue');
+    const nextPaymentElement = document.getElementById('nextPaymentValue');
+    
+    // Si no hay respuesta o no es exitosa, mostrar valores por defecto
+    if (!response || !response.ok) {
+      console.warn('No se pudo obtener la información de suscripción');
+      updateSubscriptionInfoUI({
+        status: 'inactive',
+        plan: 'gratis',
+        next_payment_date: null
+      });
+      return;
     }
+    
+    const data = await response.json();
+    console.log('Datos de suscripción recibidos:', data);
+    updateSubscriptionInfoUI(data);
   } catch (error) {
     console.error('Error al cargar información de suscripción:', error);
+    // Mostrar valores por defecto en caso de error
+    updateSubscriptionInfoUI({
+      status: 'inactive',
+      plan: 'gratis',
+      next_payment_date: null
+    });
   }
 }
 
@@ -247,9 +274,23 @@ function updateSubscriptionInfoUI(data) {
   const statusElement = document.getElementById('subscriptionStatusValue');
   const nextPaymentElement = document.getElementById('nextPaymentValue');
   
+  // Verificar que los elementos existen
+  if (!statusElement || !nextPaymentElement) {
+    console.error('No se encontraron los elementos de UI para la suscripción');
+    return;
+  }
+  
+  console.log('Actualizando UI con datos:', data);
+  
   if (data.status === 'authorized') {
     statusElement.textContent = 'Activa';
     statusElement.className = 'setting-value status-active';
+    nextPaymentElement.textContent = data.next_payment_date 
+      ? new Date(data.next_payment_date).toLocaleDateString() 
+      : 'No disponible';
+  } else if (data.status === 'pending') {
+    statusElement.textContent = 'Pendiente';
+    statusElement.className = 'setting-value status-pending';
     nextPaymentElement.textContent = data.next_payment_date 
       ? new Date(data.next_payment_date).toLocaleDateString() 
       : 'No disponible';
