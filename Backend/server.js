@@ -94,7 +94,8 @@ app.use(
         scriptSrc: [
           "'self'",
           'https://cdn.jsdelivr.net',
-          'https://unpkg.com'
+          'https://unpkg.com',
+          'https://apis.google.com'
         ],
         styleSrc: [
           "'self'",
@@ -110,11 +111,21 @@ app.use(
           'https://cdnjs.cloudflare.com',
           'https://cdnjs.cloudflare.com'
         ],
-        imgSrc: ["'self'", 'data:'],
+        imgSrc: [
+          "'self'",
+          'data:',
+          'https://lh3.googleusercontent.com'
+        ],
         connectSrc: [
           "'self'",
-          'https://fqmpmseabhtvahzdavej.supabase.co'
+          'https://fqmpmseabhtvahzdavej.supabase.co',
+          'https://apis.google.com',
+          'https://accounts.google.com',
+          'https://oauth2.googleapis.com'
         ],
+        frameSrc: [
+          'https://accounts.google.com'
+        ]
       }
     }
   })

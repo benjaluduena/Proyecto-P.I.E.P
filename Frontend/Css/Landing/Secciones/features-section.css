@@ -1,0 +1,90 @@
+@import url("General/variables.css");
+
+/* ===== FEATURES SECTION ===== */
+.features {
+    padding: 100px 0;
+    background: var(--white);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 40px;
+}
+
+/* FEATURES - TARJETAS */
+.feature-card {
+    background: var(--white);
+    padding: 40px 30px;
+    border-radius: var(--border-radius);
+    border: 2px solid var(--border-color);
+    text-align: center;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+/* Efecto de linea gradiente que aparece al pasar el mouse */
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    transform: scaleX(0);
+    transition: var(--transition);
+}
+
+.feature-card:hover::before {
+    transform: scaleX(1);
+}
+
+/* FEATURES - TARJETAS ICONOS */
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    transition: var(--transition);
+}
+
+.feature-icon i {
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+.feature-card:hover .feature-icon {
+    background: var(--primary-color);
+    transform: scale(1.1);
+}
+
+.feature-card:hover .feature-icon i {
+    color: var(--white);
+}
+
+/* FEATURES - TARJETAS TITULOS Y TEXTO */
+
+.feature-card h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text-dark);
+}
+
+.feature-card p {
+    color: var(--text-light);
+    line-height: 1.6;
+}

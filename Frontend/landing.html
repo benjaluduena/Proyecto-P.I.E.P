@@ -1,33 +1,43 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>P.I.E.P. - Plataforma Inteligente de Estudio Personalizado</title>
-    <meta name="description" content="Transforma tus materiales de estudio en recursos educativos personalizados con inteligencia artificial. Resúmenes, ejercicios, flashcards y más.">
-    <meta name="keywords" content="estudio, IA, educación, resúmenes, flashcards, ejercicios, aprendizaje personalizado">
-    
+    <meta name="description"
+        content="Transforma tus materiales de estudio en recursos educativos personalizados con inteligencia artificial. Resúmenes, ejercicios, flashcards y más.">
+    <meta name="keywords"
+        content="estudio, IA, educación, resúmenes, flashcards, ejercicios, aprendizaje personalizado">
+
     <!-- Open Graph -->
     <meta property="og:title" content="P.I.E.P. - Plataforma Inteligente de Estudio Personalizado">
-    <meta property="og:description" content="Transforma tus materiales de estudio en recursos educativos personalizados con inteligencia artificial.">
+    <meta property="og:description"
+        content="Transforma tus materiales de estudio en recursos educativos personalizados con inteligencia artificial.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://piep.com">
-    
+
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+
+    <script src="https://kit.fontawesome.com/fb6adb0218.js" crossorigin="anonymous"></script>
+
     <!-- Styles -->
-    <link rel="stylesheet" href="Css/landing.css">
+    <link rel="stylesheet" href="Css/Landing/landing.css">
+
+    <!-- AOS CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <img src="Assets/Imagenes/Logo.png" alt="P.I.E.P. Logo" class="logo-img">
                 <span class="logo-text">P.I.E.P.</span>
             </div>
             <div class="nav-menu">
@@ -53,11 +63,12 @@
         <div class="hero-container">
             <div class="hero-content">
                 <h1 class="hero-title">
-                    Transforma tu <span class="highlight">estudio</span> con 
+                    Transforma tu <span class="highlight">estudio</span> con
                     <span class="highlight">Inteligencia Artificial</span>
                 </h1>
                 <p class="hero-subtitle">
-                    Sube tus PDFs y obtén automáticamente resúmenes, ejercicios, flashcards y recursos educativos personalizados adaptados a tu nivel de estudio.
+                    Sube tus PDFs y obtén automáticamente resúmenes, ejercicios, mapas mentales y recursos educativos
+                    personalizados adaptados a tu nivel de estudio.
                 </p>
                 <div class="hero-buttons">
                     <a href="#register" class="btn btn-primary btn-large">
@@ -117,21 +128,24 @@
                         <i class="fas fa-file-alt"></i>
                     </div>
                     <h3>Resúmenes Automáticos</h3>
-                    <p>Extrae las ideas principales, conceptos clave y conclusiones de cualquier documento de forma automática.</p>
+                    <p>Extrae las ideas principales, conceptos clave y conclusiones de cualquier documento de forma
+                        automática.</p>
                 </div>
                 <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
                     <div class="feature-icon">
                         <i class="fas fa-question-circle"></i>
                     </div>
                     <h3>Ejercicios Interactivos</h3>
-                    <p>Genera preguntas de opción múltiple, verdadero/falso y problemas prácticos basados en tu material.</p>
+                    <p>Genera preguntas de opción múltiple, verdadero/falso y problemas prácticos basados en tu
+                        material.</p>
                 </div>
                 <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
                     <div class="feature-icon">
-                        <i class="fas fa-layer-group"></i>
+                        <i class="fas fa-lightbulb"></i>
                     </div>
-                    <h3>Flashcards Inteligentes</h3>
-                    <p>Crea tarjetas de memoria personalizadas para repasar conceptos clave de manera eficiente.</p>
+                    <h3>Mapas Mentales</h3>
+                    <p>Visualiza y organiza tus ideas de forma creativa con mapas mentales generados automáticamente
+                        para potenciar tu aprendizaje.</p>
                 </div>
                 <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
                     <div class="feature-icon">
@@ -170,9 +184,10 @@
                     <div class="step-number">1</div>
                     <div class="step-content">
                         <h3>Sube tu PDF</h3>
-                        <p>Arrastra y suelta tu documento PDF o selecciónalo desde tu dispositivo. Soporta cualquier tipo de material educativo.</p>
+                        <p>Arrastra y suelta tu documento PDF o selecciónalo desde tu dispositivo. Soporta cualquier
+                            tipo de material educativo.</p>
                         <div class="step-image">
-                            <img src="Assets/Imagenes/file.png" alt="Subir PDF">
+                            <img src="Assets/Imagenes/zorro-pdf.png" alt="Subir PDF">
                         </div>
                     </div>
                 </div>
@@ -180,9 +195,10 @@
                     <div class="step-number">2</div>
                     <div class="step-content">
                         <h3>IA Procesa el Contenido</h3>
-                        <p>Nuestra inteligencia artificial analiza el contenido y genera recursos educativos personalizados según tu nivel.</p>
+                        <p>Nuestra inteligencia artificial analiza el contenido y genera recursos educativos
+                            personalizados según tu nivel.</p>
                         <div class="step-image">
-                            <img src="Assets/Imagenes/Mascota2.png" alt="IA Procesando">
+                            <img src="Assets/Imagenes/Zorro-IA.png" alt="IA Procesando">
                         </div>
                     </div>
                 </div>
@@ -190,9 +206,10 @@
                     <div class="step-number">3</div>
                     <div class="step-content">
                         <h3>¡Estudia y Aprende!</h3>
-                        <p>Accede a resúmenes, ejercicios, flashcards y más. Todo organizado y listo para optimizar tu aprendizaje.</p>
+                        <p>Accede a resúmenes, ejercicios, flashcards y más. Todo organizado y listo para optimizar tu
+                            aprendizaje.</p>
                         <div class="step-image">
-                            <img src="Assets/Imagenes/Mascota3.png" alt="Estudiar">
+                            <img src="Assets/Imagenes/Zorro-estudiando.png" alt="Estudiar">
                         </div>
                     </div>
                 </div>
@@ -206,7 +223,8 @@
             <div class="demo-content">
                 <div class="demo-text">
                     <h2>Ve P.I.E.P. en acción</h2>
-                    <p>Descubre cómo nuestra plataforma transforma un documento PDF en recursos educativos completos en segundos.</p>
+                    <p>Descubre cómo nuestra plataforma transforma un documento PDF en recursos educativos completos en
+                        segundos.</p>
                     <div class="demo-features">
                         <div class="demo-feature">
                             <i class="fas fa-check"></i>
@@ -222,24 +240,53 @@
                         </div>
                     </div>
                 </div>
-                <div class="demo-screenshots">
-                    <div class="screenshot-container">
-                        <img src="Assets/Imagenes/Resumen.png" alt="Resumen generado" class="screenshot">
-                        <div class="screenshot-overlay">
-                            <span>Resumen Automático</span>
+
+                <!-- Carrusel 3D -->
+                <div class="carousel-3d-container">
+                    <div class="carousel-3d" id="carousel3d">
+                        <div class="carousel-item active" data-index="0">
+                            <div class="screenshot-container">
+                                <img src="Assets/Imagenes/libro.png" alt="Resumen generado" class="screenshot">
+                                <div class="screenshot-overlay">
+                                    <span>Resumen</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="carousel-item" data-index="1">
+                            <div class="screenshot-container">
+                                <img src="Assets/Imagenes/choice.png" alt="Ejercicios" class="screenshot">
+                                <div class="screenshot-overlay">
+                                    <span>Multiple Choice</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="carousel-item" data-index="2">
+                            <div class="screenshot-container">
+                                <img src="Assets/Imagenes/verdadero-falso.png" alt="Verdadero/Falso" class="screenshot">
+                                <div class="screenshot-overlay">
+                                    <span>Preguntas V/F</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="carousel-item" data-index="3">
+                            <div class="screenshot-container">
+                                <img src="Assets/Imagenes/mapa-mental.png" alt="Mapa Mental" class="screenshot">
+                                <div class="screenshot-overlay">
+                                    <span>Mapa Mental</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="screenshot-container">
-                        <img src="Assets/Imagenes/Multiplechoice.png" alt="Ejercicios" class="screenshot">
-                        <div class="screenshot-overlay">
-                            <span>Ejercicios Interactivos</span>
-                        </div>
-                    </div>
-                    <div class="screenshot-container">
-                        <img src="Assets/Imagenes/VerdaderoFalso.png" alt="Verdadero/Falso" class="screenshot">
-                        <div class="screenshot-overlay">
-                            <span>Preguntas V/F</span>
-                        </div>
+
+                    <!-- Indicadores -->
+                    <div class="carousel-indicators">
+                        <span class="indicator active" data-slide="0"></span>
+                        <span class="indicator" data-slide="1"></span>
+                        <span class="indicator" data-slide="2"></span>
+                        <span class="indicator" data-slide="3"></span>
                     </div>
                 </div>
             </div>
@@ -256,11 +303,13 @@
             <div class="testimonials-grid">
                 <div class="testimonial-card" data-aos="fade-up">
                     <div class="testimonial-content">
-                        <p>"P.I.E.P. me ha ahorrado horas de tiempo. Antes pasaba días resumiendo documentos, ahora lo hago en minutos."</p>
+                        <p>"P.I.E.P. me ha ahorrado horas de tiempo. Antes pasaba días resumiendo documentos, ahora lo
+                            hago en minutos."</p>
                     </div>
                     <div class="testimonial-author">
                         <div class="author-avatar">
-                            <i class="fas fa-user"></i>
+                            <img src="Assets/Imagenes/perfil1.jpg" alt="María González"
+                                style="width:48px;height:48px;border-radius:50%;object-fit:cover;">
                         </div>
                         <div class="author-info">
                             <h4>María González</h4>
@@ -270,11 +319,13 @@
                 </div>
                 <div class="testimonial-card" data-aos="fade-up" data-aos-delay="100">
                     <div class="testimonial-content">
-                        <p>"Las flashcards generadas automáticamente son perfectas para repasar antes de los exámenes. ¡Altamente recomendado!"</p>
+                        <p>"Los mapas mentales generados automáticamente son perfectos para repasar antes de los
+                            exámenes. ¡Altamente recomendado!"</p>
                     </div>
                     <div class="testimonial-author">
                         <div class="author-avatar">
-                            <i class="fas fa-user"></i>
+                            <img src="Assets/Imagenes/perfil2.jpg" alt="Carlos Rodríguez"
+                                style="width:48px;height:48px;border-radius:50%;object-fit:cover;">
                         </div>
                         <div class="author-info">
                             <h4>Carlos Rodríguez</h4>
@@ -284,11 +335,13 @@
                 </div>
                 <div class="testimonial-card" data-aos="fade-up" data-aos-delay="200">
                     <div class="testimonial-content">
-                        <p>"Como docente, P.I.E.P. me ayuda a crear material educativo de calidad en minutos. Mis estudiantes están más comprometidos."</p>
+                        <p>"Como docente, P.I.E.P. me ayuda a crear material educativo de calidad en minutos. Mis
+                            estudiantes están más comprometidos."</p>
                     </div>
                     <div class="testimonial-author">
                         <div class="author-avatar">
-                            <i class="fas fa-user"></i>
+                            <img src="Assets/Imagenes/perfil3.jpg" alt="Dra. Ana Martínez"
+                                style="width:48px;height:48px;border-radius:50%;object-fit:cover;">
                         </div>
                         <div class="author-info">
                             <h4>Dra. Ana Martínez</h4>
@@ -320,8 +373,8 @@
                     <ul class="pricing-features">
                         <li><i class="fas fa-check"></i> 5 PDFs por mes</li>
                         <li><i class="fas fa-check"></i> Resúmenes básicos</li>
-                        <li><i class="fas fa-check"></i> 10 ejercicios por PDF</li>
-                        <li><i class="fas fa-check"></i> Acceso básico a flashcards</li>
+                        <li><i class="fas fa-check"></i> 1 ejercicio por PDF</li>
+                        <li><i class="fas fa-check"></i> Acceso básico a Mapas Mentales</li>
                         <li><i class="fas fa-check"></i> Soporte por email</li>
                     </ul>
                     <a href="#register" class="btn btn-outline btn-full">Comenzar Gratis</a>
@@ -377,26 +430,17 @@
                 <p>Únete a miles de estudiantes que ya están optimizando su aprendizaje con P.I.E.P.</p>
                 <div class="cta-form">
                     <form class="register-form">
-                        <div class="form-group">
-                            <input type="text" placeholder="Nombre completo" required>
+                        <div class="btn-zofox-container">
+                            <button type="submit" class="btn btn-primary btn-large btn-zofox">
+                                <i class="fas fa-rocket"></i>
+                                Comenzar Ahora
+                            </button>
+                            <img src="Assets/Imagenes/manos-mascota.png" alt="Zorro Asomándose" class="zofox-img">
+                            <img src="Assets/Imagenes/mascota-sin-manos.png" alt="Zorro Asomándose" class="zofox-img-2">
                         </div>
-                        <div class="form-group">
-                            <input type="email" placeholder="Correo electrónico" required>
-                        </div>
-                        <div class="form-group">
-                            <select required>
-                                <option value="">Selecciona tu rol</option>
-                                <option value="estudiante">Estudiante</option>
-                                <option value="docente">Docente</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-large">
-                            <i class="fas fa-rocket"></i>
-                            Comenzar Ahora
-                        </button>
                     </form>
                 </div>
-                <p class="cta-note">✅ Registro gratuito • ✅ Sin tarjeta de crédito • ✅ Acceso inmediato</p>
+                <p class="cta-note">Registro gratuito • Sin tarjeta de crédito • Acceso inmediato</p>
             </div>
         </div>
     </section>
@@ -407,13 +451,12 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <div class="footer-logo">
-                        <img src="Assets/Imagenes/Logo.png" alt="P.I.E.P. Logo">
                         <span>P.I.E.P.</span>
                     </div>
-                    <p>Transformando la educación con inteligencia artificial para crear experiencias de aprendizaje personalizadas y efectivas.</p>
+                    <p>Transformando la educación con inteligencia artificial para crear experiencias de aprendizaje
+                        personalizadas y efectivas.</p>
                     <div class="social-links">
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
                         <a href="#"><i class="fab fa-instagram"></i></a>
                         <a href="#"><i class="fab fa-youtube"></i></a>
                     </div>
@@ -447,12 +490,17 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 P.I.E.P. Todos los derechos reservados.</p>
+                <p>&copy; 2025 P.I.E.P. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>
-
+    <!-- AOS JS -->
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
     <!-- Scripts -->
     <script src="JS/landing.js"></script>
 </body>
+
 </html>
