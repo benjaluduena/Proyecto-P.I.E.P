@@ -2,6 +2,7 @@ const express = require('express');
 const OpenAI = require('openai');
 const supabase = require('../config/supabase');
 const { supabaseAuth } = require('../middleware/auth');
+const { validate, aiSchemas, uuidParam } = require('../middleware/validation');
 const fs = require('fs');
 const path = require('path');
 const pdfParse = require('pdf-parse');
@@ -280,7 +281,7 @@ const generateEducationalContent = async (pdfText, contentType, educationLevel, 
 };
 
 // Generar contenido educativo
-router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
+router.post('/generate/:pdfId', supabaseAuth, validate(uuidParam, 'params'), validate(aiSchemas.generateContent), async (req, res) => {
   try {
     const { pdfId } = req.params;
     const { type } = req.body;

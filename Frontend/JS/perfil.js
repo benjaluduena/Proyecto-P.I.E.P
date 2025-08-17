@@ -30,6 +30,9 @@ document.addEventListener('DOMContentLoaded', function () {
     window.location.href = '/Pages/suscripciones.html';
   });
   
+  document.getElementById('btnSyncSubscriptionFromProfile').addEventListener('click', syncSubscriptionFromProfile);
+  document.getElementById('btnDiagnosticSubscription').addEventListener('click', showSubscriptionDiagnostic);
+  
   // Verificar si el elemento de suscripción existe
   const subscriptionStatusElement = document.getElementById('subscriptionStatusValue');
   if (!subscriptionStatusElement) {
@@ -299,4 +302,87 @@ function updateSubscriptionInfoUI(data) {
     statusElement.className = 'setting-value status-inactive';
     nextPaymentElement.textContent = '--';
   }
+}
+
+// Función para sincronizar suscripción desde perfil
+async function syncSubscriptionFromProfile() {
+  try {
+    const response = await apiCall('/api/payments/subscription/sync', {
+      method: 'POST'
+    });
+    
+    if (response && response.ok) {
+      alert('Suscripción sincronizada correctamente');
+      await loadSubscriptionInfo(); // Recargar información
+    } else {
+      const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
+      alert('Error al sincronizar: ' + errorData.error);
+    }
+  } catch (error) {
+    console.error('Error al sincronizar:', error);
+    alert('Error de red al sincronizar la suscripción');
+  }
+}
+
+// Función para mostrar diagnóstico de suscripción
+async function showSubscriptionDiagnostic() {
+  try {
+    const response = await apiCall('/api/payments/subscription/diagnostic');
+    
+    if (response && response.ok) {
+      const diagnostic = await response.json();
+      showDiagnosticModal(diagnostic);
+    } else {
+      alert('Error al obtener diagnóstico de suscripción');
+    }
+  } catch (error) {
+    console.error('Error al obtener diagnóstico:', error);
+    alert('Error de red al obtener diagnóstico');
+  }
+}
+
+// Función para mostrar modal de diagnóstico
+function showDiagnosticModal(diagnostic) {
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.display = 'block';
+  
+  const formatValue = (value) => {
+    if (value === null || value === undefined) return 'null';
+    if (typeof value === 'object') return JSON.stringify(value, null, 2);
+    return String(value);
+  };
+  
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+      <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+      <h3>Diagnóstico de Suscripción</h3>
+      
+      <h4>Estado en Base de Datos:</h4>
+      <ul>
+        <li><strong>Existe:</strong> ${diagnostic.database.subscription_exists ? 'Sí' : 'No'}</li>
+        <li><strong>Estado:</strong> ${diagnostic.database.subscription_data?.status || 'N/A'}</li>
+        <li><strong>ID Mercado Pago:</strong> ${diagnostic.database.subscription_data?.mp_preapproval_id || 'N/A'}</li>
+        <li><strong>Próximo pago:</strong> ${diagnostic.database.subscription_data?.next_payment_date || 'N/A'}</li>
+      </ul>
+      
+      <h4>Estado en Mercado Pago:</h4>
+      <ul>
+        <li><strong>Estado:</strong> ${diagnostic.mercado_pago.mp_data?.status || 'N/A'}</li>
+        <li><strong>Estados coinciden:</strong> ${diagnostic.mercado_pago.status_match ? 'Sí' : 'No'}</li>
+        <li><strong>Error MP:</strong> ${diagnostic.mercado_pago.mp_error || 'Ninguno'}</li>
+      </ul>
+      
+      <h4>Recomendaciones:</h4>
+      <ul>
+        ${diagnostic.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+      </ul>
+      
+      <div style="margin-top: 20px;">
+        <button class="btn btn-secondary" onclick="this.parentElement.parentElement.parentElement.remove()">Cerrar</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
 }

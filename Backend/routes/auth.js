@@ -1,16 +1,13 @@
 const express = require('express');
 const supabase = require('../config/supabase');
 const { supabaseAuth } = require('../middleware/auth');
+const { validate, authSchemas } = require('../middleware/validation');
 const router = express.Router();
 
 // Registro de usuario con Supabase Auth
-router.post('/register', async (req, res) => {
+router.post('/register', validate(authSchemas.register), async (req, res) => {
   try {
     const { name, email, password, role, education_level } = req.body;
-    
-    if (!name || !email || !password || !role) {
-      return res.status(400).json({ error: 'Faltan campos obligatorios' });
-    }
 
     // Registrar usuario con Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -69,13 +66,9 @@ router.post('/register', async (req, res) => {
 });
 
 // Login de usuario con Supabase Auth
-router.post('/login', async (req, res) => {
+router.post('/login', validate(authSchemas.login), async (req, res) => {
   try {
     const { email, password } = req.body;
-    
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email y contraseña requeridos' });
-    }
 
     // Login con Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -151,7 +144,7 @@ router.get('/profile', supabaseAuth, async (req, res) => {
 });
 
 // Actualizar perfil del usuario
-router.put('/profile', supabaseAuth, async (req, res) => {
+router.put('/profile', supabaseAuth, validate(authSchemas.updateProfile), async (req, res) => {
   try {
     const { name, role, education_level } = req.body;
     const userId = req.user.id;

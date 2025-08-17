@@ -246,17 +246,32 @@ async function populateUserInfo() {
   updateUserProfileTitles();
 }
 
-// Actualizar UI si cambia el estado de autenticación
-if (window.supabase && supabase.auth && typeof supabase.auth.onAuthStateChange === 'function') {
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (session && session.user) {
-      try {
-        localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(session.user));
-        localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
-      } catch (_) {}
-      populateUserInfo();
+// Actualizar UI si cambia el estado de autenticación (solo para index.html)
+async function setupAuthStateListenerForMain() {
+  try {
+    const supabase = await window.waitForSupabase();
+    if (supabase && supabase.auth && typeof supabase.auth.onAuthStateChange === 'function') {
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session && session.user) {
+          try {
+            localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(session.user));
+            localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
+            populateUserInfo();
+          } catch (_) {}
+        } else if (event === 'SIGNED_OUT') {
+          clearSession();
+          redirectToLogin();
+        }
+      });
     }
-  });
+  } catch (error) {
+    console.error('Error configurando listener de auth en main:', error);
+  }
+}
+
+// Solo configurar el listener si estamos en index.html
+if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
+  document.addEventListener('supabaseReady', setupAuthStateListenerForMain);
 }
 
 function isTruncated(element) {

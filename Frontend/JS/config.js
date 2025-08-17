@@ -25,14 +25,36 @@ const CONFIG = {
   }
 };
 
-// Configuración de Supabase
-const SUPABASE_CONFIG = {
-  url: 'https://fqmpmseabhtvahzdavej.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxbXBtc2VhYmh0dmFoemRhdmVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4ODc1ODgsImV4cCI6MjA2NjQ2MzU4OH0.LT1av0qw6GR8DmQkSmH1OzFPONsT8yEZJ2lMI1ARohE'
+// Configuración de Supabase - obtenida del servidor
+let SUPABASE_CONFIG = {
+  url: null,
+  anonKey: null
 };
 
-// Inicializar cliente de Supabase
-const supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+// Función para obtener configuración del servidor
+async function loadSupabaseConfig() {
+  try {
+    const response = await fetch('/api/config/supabase');
+    if (response.ok) {
+      SUPABASE_CONFIG = await response.json();
+    } else {
+      // Fallback a configuración local si el endpoint no existe aún
+      SUPABASE_CONFIG = {
+        url: 'https://fqmpmseabhtvahzdavej.supabase.co',
+        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxbXBtc2VhYmh0dmFoemRhdmVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4ODc1ODgsImV4cCI6MjA2NjQ2MzU4OH0.LT1av0qw6GR8DmQkSmH1OzFPONsT8yEZJ2lMI1ARohE'
+      };
+    }
+  } catch (error) {
+    console.warn('No se pudo cargar configuración del servidor, usando configuración local');
+    SUPABASE_CONFIG = {
+      url: 'https://fqmpmseabhtvahzdavej.supabase.co',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxbXBtc2VhYmh0dmFoemRhdmVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4ODc1ODgsImV4cCI6MjA2NjQ2MzU4OH0.LT1av0qw6GR8DmQkSmH1OzFPONsT8yEZJ2lMI1ARohE'
+    };
+  }
+}
+
+// El cliente de Supabase ahora se inicializa en app.js
+// Esta configuración se mantiene para compatibilidad con código legacy
 
 // Función para verificar autenticación
 function isAuthenticated() {
@@ -59,13 +81,24 @@ function getAuthHeaders() {
   };
 }
 
+// Variables para evitar múltiples redirecciones
+let redirectInProgress = false;
+
 // Función para redirigir a login
 function redirectToLogin() {
+  if (redirectInProgress) return;
+  redirectInProgress = true;
+  
+  console.log('Redirigiendo a login...');
   window.location.replace(CONFIG.ROUTES.LOGIN);
 }
 
 // Función para redirigir a home
 function redirectToHome() {
+  if (redirectInProgress) return;
+  redirectInProgress = true;
+  
+  console.log('Redirigiendo a home...');
   window.location.replace(CONFIG.ROUTES.HOME);
 }
 

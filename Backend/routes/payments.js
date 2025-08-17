@@ -3,6 +3,7 @@ const router = express.Router();
 const { MercadoPagoConfig, PreApproval } = require('mercadopago');
 const supabase = require('../config/supabase');
 const { supabaseAuth } = require('../middleware/auth');
+const { validate, paymentSchemas } = require('../middleware/validation');
 
 // Configuración de Mercado Pago
 function getMpClient() {
@@ -18,7 +19,7 @@ function getMpClient() {
 }
 
 // Crear suscripción (preapproval)
-router.post('/mp/create-subscription', supabaseAuth, async (req, res) => {
+router.post('/mp/create-subscription', supabaseAuth, validate(paymentSchemas.createSubscription), async (req, res) => {
   try {
     if (!process.env.MP_ACCESS_TOKEN) {
       return res.status(500).json({ error: 'Configuración faltante: MP_ACCESS_TOKEN no definido en el servidor' });
@@ -113,6 +114,13 @@ router.post('/mp/create-subscription', supabaseAuth, async (req, res) => {
 // Webhook de Mercado Pago
 router.post('/mp/webhook', async (req, res) => {
   try {
+    // Log del webhook recibido para debugging
+    console.log('Webhook recibido:', {
+      headers: req.headers,
+      query: req.query,
+      body: req.body
+    });
+
     const resourceId = req.query.id || req.query['data.id'] || req.body?.data?.id || req.body?.id;
 
     if (!resourceId) {
@@ -142,23 +150,33 @@ router.post('/mp/webhook', async (req, res) => {
     if (userId) {
       // Actualizar tabla subscriptions
       try {
+        // Obtener datos adicionales de la suscripción
+        const subscriptionData = {
+          user_id: userId,
+          mp_preapproval_id: preapprovalData.id,
+          status,
+          next_payment_date: nextPayment,
+          updated_at: new Date().toISOString(),
+          // Agregar más campos si están disponibles
+          amount: preapprovalData.auto_recurring?.transaction_amount || null,
+          currency: preapprovalData.auto_recurring?.currency_id || 'ARS',
+          frequency: preapprovalData.auto_recurring?.frequency || 1,
+          frequency_type: preapprovalData.auto_recurring?.frequency_type || 'months'
+        };
+
         const { error } = await supabase
           .from('subscriptions')
-          .upsert({
-            user_id: userId,
-            mp_preapproval_id: preapprovalData.id,
-            status,
-            next_payment_date: nextPayment,
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'user_id' });
+          .upsert(subscriptionData, { onConflict: 'user_id' });
 
         if (error) {
           console.error('Error al actualizar suscripción en BD:', error);
+          // No fallar el webhook por errores de BD
         } else {
           console.log('Suscripción actualizada en BD para usuario:', userId);
         }
       } catch (dbError) {
         console.error('Error de BD al actualizar suscripción:', dbError);
+        // No fallar el webhook por errores de BD
       }
 
       // Actualizar profiles
@@ -345,20 +363,124 @@ router.get('/mp/health', async (req, res) => {
   } catch (_) {}
   
   let subscriptionsTableOk = true;
+  let subscriptionsCount = 0;
   try {
-    await supabase.from('subscriptions').select('user_id').limit(1);
+    const { data, error } = await supabase.from('subscriptions').select('user_id', { count: 'exact' }).limit(1);
+    subscriptionsCount = data?.length || 0;
+    if (error) subscriptionsTableOk = false;
   } catch (_) {
     subscriptionsTableOk = false;
   }
+
+  // Verificar conectividad con Mercado Pago
+  let mpConnectivity = false;
+  if (hasToken) {
+    try {
+      const client = getMpClient();
+      // Hacer una consulta simple para verificar conectividad
+      mpConnectivity = true;
+    } catch (error) {
+      console.error('Error verificando conectividad MP:', error);
+      mpConnectivity = false;
+    }
+  }
   
   return res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
     mp_access_token_configured: hasToken,
+    mp_connectivity: mpConnectivity,
     mp_back_url_configured: !!configuredBackUrl,
     mp_back_url_is_https: isBackUrlHttps,
     mp_back_url_value: configuredBackUrl,
-    subscriptions_table_exists: subscriptionsTableOk
+    subscriptions_table_exists: subscriptionsTableOk,
+    subscriptions_count: subscriptionsCount,
+    environment: process.env.NODE_ENV || 'development'
   });
 });
+
+// Endpoint de diagnóstico para suscripción específica
+router.get('/subscription/diagnostic', supabaseAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Obtener datos de la base de datos
+    const { data: subscription, error: subError } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('subscription_status')
+      .eq('id', userId)
+      .single();
+
+    let mpData = null;
+    let mpError = null;
+
+    // Si hay suscripción, obtener datos de Mercado Pago
+    if (subscription && subscription.mp_preapproval_id) {
+      try {
+        const client = getMpClient();
+        const preApproval = new PreApproval(client);
+        mpData = await preApproval.get({ id: String(subscription.mp_preapproval_id) });
+      } catch (error) {
+        mpError = error.message;
+      }
+    }
+
+    return res.json({
+      user_id: userId,
+      database: {
+        subscription_exists: !!subscription,
+        subscription_data: subscription,
+        subscription_error: subError?.message || null,
+        profile_subscription_status: profile?.subscription_status || 'not_found',
+        profile_error: profileError?.message || null
+      },
+      mercado_pago: {
+        has_preapproval_id: !!(subscription?.mp_preapproval_id),
+        preapproval_id: subscription?.mp_preapproval_id || null,
+        mp_data: mpData,
+        mp_error: mpError,
+        status_match: mpData ? (mpData.status === subscription?.status) : null
+      },
+      recommendations: generateDiagnosticRecommendations(subscription, profile, mpData, mpError)
+    });
+  } catch (error) {
+    console.error('Error en diagnóstico de suscripción:', error);
+    res.status(500).json({ error: 'Error al diagnosticar suscripción' });
+  }
+});
+
+// Función para generar recomendaciones de diagnóstico
+function generateDiagnosticRecommendations(subscription, profile, mpData, mpError) {
+  const recommendations = [];
+
+  if (!subscription) {
+    recommendations.push('No hay registro de suscripción en la base de datos. El usuario nunca ha iniciado una suscripción.');
+  } else if (!subscription.mp_preapproval_id) {
+    recommendations.push('La suscripción existe en BD pero no tiene ID de Mercado Pago. Posible problema en la creación.');
+  } else if (mpError) {
+    recommendations.push(`Error al consultar Mercado Pago: ${mpError}. Verificar conectividad y tokens.`);
+  } else if (mpData && mpData.status !== subscription.status) {
+    recommendations.push(`Estado desincronizado: BD="${subscription.status}" vs MP="${mpData.status}". Usar sincronización.`);
+  } else if (subscription.status === 'authorized' && mpData?.status === 'authorized') {
+    recommendations.push('Suscripción activa y sincronizada correctamente.');
+  } else if (subscription.status === 'pending') {
+    recommendations.push('Suscripción pendiente. El usuario puede no haber completado el pago.');
+  } else if (subscription.status === 'cancelled') {
+    recommendations.push('Suscripción cancelada. El usuario no tiene acceso premium.');
+  }
+
+  if (profile?.subscription_status !== subscription?.status) {
+    recommendations.push('Estado en perfil desincronizado con tabla de suscripciones.');
+  }
+
+  return recommendations;
+}
 
 module.exports = router;
 

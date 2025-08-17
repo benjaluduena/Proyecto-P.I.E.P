@@ -49,6 +49,12 @@ function setupEventListeners() {
   document.getElementById('btnDocente').addEventListener('click', () => startSubscriptionPlan('docente'));
   document.getElementById('btnManageSubscription').addEventListener('click', manageSubscription);
   document.getElementById('btnCancelSubscription').addEventListener('click', cancelSubscription);
+  
+  // Agregar evento para sincronización si el botón existe
+  const syncBtn = document.getElementById('btnSyncSubscription');
+  if (syncBtn) {
+    syncBtn.addEventListener('click', syncSubscriptionStatus);
+  }
 }
 
 async function startSubscriptionPlan(planType) {
@@ -100,5 +106,30 @@ async function cancelSubscriptionAPI() {
   } catch (error) {
     console.error('Error al cancelar suscripción:', error);
     alert('Error al cancelar la suscripción.');
+  }
+}
+
+// Función para sincronizar suscripción
+async function syncSubscriptionStatus() {
+  try {
+    console.log('Sincronizando estado de suscripción con Mercado Pago...');
+    const response = await apiCall('/api/payments/subscription/sync', {
+      method: 'POST'
+    });
+    
+    if (response && response.ok) {
+      const data = await response.json();
+      console.log('Suscripción sincronizada:', data);
+      alert('Estado de suscripción actualizado correctamente');
+      // Recargar el estado después de sincronizar
+      await loadSubscriptionStatus();
+    } else {
+      const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
+      console.error('Error al sincronizar suscripción:', errorData);
+      alert('Error al sincronizar el estado de suscripción: ' + errorData.error);
+    }
+  } catch (error) {
+    console.error('Error al sincronizar suscripción:', error);
+    alert('Error de red al sincronizar el estado de suscripción');
   }
 }

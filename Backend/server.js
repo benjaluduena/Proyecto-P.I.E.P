@@ -14,17 +14,76 @@ const notificationRoutes = require('./routes/notifications');
 const tasksRoutes = require('./routes/tasks');
 const paymentsRoutes = require('./routes/payments');
 const diagnosticRoutes = require('./routes/diagnostic');
+const configRoutes = require('./routes/config');
 
 const app = express();
 const PORT = process.env.PORT || 5500;
 
 // Configuración de rate limiting
-// Desactivado para desarrollo
-// const limiter = rateLimit({
-//   windowMs: 15 * 60 * 1000, // 15 minutos
-//   max: 100, // máximo 100 requests por ventana
-//   message: 'Demasiadas solicitudes desde esta IP, intenta de nuevo más tarde.'
-// });
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: process.env.NODE_ENV === 'production' ? 100 : 10000, // muy permisivo en desarrollo
+  message: {
+    error: 'Demasiadas solicitudes desde esta IP',
+    retryAfter: '15 minutos'
+  },
+  standardHeaders: true, // Devolver info de rate limit en headers `RateLimit-*`
+  legacyHeaders: false, // Deshabilitar headers `X-RateLimit-*`
+  // Aplicar diferentes límites para diferentes rutas
+  keyGenerator: (req) => {
+    // En desarrollo, usar solo IP para evitar fragmentación
+    if (process.env.NODE_ENV !== 'production') {
+      return req.ip;
+    }
+    // En producción, usar IP + user agent para mejor identificación
+    return req.ip + ':' + (req.get('User-Agent') || '').slice(0, 50);
+  },
+  skip: (req) => {
+    // Saltar rate limiting para health checks y en localhost
+    if (req.path === '/api/health') return true;
+    if (process.env.NODE_ENV !== 'production' && req.ip === '::1') return true; // localhost IPv6
+    if (process.env.NODE_ENV !== 'production' && req.ip === '127.0.0.1') return true; // localhost IPv4
+    return false;
+  }
+});
+
+// Rate limiting específico para rutas de autenticación (más restrictivo)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: process.env.NODE_ENV === 'production' ? 5 : 1000, // muy permisivo en desarrollo
+  message: {
+    error: 'Demasiados intentos de autenticación',
+    retryAfter: '15 minutos'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    // Saltar en desarrollo para localhost
+    if (process.env.NODE_ENV !== 'production') {
+      return req.ip === '::1' || req.ip === '127.0.0.1';
+    }
+    return false;
+  }
+});
+
+// Rate limiting para subida de archivos (más restrictivo)
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: process.env.NODE_ENV === 'production' ? 20 : 1000, // muy permisivo en desarrollo
+  message: {
+    error: 'Límite de subidas alcanzado',
+    retryAfter: '1 hora'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    // Saltar en desarrollo para localhost
+    if (process.env.NODE_ENV !== 'production') {
+      return req.ip === '::1' || req.ip === '127.0.0.1';
+    }
+    return false;
+  }
+});
 
 // Middleware
 app.use(
@@ -37,7 +96,6 @@ app.use(
           'https://cdn.jsdelivr.net',
           'https://unpkg.com'
         ],
-        scriptSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://unpkg.com'],
         styleSrc: [
           "'self'",
           "'unsafe-inline'",
@@ -61,7 +119,8 @@ app.use(
     }
   })
 );
-// app.use(limiter); // Desactivado para desarrollo
+// Aplicar rate limiting general
+app.use(limiter);
 // Configurar JSON parsing solo para rutas que no sean de subida de archivos
 app.use((req, res, next) => {
   if (req.path.includes('/api/pdfs/upload')) {
@@ -75,15 +134,16 @@ app.use((req, res, next) => {
 
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Rutas
-app.use('/api/auth', authRoutes);
-app.use('/api/pdfs', pdfRoutes);
+// Rutas con rate limiting específico
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/pdfs', uploadLimiter, pdfRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/study', studyRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/tasks', tasksRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/diagnostic', diagnosticRoutes);
+app.use('/api/config', configRoutes);
 
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../Frontend'), { index: false }));

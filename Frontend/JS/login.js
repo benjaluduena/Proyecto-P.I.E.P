@@ -87,6 +87,7 @@ authForm.addEventListener('submit', async function (e) {
 
     try {
       // Registrar con Supabase Auth
+      const supabase = await window.waitForSupabase();
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -164,6 +165,7 @@ authForm.addEventListener('submit', async function (e) {
   } else {
     // Login con Supabase Auth
     try {
+      const supabase = await window.waitForSupabase();
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -195,42 +197,96 @@ authForm.addEventListener('submit', async function (e) {
       }
     } catch (err) {
       console.error('Error en login:', err);
-      alert('Error de red o del servidor');
+      if (err.message && err.message.includes('Supabase')) {
+        alert('Error de configuración. Por favor, intenta más tarde o contacta al soporte.');
+      } else {
+        alert('Error de red o del servidor');
+      }
     }
   }
 });
 
-// Verificar si ya hay una sesión activa al cargar la página
-window.addEventListener('load', async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (session) {
-    // Hay una sesión activa, redirigir al home
-    localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
-    localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(session.user));
-    redirectToHome();
-  }
-});
+// Función waitForSupabase se carga desde supabase-init.js
 
-// Escuchar cambios en la autenticación
-supabase.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN' && session) {
-    localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
-    localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(session.user));
-  } else if (event === 'SIGNED_OUT') {
-    clearSession();
+// Verificar si ya hay una sesión activa al cargar la página (solo para login)
+let sessionCheckPerformed = false;
+
+async function checkExistingSession() {
+  if (sessionCheckPerformed) return;
+  sessionCheckPerformed = true;
+
+  try {
+    // Primero verificar localStorage
+    const storedSession = localStorage.getItem(CONFIG.STORAGE_KEYS.SESSION);
+    if (storedSession) {
+      try {
+        const sessionData = JSON.parse(storedSession);
+        const now = Math.floor(Date.now() / 1000);
+        
+        // Si la sesión no ha expirado, redirigir directamente
+        if (sessionData.expires_at && sessionData.expires_at > now) {
+          redirectToHome();
+          return;
+        }
+      } catch (parseError) {
+        clearSession();
+      }
+    }
+
+    // Solo verificar con Supabase si no hay sesión válida
+    const supabase = await window.waitForSupabase();
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+      // Hay una sesión activa, redirigir al home
+      localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
+      localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(session.user));
+      redirectToHome();
+    }
+  } catch (error) {
+    console.error('Error verificando sesión:', error);
   }
-});
+}
+
+// Escuchar cambios en la autenticación (solo para login)
+async function setupAuthStateListenerForLogin() {
+  try {
+    const supabase = await window.waitForSupabase();
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
+        localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(session.user));
+        redirectToHome();
+      } else if (event === 'SIGNED_OUT') {
+        clearSession();
+      }
+    });
+  } catch (error) {
+    console.error('Error configurando listener de auth:', error);
+  }
+}
+
+// Solo configurar en login.html
+if (window.location.pathname.includes('login.html')) {
+  window.addEventListener('load', checkExistingSession);
+  document.addEventListener('supabaseReady', setupAuthStateListenerForLogin);
+}
 
 document.getElementById('google-auth-btn').addEventListener('click', async function () {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin + '/Frontend/index.html'
+  try {
+    const supabase = await window.waitForSupabase();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/Frontend/index.html'
+      }
+    });
+    if (error) {
+      alert('Error al autenticar con Google');
     }
-  });
-  if (error) {
-    alert('Error al autenticar con Google');
+  } catch (err) {
+    console.error('Error en Google Auth:', err);
+    alert('Error al inicializar autenticación con Google');
   }
 });
 

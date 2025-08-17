@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/Css/perfil.css">
   <script src="lib/supabase.js"></script>
   <script src="/JS/config.js"></script>
+  <script src="/JS/supabase-init.js"></script>
   <script src="/JS/auth-check.js"></script>
 </head>
 
@@ -119,7 +120,11 @@
           <span class="setting-value" id="nextPaymentValue">--</span>
         </div>
       </div>
-      <button class="btn btn-primary" id="btnManageSubscriptionFromProfile">Gestionar Suscripción</button>
+      <div class="subscription-actions">
+        <button class="btn btn-primary" id="btnManageSubscriptionFromProfile">Gestionar Suscripción</button>
+        <button class="btn btn-secondary" id="btnSyncSubscriptionFromProfile">Sincronizar</button>
+        <button class="btn btn-secondary" id="btnDiagnosticSubscription">Diagnóstico</button>
+      </div>
     </div>
 
     <!-- Settings Section -->
