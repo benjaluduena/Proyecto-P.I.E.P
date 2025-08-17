@@ -5,6 +5,25 @@ const fs = require('fs').promises;
 const supabase = require('../config/supabase');
 const { supabaseAuth } = require('../middleware/auth');
 
+// Función para validar y normalizar rutas de archivos
+function sanitizeFilePath(filePath, baseDir) {
+  try {
+    // Normalizar el path y resolver rutas relativas
+    const normalizedPath = path.normalize(filePath);
+    const resolvedPath = path.resolve(baseDir, normalizedPath);
+    const resolvedBaseDir = path.resolve(baseDir);
+    
+    // Verificar que el path resuelto esté dentro del directorio base
+    if (!resolvedPath.startsWith(resolvedBaseDir)) {
+      throw new Error('Path traversal detectado');
+    }
+    
+    return resolvedPath;
+  } catch (error) {
+    throw new Error('Ruta de archivo inválida');
+  }
+}
+
 const router = express.Router();
 
 // Configuración de multer para subida de archivos
@@ -235,10 +254,11 @@ router.delete('/:id', supabaseAuth, async (req, res) => {
       return res.status(500).json({ error: 'Error al eliminar el archivo' });
     }
 
-    // Eliminar archivo físico
+    // Eliminar archivo físico con validación de path
     try {
-      const filePath = path.join(__dirname, '..', pdf.file_url);
-      await fs.unlink(filePath);
+      const baseDir = path.join(__dirname, '..');
+      const safePath = sanitizeFilePath(pdf.file_url, baseDir);
+      await fs.unlink(safePath);
     } catch (fileError) {
       console.warn('No se pudo eliminar el archivo físico:', fileError);
     }
@@ -255,7 +275,11 @@ router.delete('/:id', supabaseAuth, async (req, res) => {
 router.get('/file/:filename', supabaseAuth, async (req, res) => {
   try {
     const { filename } = req.params;
-    const filePath = path.join(__dirname, '../uploads', filename);
+    
+    // Validar filename para prevenir path traversal
+    if (!filename || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+      return res.status(400).json({ error: 'Nombre de archivo inválido' });
+    }
 
     // Verificar que el archivo existe y pertenece al usuario
     const s = req.supabase || supabase;
@@ -270,7 +294,11 @@ router.get('/file/:filename', supabaseAuth, async (req, res) => {
       return res.status(404).json({ error: 'Archivo no encontrado' });
     }
 
-    res.sendFile(filePath);
+    // Construir ruta segura
+    const uploadsDir = path.join(__dirname, '../uploads');
+    const safePath = sanitizeFilePath(filename, uploadsDir);
+    
+    res.sendFile(safePath);
 
   } catch (error) {
     console.error('Error al servir archivo:', error);

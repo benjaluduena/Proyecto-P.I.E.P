@@ -1,58 +1,104 @@
-// Verificar autenticación al cargar la página (evitar llamadas duplicadas)
-let authCheckInProgress = false;
+// Sistema simplificado de verificación de autenticación
+class AuthChecker {
+  constructor() {
+    this.isChecking = false;
+    this.checkPromise = null;
+  }
 
-async function performAuthCheck() {
-  if (authCheckInProgress) return;
-  authCheckInProgress = true;
-
-  try {
-    // Primero verificar localStorage para evitar llamadas innecesarias
-    const storedSession = localStorage.getItem(CONFIG.STORAGE_KEYS.SESSION);
-    if (storedSession) {
-      try {
-        const sessionData = JSON.parse(storedSession);
-        const now = Math.floor(Date.now() / 1000);
-        
-        // Si la sesión no ha expirado, no necesitamos verificar con Supabase
-        if (sessionData.expires_at && sessionData.expires_at > now + 300) { // 5 min buffer
-          authCheckInProgress = false;
-          return;
-        }
-      } catch (parseError) {
-        // Si hay error parseando, continuar con verificación completa
-      }
+  async performAuthCheck() {
+    // Evitar múltiples verificaciones simultáneas
+    if (this.isChecking) {
+      return this.checkPromise;
     }
 
-    // Solo verificar con Supabase si no hay sesión válida en localStorage
-    const supabase = await window.waitForSupabase();
-    const { data: { session } } = await supabase.auth.getSession();
+    this.isChecking = true;
+    this.checkPromise = this._doAuthCheck();
     
-    if (!session) {
-      // No hay sesión activa, redirigir a login
-      clearSession();
-      redirectToLogin();
-      return;
+    try {
+      return await this.checkPromise;
+    } finally {
+      this.isChecking = false;
+      this.checkPromise = null;
     }
+  }
 
-    // Verificar si el token no ha expirado
-    const now = Math.floor(Date.now() / 1000);
-    if (session.expires_at && session.expires_at < now) {
-      // Token expirado, limpiar sesión y redirigir
-      clearSession();
-      redirectToLogin();
-      return;
+  async _doAuthCheck() {
+    try {
+      // Verificar si tenemos un authModule inicializado
+      if (window.authModule) {
+        // Usar el módulo centralizado de autenticación
+        if (window.authModule.isAuthenticated()) {
+          return true;
+        }
+      }
+
+      // Fallback: verificar localStorage
+      const storedSession = localStorage.getItem(CONFIG.STORAGE_KEYS.SESSION);
+      if (storedSession) {
+        try {
+          const sessionData = JSON.parse(storedSession);
+          const now = Math.floor(Date.now() / 1000);
+          
+          // Verificar si la sesión no ha expirado (con buffer de 5 minutos)
+          if (sessionData.expires_at && sessionData.expires_at > now + 300) {
+            return true;
+          }
+        } catch (parseError) {
+          console.warn('Error parsing stored session:', parseError);
+        }
+      }
+
+      // No hay sesión válida, limpiar y redirigir
+      this._clearSessionAndRedirect();
+      return false;
+
+    } catch (error) {
+      console.error('Error en verificación de autenticación:', error);
+      this._clearSessionAndRedirect();
+      return false;
     }
+  }
 
-    // Sesión válida, actualizar localStorage
-    localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
-    localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(session.user));
+  _clearSessionAndRedirect() {
+    // Limpiar datos de sesión
+    Object.values(CONFIG.STORAGE_KEYS).forEach(key => {
+      localStorage.removeItem(key);
+    });
 
-  } catch (error) {
-    console.error('Error al verificar autenticación:', error);
-    redirectToLogin();
-  } finally {
-    authCheckInProgress = false;
+    // Redirigir a login si no estamos ya ahí
+    const currentPath = window.location.pathname;
+    if (!currentPath.includes('login') && !currentPath.includes('landing')) {
+      redirectToLogin();
+    }
   }
 }
 
-document.addEventListener('DOMContentLoaded', performAuthCheck); 
+// Instancia global del verificador de autenticación
+const authChecker = new AuthChecker();
+
+// Función de compatibilidad para código existente
+async function performAuthCheck() {
+  return await authChecker.performAuthCheck();
+}
+
+// Auto-verificación al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+  // Solo verificar si no estamos en páginas públicas
+  const currentPath = window.location.pathname;
+  const isPublicPage = currentPath.includes('login') || 
+                      currentPath.includes('landing') || 
+                      currentPath === '/' ||
+                      currentPath.includes('index.html');
+  
+  console.log('AuthChecker: Página actual:', currentPath, 'Es pública:', isPublicPage);
+  
+  if (!isPublicPage) {
+    console.log('AuthChecker: Iniciando verificación de autenticación');
+    performAuthCheck();
+  } else {
+    console.log('AuthChecker: Saltando verificación en página pública');
+  }
+});
+
+// Exponer para uso global
+window.authChecker = authChecker; 

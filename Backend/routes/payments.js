@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const { MercadoPagoConfig, PreApproval } = require('mercadopago');
 const supabase = require('../config/supabase');
 const { supabaseAuth } = require('../middleware/auth');
@@ -12,8 +13,10 @@ function getMpClient() {
     throw new Error('Falta MP_ACCESS_TOKEN en variables de entorno');
   }
   
-  // Log temporal para debugging
-  console.log('🔍 MP Token configurado:', accessToken.substring(0, 15) + '...');
+  // Log temporal para debugging (solo en desarrollo)
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🔍 MP Token configurado:', accessToken.substring(0, 15) + '...');
+  }
   
   return new MercadoPagoConfig({ accessToken });
 }
@@ -50,7 +53,9 @@ router.post('/mp/create-subscription', supabaseAuth, validate(paymentSchemas.cre
     const client = getMpClient();
     const preApproval = new PreApproval(client);
 
-    console.log('Creando suscripción MP para usuario:', req.user.id, 'con back_url:', backUrl);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Creando suscripción MP para usuario:', req.user.id, 'con back_url:', backUrl);
+    }
 
     const result = await preApproval.create({
       body: {
@@ -67,7 +72,9 @@ router.post('/mp/create-subscription', supabaseAuth, validate(paymentSchemas.cre
       }
     });
 
-    console.log('Suscripción MP creada:', { id: result.id, status: result.status });
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Suscripción MP creada:', { id: result.id, status: result.status });
+    }
 
     // Guardar en BD
     try {
@@ -91,7 +98,9 @@ router.post('/mp/create-subscription', supabaseAuth, validate(paymentSchemas.cre
       if (error) {
         console.error('Error al guardar suscripción en BD:', error);
       } else {
-        console.log('Suscripción guardada en BD para usuario:', req.user.id);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Suscripción guardada en BD para usuario:', req.user.id);
+        }
       }
     } catch (dbError) {
       console.error('Error de BD al guardar suscripción:', dbError);
@@ -111,15 +120,71 @@ router.post('/mp/create-subscription', supabaseAuth, validate(paymentSchemas.cre
   }
 });
 
+// Función para validar firma del webhook de MercadoPago
+function validateWebhookSignature(req) {
+  const signature = req.headers['x-signature'];
+  const requestId = req.headers['x-request-id'];
+  
+  if (!signature || !requestId || !process.env.MP_WEBHOOK_SECRET) {
+    return false;
+  }
+
+  try {
+    // Extraer ts y v1 de la firma
+    const parts = signature.split(',');
+    let ts, v1;
+    
+    for (const part of parts) {
+      const [key, value] = part.split('=');
+      if (key && value) {
+        if (key.trim() === 'ts') ts = value.trim();
+        if (key.trim() === 'v1') v1 = value.trim();
+      }
+    }
+
+    if (!ts || !v1) return false;
+
+    // Verificar que el timestamp no sea muy antiguo (5 minutos)
+    const now = Math.floor(Date.now() / 1000);
+    if (now - parseInt(ts) > 300) {
+      console.warn('Webhook rechazado: timestamp muy antiguo');
+      return false;
+    }
+
+    // Crear string para validar
+    const dataId = req.query.id || req.query['data.id'] || req.body?.data?.id || req.body?.id || '';
+    const stringToSign = `id:${dataId};request-id:${requestId};ts:${ts};`;
+    
+    // Calcular HMAC
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.MP_WEBHOOK_SECRET)
+      .update(stringToSign)
+      .digest('hex');
+
+    return crypto.timingSafeEqual(Buffer.from(v1), Buffer.from(expectedSignature));
+  } catch (error) {
+    console.error('Error validando firma del webhook:', error);
+    return false;
+  }
+}
+
 // Webhook de Mercado Pago
 router.post('/mp/webhook', async (req, res) => {
   try {
-    // Log del webhook recibido para debugging
-    console.log('Webhook recibido:', {
-      headers: req.headers,
-      query: req.query,
-      body: req.body
-    });
+    // Validar firma del webhook si está configurado el secret
+    if (process.env.MP_WEBHOOK_SECRET && !validateWebhookSignature(req)) {
+      console.warn('Webhook rechazado: firma inválida');
+      return res.status(401).json({ error: 'Firma inválida' });
+    }
+
+    // Log del webhook recibido para debugging (reducido en producción)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Webhook recibido:', {
+        headers: req.headers,
+        query: req.query,
+        body: req.body
+      });
+    }
 
     const resourceId = req.query.id || req.query['data.id'] || req.body?.data?.id || req.body?.id;
 
@@ -128,7 +193,9 @@ router.post('/mp/webhook', async (req, res) => {
       return res.status(200).json({ received: true });
     }
 
-    console.log('Procesando webhook MP para ID:', resourceId);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Procesando webhook MP para ID:', resourceId);
+    }
 
     const client = getMpClient();
     const preApproval = new PreApproval(client);
@@ -145,7 +212,9 @@ router.post('/mp/webhook', async (req, res) => {
     const status = preapprovalData.status;
     const nextPayment = preapprovalData.auto_recurring?.next_payment_date || null;
 
-    console.log('Actualizando suscripción:', { userId, status, nextPayment });
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Actualizando suscripción:', { userId, status, nextPayment });
+    }
 
     if (userId) {
       // Actualizar tabla subscriptions
@@ -172,7 +241,9 @@ router.post('/mp/webhook', async (req, res) => {
           console.error('Error al actualizar suscripción en BD:', error);
           // No fallar el webhook por errores de BD
         } else {
-          console.log('Suscripción actualizada en BD para usuario:', userId);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('Suscripción actualizada en BD para usuario:', userId);
+          }
         }
       } catch (dbError) {
         console.error('Error de BD al actualizar suscripción:', dbError);
@@ -192,7 +263,9 @@ router.post('/mp/webhook', async (req, res) => {
         if (error) {
           console.error('Error al actualizar perfil:', error);
         } else {
-          console.log('Perfil actualizado para usuario:', userId);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('Perfil actualizado para usuario:', userId);
+          }
         }
       } catch (profileError) {
         console.error('Error al actualizar perfil:', profileError);

@@ -24,12 +24,8 @@ async function initializeSupabaseForLogin() {
           throw new Error('No se pudo cargar desde servidor');
         }
       } catch (error) {
-        console.warn('Usando configuración fallback:', error.message);
-        // Fallback a configuración local
-        config = {
-          url: 'https://fqmpmseabhtvahzdavej.supabase.co',
-          anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxbXBtc2VhYmh0dmFoemRhdmVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4ODc1ODgsImV4cCI6MjA2NjQ2MzU4OH0.LT1av0qw6GR8DmQkSmH1OzFPONsT8yEZJ2lMI1ARohE'
-        };
+        console.error('Error crítico: No se pudo cargar configuración del servidor:', error.message);
+        throw new Error('Configuración de Supabase no disponible. Contacte al administrador.');
       }
       
       if (config.url && config.anonKey) {
@@ -49,21 +45,9 @@ async function initializeSupabaseForLogin() {
   } catch (error) {
     console.error('❌ Error inicializando Supabase:', error);
     
-    // Intentar configuración básica como último recurso
-    try {
-      supabase = window.supabase.createClient(
-        'https://fqmpmseabhtvahzdavej.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxbXBtc2VhYmh0dmFoemRhdmVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4ODc1ODgsImV4cCI6MjA2NjQ2MzU4OH0.LT1av0qw6GR8DmQkSmH1OzFPONsT8yEZJ2lMI1ARohE'
-      );
-      window.supabase = supabase;
-      console.log('⚠️ Supabase inicializado con configuración básica');
-      initializationCompleted = true;
-      document.dispatchEvent(new CustomEvent('supabaseReady', { detail: supabase }));
-    } catch (finalError) {
-      console.error('💥 Error crítico inicializando Supabase:', finalError);
-      // Notificar error para que la UI pueda mostrar un mensaje
-      document.dispatchEvent(new CustomEvent('supabaseError', { detail: finalError }));
-    }
+    // No hay fallback - mostrar error crítico
+    console.error('💥 Error crítico inicializando Supabase:', error);
+    document.dispatchEvent(new CustomEvent('supabaseError', { detail: error }));
   } finally {
     initializationInProgress = false;
   }

@@ -202,7 +202,132 @@ body {
 
 
 
-/* Cards Section */
+/* Carousel Container */
+.carousel-container {
+    position: relative;
+    max-width: 900px;
+    margin: 2.2rem auto 0;
+    padding: 0 60px;
+}
+
+.carousel-wrapper {
+    overflow: hidden;
+    border-radius: 15px;
+}
+
+.carousel-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.carousel-track:active {
+    cursor: grabbing;
+}
+
+.carousel-slide {
+    min-width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+/* Para desktop: mostrar 2 tarjetas */
+@media (min-width: 769px) {
+    .carousel-track {
+        display: flex;
+        transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .carousel-slide {
+        min-width: 50%;
+        flex: 0 0 50%;
+    }
+}
+
+/* Para mobile: mostrar 1 tarjeta */
+@media (max-width: 768px) {
+    .carousel-slide {
+        min-width: 100%;
+        flex: 0 0 100%;
+    }
+}
+
+/* Carousel Buttons */
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 45px;
+    height: 45px;
+    background: white;
+    border: 2px solid #f1f1f1;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-btn:hover {
+    background: #a259fa;
+    border-color: #a259fa;
+    color: white;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-btn-prev {
+    left: 10px;
+}
+
+.carousel-btn-next {
+    right: 10px;
+}
+
+.carousel-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Carousel Indicators */
+.carousel-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 25px;
+}
+
+.indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: none;
+    background: #e0e0e0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.indicator.active {
+    background: #a259fa;
+    transform: scale(1.2);
+}
+
+.indicator:hover {
+    background: #a259fa;
+    opacity: 0.7;
+}
+
+/* Cards Section (mantener estilos existentes pero adaptar para carrusel) */
 .cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -737,6 +862,63 @@ body {
     right: 10px;
     left: 10px;
     max-width: none;
+  }
+
+  /* Carousel responsive */
+  .carousel-container {
+    padding: 0 40px;
+  }
+  
+  .carousel-btn {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .carousel-btn-prev {
+    left: 5px;
+  }
+  
+  .carousel-btn-next {
+    right: 5px;
+  }
+  
+  .carousel-slide {
+    padding: 10px;
+  }
+  
+  .card {
+    width: 200px;
+    height: 220px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-container {
+    padding: 0 25px;
+  }
+  
+  .carousel-btn {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .carousel-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .card {
+    width: 180px;
+    height: 200px;
+    padding: 15px;
+  }
+  
+  .card-title {
+    font-size: 14px;
+  }
+  
+  .card-description {
+    font-size: 11px;
   }
 }
 

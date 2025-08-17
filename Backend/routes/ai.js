@@ -346,15 +346,31 @@ router.post('/generate/:pdfId', supabaseAuth, validate(uuidParam, 'params'), val
       });
     }
 
-    // Extraer texto real del PDF
+    // Extraer texto real del PDF con validación de path
     let pdfText = '';
     if (pdf && pdf.file_url) {
-      // Normalizar a ruta relativa dentro del proyecto (Backend/uploads/...)
-      const relativeFileUrl = pdf.file_url.replace(/^\//, '');
-      const pdfPath = path.join(__dirname, '..', relativeFileUrl);
-      pdfText = await extractTextFromPDF(pdfPath);
-      if (!pdfText) {
-        return res.status(500).json({ error: 'No se pudo extraer texto del PDF.' });
+      try {
+        // Validar que la URL del archivo es segura
+        const relativeFileUrl = pdf.file_url.replace(/^\//, '');
+        if (relativeFileUrl.includes('..') || !relativeFileUrl.startsWith('uploads/')) {
+          return res.status(400).json({ error: 'Ruta de archivo inválida.' });
+        }
+        
+        const baseDir = path.join(__dirname, '..');
+        const safePath = path.resolve(baseDir, relativeFileUrl);
+        
+        // Verificar que el path está dentro del directorio esperado
+        if (!safePath.startsWith(path.resolve(baseDir, 'uploads'))) {
+          return res.status(400).json({ error: 'Acceso a archivo no permitido.' });
+        }
+        
+        pdfText = await extractTextFromPDF(safePath);
+        if (!pdfText) {
+          return res.status(500).json({ error: 'No se pudo extraer texto del PDF.' });
+        }
+      } catch (error) {
+        console.error('Error validando ruta del PDF:', error);
+        return res.status(500).json({ error: 'Error al procesar el archivo PDF.' });
       }
     } else {
       return res.status(404).json({ error: 'PDF no encontrado o sin ruta válida.' });
@@ -536,9 +552,21 @@ router.post('/regenerate/:outputId', supabaseAuth, async (req, res) => {
       return res.status(404).json({ error: 'PDF no encontrado para regeneración' });
     }
 
+    // Validar y construir ruta segura para regeneración
     const relativeFileUrl = (pdfRecord.file_url || '').replace(/^\//, '');
-    const pdfPath = path.join(__dirname, '..', relativeFileUrl);
-    const pdfText = await extractTextFromPDF(pdfPath);
+    if (relativeFileUrl.includes('..') || !relativeFileUrl.startsWith('uploads/')) {
+      return res.status(400).json({ error: 'Ruta de archivo inválida para regeneración.' });
+    }
+    
+    const baseDir = path.join(__dirname, '..');
+    const safePath = path.resolve(baseDir, relativeFileUrl);
+    
+    // Verificar que el path está dentro del directorio esperado
+    if (!safePath.startsWith(path.resolve(baseDir, 'uploads'))) {
+      return res.status(400).json({ error: 'Acceso a archivo no permitido para regeneración.' });
+    }
+    
+    const pdfText = await extractTextFromPDF(safePath);
 
     // Generar nuevo contenido
     const isMindmapAlias = existingOutput.type === 'flashcards' && existingOutput.content && existingOutput.content.__type === 'mapa_mental';

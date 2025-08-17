@@ -67,8 +67,24 @@ async function supabaseAuth(req, res, next) {
 
 // Middleware para desarrollo que permite peticiones sin autenticación
 function devAuth(req, res, next) {
-  // Para desarrollo, crear un usuario de prueba si no hay autenticación
+  // Solo permitir bypass en desarrollo y localhost
+  if (process.env.NODE_ENV !== 'development') {
+    return supabaseAuth(req, res, next);
+  }
+  
+  // Verificar que la request viene de localhost
+  const isLocalhost = req.ip === '127.0.0.1' || 
+                     req.ip === '::1' || 
+                     req.hostname === 'localhost' ||
+                     req.hostname === '127.0.0.1';
+  
+  if (!isLocalhost) {
+    return supabaseAuth(req, res, next);
+  }
+  
+  // Para desarrollo local, crear un usuario de prueba si no hay autenticación
   if (!req.headers.authorization) {
+    console.warn('⚠️ Usando usuario de desarrollo - SOLO para localhost en desarrollo');
     req.user = {
       id: '550e8400-e29b-41d4-a716-446655440000', // UUID válido para desarrollo
       name: 'Usuario de Desarrollo',

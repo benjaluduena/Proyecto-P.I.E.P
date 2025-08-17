@@ -61,12 +61,7 @@ class App {
       if (response.ok) {
         window.SUPABASE_CONFIG = await response.json();
       } else {
-        // Fallback a configuración local
-        console.warn('Usando configuración local de Supabase');
-        window.SUPABASE_CONFIG = {
-          url: 'https://fqmpmseabhtvahzdavej.supabase.co',
-          anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxbXBtc2VhYmh0dmFoemRhdmVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4ODc1ODgsImV4cCI6MjA2NjQ2MzU4OH0.LT1av0qw6GR8DmQkSmH1OzFPONsT8yEZJ2lMI1ARohE'
-        };
+        throw new Error('No se pudo obtener configuración de Supabase del servidor');
       }
     } catch (error) {
       console.error('Error cargando configuración:', error);
@@ -81,7 +76,14 @@ class App {
         window.SUPABASE_CONFIG.url, 
         window.SUPABASE_CONFIG.anonKey
       );
-      window.supabase = this.supabase; // Compatibilidad global
+      
+      // Exponer globalmente para compatibilidad
+      window.supabase = this.supabase;
+      
+      // Crear función helper para otros scripts
+      window.waitForSupabase = () => Promise.resolve(this.supabase);
+      
+      console.log('✅ Supabase inicializado correctamente desde app.js');
     } else {
       throw new Error('Supabase no está disponible');
     }
@@ -242,21 +244,36 @@ class App {
     }
   }
 
-  // Cargar script de sección
+  // Cargar script de sección con caché optimizado
   loadSectionScript(sectionName) {
     return new Promise((resolve) => {
-      const existingScript = document.querySelector(`script[src*="${sectionName}.js"]`);
-      if (existingScript) {
-        existingScript.remove();
+      // Cache de scripts cargados
+      if (!window.loadedScripts) {
+        window.loadedScripts = new Set();
+      }
+
+      // Si ya está cargado, resolver inmediatamente
+      if (window.loadedScripts.has(sectionName)) {
+        resolve();
+        return;
       }
 
       const script = document.createElement('script');
       script.src = `/JS/${sectionName}.js`;
       script.type = 'text/javascript';
       script.defer = true;
-      script.onload = resolve;
-      script.onerror = resolve; // Continuar aunque el script falle
-      document.body.appendChild(script);
+      
+      script.onload = () => {
+        window.loadedScripts.add(sectionName);
+        resolve();
+      };
+      
+      script.onerror = (error) => {
+        console.warn(`Script ${sectionName}.js no pudo cargarse:`, error);
+        resolve(); // Continuar aunque el script falle
+      };
+      
+      document.head.appendChild(script);
     });
   }
 
@@ -388,11 +405,40 @@ class App {
 
   // Verificar autenticación inicial
   checkInitialAuth() {
-    const isAuthPage = window.location.pathname.includes('login') || 
-                      window.location.pathname.includes('landing');
+    const currentPath = window.location.pathname;
+    const isAuthPage = currentPath.includes('login') || 
+                      currentPath.includes('landing') ||
+                      currentPath === '/';
     
-    if (!isAuthPage && !this.authModule.isAuthenticated()) {
-      this.authModule.redirectToLogin();
+    console.log('CheckInitialAuth:', { currentPath, isAuthPage });
+    
+    if (isAuthPage) {
+      console.log('En página de auth, saltando verificación');
+      return;
+    }
+    
+    // Verificar localStorage primero antes de usar authModule
+    const storedSession = localStorage.getItem('session');
+    if (storedSession) {
+      try {
+        const sessionData = JSON.parse(storedSession);
+        const now = Math.floor(Date.now() / 1000);
+        
+        if (sessionData.expires_at && sessionData.expires_at > now + 300) {
+          console.log('Sesión válida encontrada en localStorage');
+          return; // Sesión válida, no redirigir
+        }
+      } catch (error) {
+        console.warn('Error parseando sesión stored:', error);
+      }
+    }
+    
+    // Solo como último recurso, verificar con authModule
+    if (!this.authModule.isAuthenticated()) {
+      console.log('No hay autenticación válida, redirigiendo a login');
+      setTimeout(() => {
+        this.authModule.redirectToLogin();
+      }, 500); // Pequeño delay para evitar condiciones de carrera
     }
   }
 
@@ -455,7 +501,7 @@ class App {
 
   // Mostrar calendario
   showCalendar() {
-    this.uiModule.showNotification('Funcionalidad de calendario próximamente', 'info');
+    this.loadSection('calendario');
   }
 
   // Mostrar historial

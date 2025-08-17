@@ -3,7 +3,7 @@ const CONFIG = {
   // Rutas de la aplicación
   ROUTES: {
     LOGIN: '/login.html',
-    HOME: '/index.html',
+    HOME: '/home',
     ROOT: '/'
   },
   
@@ -38,18 +38,11 @@ async function loadSupabaseConfig() {
     if (response.ok) {
       SUPABASE_CONFIG = await response.json();
     } else {
-      // Fallback a configuración local si el endpoint no existe aún
-      SUPABASE_CONFIG = {
-        url: 'https://fqmpmseabhtvahzdavej.supabase.co',
-        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxbXBtc2VhYmh0dmFoemRhdmVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4ODc1ODgsImV4cCI6MjA2NjQ2MzU4OH0.LT1av0qw6GR8DmQkSmH1OzFPONsT8yEZJ2lMI1ARohE'
-      };
+      throw new Error('No se pudo obtener configuración del servidor');
     }
   } catch (error) {
-    console.warn('No se pudo cargar configuración del servidor, usando configuración local');
-    SUPABASE_CONFIG = {
-      url: 'https://fqmpmseabhtvahzdavej.supabase.co',
-      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxbXBtc2VhYmh0dmFoemRhdmVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4ODc1ODgsImV4cCI6MjA2NjQ2MzU4OH0.LT1av0qw6GR8DmQkSmH1OzFPONsT8yEZJ2lMI1ARohE'
-    };
+    console.error('Error crítico: No se pudo cargar configuración de Supabase del servidor');
+    throw new Error('Configuración de Supabase no disponible. Contacte al administrador.');
   }
 }
 
@@ -83,23 +76,58 @@ function getAuthHeaders() {
 
 // Variables para evitar múltiples redirecciones
 let redirectInProgress = false;
+let redirectHistory = [];
+
+// Función para detectar bucles de redirección
+function detectRedirectLoop(targetUrl) {
+  const now = Date.now();
+  const currentPath = window.location.pathname;
+  
+  // Limpiar historial antiguo (más de 10 segundos)
+  redirectHistory = redirectHistory.filter(item => now - item.timestamp < 10000);
+  
+  // Agregar redirección actual
+  redirectHistory.push({ from: currentPath, to: targetUrl, timestamp: now });
+  
+  // Detectar si hay más de 3 redirecciones en los últimos 5 segundos
+  const recentRedirects = redirectHistory.filter(item => now - item.timestamp < 5000);
+  if (recentRedirects.length > 3) {
+    console.error('🚨 Bucle de redirección detectado!', redirectHistory);
+    alert('Error: Bucle de redirección detectado. Contacte al soporte.');
+    return true;
+  }
+  
+  return false;
+}
 
 // Función para redirigir a login
 function redirectToLogin() {
   if (redirectInProgress) return;
-  redirectInProgress = true;
   
+  const targetUrl = CONFIG.ROUTES.LOGIN;
+  if (detectRedirectLoop(targetUrl)) return;
+  
+  redirectInProgress = true;
   console.log('Redirigiendo a login...');
-  window.location.replace(CONFIG.ROUTES.LOGIN);
+  
+  setTimeout(() => {
+    window.location.replace(targetUrl);
+  }, 100);
 }
 
 // Función para redirigir a home
 function redirectToHome() {
   if (redirectInProgress) return;
-  redirectInProgress = true;
   
+  const targetUrl = CONFIG.ROUTES.HOME;
+  if (detectRedirectLoop(targetUrl)) return;
+  
+  redirectInProgress = true;
   console.log('Redirigiendo a home...');
-  window.location.replace(CONFIG.ROUTES.HOME);
+  
+  setTimeout(() => {
+    window.location.replace(targetUrl);
+  }, 100);
 }
 
 // Función para limpiar sesión

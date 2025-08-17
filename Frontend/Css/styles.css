@@ -216,7 +216,8 @@ body {
 main#contenido {
   flex-grow: 1;
   padding: 20px;
-  max-height: 100vh;
+  overflow-y: auto;
+  height: 100vh;
 }
 
 /* Responsive */

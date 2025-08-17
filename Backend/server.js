@@ -22,7 +22,7 @@ const PORT = process.env.PORT || 5500;
 // Configuración de rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: process.env.NODE_ENV === 'production' ? 100 : 10000, // muy permisivo en desarrollo
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // menos permisivo en desarrollo
   message: {
     error: 'Demasiadas solicitudes desde esta IP',
     retryAfter: '15 minutos'
@@ -50,7 +50,7 @@ const limiter = rateLimit({
 // Rate limiting específico para rutas de autenticación (más restrictivo)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: process.env.NODE_ENV === 'production' ? 5 : 1000, // muy permisivo en desarrollo
+  max: process.env.NODE_ENV === 'production' ? 5 : 50, // más restrictivo en desarrollo
   message: {
     error: 'Demasiados intentos de autenticación',
     retryAfter: '15 minutos'
@@ -69,7 +69,7 @@ const authLimiter = rateLimit({
 // Rate limiting para subida de archivos (más restrictivo)
 const uploadLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
-  max: process.env.NODE_ENV === 'production' ? 20 : 1000, // muy permisivo en desarrollo
+  max: process.env.NODE_ENV === 'production' ? 20 : 100, // moderado en desarrollo
   message: {
     error: 'Límite de subidas alcanzado',
     retryAfter: '1 hora'
@@ -130,6 +130,28 @@ app.use(
     }
   })
 );
+
+// Configurar CORS explícitamente
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:5500', 'http://127.0.0.1:5500'];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permitir requests sin origin (ej: aplicaciones móviles, Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('No permitido por CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Signature', 'X-Request-Id']
+}));
+
 // Aplicar rate limiting general
 app.use(limiter);
 // Configurar JSON parsing solo para rutas que no sean de subida de archivos
@@ -174,7 +196,14 @@ app.get('/landing', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend', 'landing.html'));
 });
 
-// Permitir que /index.html sirva el home real desde estáticos
+// Ruta específica para el home de la aplicación
+app.get('/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend', 'index.html'));
+});
+
+app.get('/home', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend', 'index.html'));
+});
 
 // Ruta de prueba
 app.get('/api/health', (req, res) => {
@@ -194,16 +223,6 @@ app.get('/Frontend/mapa-mental.html', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend', 'mapa-mental.html'));
 });
 
-// Ruta fallback para SPA (opcional, si usas rutas en el frontend)
-app.get('*', (req, res) => {
-  // Si la ruta no es una ruta de API, servir la landing page
-  if (!req.path.startsWith('/api/')) {
-    res.sendFile(path.join(__dirname, '../Frontend', 'landing.html'));
-  } else {
-    res.status(404).json({ error: 'Ruta no encontrada' });
-  }
-});
-
 // Middleware de manejo de errores
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -213,9 +232,15 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Manejo de rutas no encontradas
-app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Ruta no encontrada' });
+// Ruta fallback para SPA (debe ser la última)
+app.get('*', (req, res) => {
+  // Si la ruta es de API, devolver 404 JSON
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'Ruta de API no encontrada' });
+  }
+  
+  // Para rutas del frontend, servir la landing page
+  res.sendFile(path.join(__dirname, '../Frontend', 'landing.html'));
 });
 
 app.listen(PORT, () => {

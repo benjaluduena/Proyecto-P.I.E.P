@@ -181,19 +181,12 @@ authForm.addEventListener('submit', async function (e) {
         localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(data.session));
         localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(data.user));
         
-        // Obtener perfil del backend
-        try {
-          const profileResponse = await apiCall(CONFIG.API.PROFILE);
-          if (profileResponse && profileResponse.ok) {
-            const profileData = await profileResponse.json();
-            localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(profileData.user));
-          }
-        } catch (profileError) {
-          console.warn('No se pudo obtener el perfil:', profileError);
-        }
-
-        // Redirigir al home
-        redirectToHome();
+        console.log('Login exitoso, redirigiendo...');
+        
+        // Redirigir inmediatamente - el perfil se cargará en el home
+        setTimeout(() => {
+          redirectToHome();
+        }, 100);
       }
     } catch (err) {
       console.error('Error en login:', err);
@@ -216,7 +209,7 @@ async function checkExistingSession() {
   sessionCheckPerformed = true;
 
   try {
-    // Primero verificar localStorage
+    // Solo verificar localStorage para evitar llamadas innecesarias
     const storedSession = localStorage.getItem(CONFIG.STORAGE_KEYS.SESSION);
     if (storedSession) {
       try {
@@ -224,25 +217,21 @@ async function checkExistingSession() {
         const now = Math.floor(Date.now() / 1000);
         
         // Si la sesión no ha expirado, redirigir directamente
-        if (sessionData.expires_at && sessionData.expires_at > now) {
+        if (sessionData.expires_at && sessionData.expires_at > now + 300) { // buffer de 5 min
+          console.log('Sesión válida encontrada, redirigiendo...');
           redirectToHome();
           return;
+        } else {
+          // Sesión expirada, limpiar
+          clearSession();
         }
       } catch (parseError) {
         clearSession();
       }
     }
-
-    // Solo verificar con Supabase si no hay sesión válida
-    const supabase = await window.waitForSupabase();
-    const { data: { session } } = await supabase.auth.getSession();
     
-    if (session) {
-      // Hay una sesión activa, redirigir al home
-      localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
-      localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(session.user));
-      redirectToHome();
-    }
+    // No verificar con Supabase aquí para evitar bucles
+    console.log('No se encontró sesión válida, mostrando login');
   } catch (error) {
     console.error('Error verificando sesión:', error);
   }
@@ -268,7 +257,8 @@ async function setupAuthStateListenerForLogin() {
 
 // Solo configurar en login.html
 if (window.location.pathname.includes('login.html')) {
-  window.addEventListener('load', checkExistingSession);
+  // TEMPORALMENTE DESHABILITADO para evitar bucles
+  // window.addEventListener('load', checkExistingSession);
   document.addEventListener('supabaseReady', setupAuthStateListenerForLogin);
 }
 
@@ -278,7 +268,7 @@ document.getElementById('google-auth-btn').addEventListener('click', async funct
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + '/Frontend/index.html'
+        redirectTo: window.location.origin + '/home'
       }
     });
     if (error) {
@@ -301,4 +291,18 @@ document.getElementById('btn-verified-email').addEventListener('click', function
   document.querySelector('.form-container form').style.display = '';
   document.getElementById('verify-email-container').style.display = 'none';
   showLogin();
-}); 
+});
+
+// Detectar parámetro URL para forzar limpieza de sesión
+if (window.location.search.includes('clear=true')) {
+  console.log('Limpiando sesión por parámetro URL');
+  localStorage.clear();
+  sessionStorage.clear();
+  
+  // Limpiar URL sin recargar
+  const url = new URL(window.location);
+  url.searchParams.delete('clear');
+  window.history.replaceState({}, '', url);
+  
+  alert('Sesión limpiada. Puedes iniciar sesión normalmente.');
+} 

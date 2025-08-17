@@ -18,155 +18,124 @@
     </div>
     <div class="header-right"></div>
   </div>
-  
-  <!-- Modal Calendario -->
-  <div id="calendarModal" class="calendar-modal">
-    <div class="calendar-container">
-      <div class="calendar-header">
-        <h3>Calendario de Tareas</h3>
-        <div class="calendar-actions">
-          <button id="btnNewPlanToggle" class="btn-small btn-ghost">Nuevo Plan</button>
-          <button id="btnNewTask" class="btn-small">Nueva Tarea</button>
-          <button id="btnCloseCalendar" class="btn-small btn-ghost">Cerrar</button>
-        </div>
-      </div>
-      <div id="calendar"></div>
-      <div id="newPlanContainer" class="new-plan" style="display:none; margin-top:10px;">
-        <h4 style="margin:0 0 6px 0;">Crear nuevo plan</h4>
-        <input id="planTitle" placeholder="Título del plan" />
-        <textarea id="planDescription" placeholder="Descripción (opcional)"></textarea>
-        <div class="row">
-          <input id="planStart" type="text" placeholder="Fecha de inicio" />
-          <input id="planEnd" type="text" placeholder="Fecha de fin" />
-        </div>
-        <div class="row">
-          <label><input type="checkbox" id="planNotifyEmail" /> Recordatorios por email</label>
-          <label><input type="checkbox" id="planNotifyWhats" /> Recordatorios por WhatsApp</label>
-        </div>
-        <div class="actions">
-          <button id="btnSavePlan" class="btn-small">Guardar plan</button>
-          <button id="btnCancelPlan" class="btn-small btn-ghost">Cancelar</button>
-        </div>
-      </div>
+  <!-- Carrusel de Métodos de Estudio -->
+  <div class="carousel-container">
+    <button class="carousel-btn carousel-btn-prev" id="prevBtn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+      </svg>
+    </button>
+    
+    <div class="carousel-wrapper">
+      <div class="carousel-track" id="carouselTrack">
+        <!-- Verdadero o Falso -->
+        <div class="carousel-slide">
+          <div class="card active" data-type="verdadero-falso">
+            <div class="container-card-badge">
+              <div class="card-badge">Popular</div>
+            </div>
+            <div class="card-icon">
+              <img width="40px" src="/Assets/Imagenes/verdadero-falso.png" alt="">
+            </div>
 
-      <div id="managePlansContainer" class="manage-plans" style="display:none;">
-        <h4 style="margin:10px 0;">Mis planes</h4>
-        <div id="plansList"></div>
-      </div>
-      <div id="taskFormContainer" class="task-form" style="display:none;">
-        <input id="taskTitle" placeholder="Título" />
-        <textarea id="taskDescription" placeholder="Descripción (opcional)"></textarea>
-        <div class="row">
-          <input id="taskDueDate" type="text" placeholder="Fecha y hora" />
-          <select id="taskPlan">
-            <option value="">Selecciona plan</option>
-          </select>
-        </div>
-        <div class="row">
-          <label><input type="checkbox" id="taskCompleted" /> Completada</label>
-          <div>
-            <label style="font-weight:600;">Recordatorios:</label>
-            <div style="display:flex; gap:8px; margin-top:4px;">
-              <label><input type="checkbox" id="remEmail" /> Email</label>
-              <label><input type="checkbox" id="remWhatsapp" /> WhatsApp</label>
-              <input id="remDateTime" type="text" placeholder="Fecha y hora de recordatorio" />
+            <div class="card-content">
+              <div class="card-title">Verdadero o Falso</div>
+              <div class="card-description">Genera preguntas de verdadero o falso automáticamente</div>
+              <div class="card-stats">
+                <span class="usage-count">Usado 12 veces</span>
+              </div>
+            </div>
+
+            <div class="card-overlay">
+              <button class="card-action-btn">Crear Preguntas</button>
             </div>
           </div>
         </div>
-        <div class="actions">
-          <button id="btnSaveTask" class="btn-small">Guardar</button>
-          <button id="btnDeleteTask" class="btn-small btn-ghost" style="display:none;">Eliminar</button>
-          <button id="btnCancelTask" class="btn-small btn-ghost">Cancelar</button>
+
+        <!-- Resumen -->
+        <div class="carousel-slide">
+          <div class="card active" data-type="resumen">
+            <div class="container-card-badge">
+              <div class="card-badge">Popular</div>
+            </div>
+
+            <div class="card-icon">
+              <img width="40px" src="/Assets/Imagenes/libro.png" alt="">
+            </div>
+
+            <div class="card-content">
+              <div class="card-title">Resumen</div>
+              <div class="card-description">Crea resúmenes inteligentes de tus documentos</div>
+              <div class="card-stats">
+                <span class="usage-count">Usado 8 veces</span>
+              </div>
+            </div>
+
+            <div class="card-overlay">
+              <button class="card-action-btn">Crear Resumen</button>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
-  <div class="cards"> <!-- Verdadero o Falso -->
-    <div class="card active" data-type="verdadero-falso">
-      <div class="container-card-badge">
-        <div class="card-badge">Popular</div>
-      </div>
-      <div class="card-icon">
-        <img width="40px" src="/Assets/Imagenes/verdadero-falso.png" alt="">
-      </div>
 
-      <div class="card-content">
-        <div class="card-title">Verdadero o Falso</div>
-        <div class="card-description">Genera preguntas de verdadero o falso automáticamente</div>
-        <div class="card-stats">
-          <span class="usage-count">Usado 12 veces</span>
+        <!-- Multiple Choice -->
+        <div class="carousel-slide">
+          <div class="card active" data-type="multiple-choice">
+            <div class="container-card-badge">
+              <div class="card-badge nuevo">Nuevo</div>
+            </div>
+
+            <div class="card-icon">
+              <img width="30px" src="/Assets/Imagenes/choice.png" alt="">
+            </div>
+
+            <div class="card-content">
+              <div class="card-title">Multiple Choice</div>
+              <div class="card-description">Crea exámenes de opción múltiple personalizados</div>
+              <div class="card-stats">
+                <span class="usage-count">Usado 15 veces</span>
+              </div>
+            </div>
+
+            <div class="card-overlay">
+              <button class="card-action-btn">Crear Examen</button>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div class="card-overlay">
-        <button class="card-action-btn">Crear Preguntas</button>
-      </div>
-    </div>
-
-    <!-- Resumen -->
-    <div class="card active" data-type="resumen">
-      <div class="container-card-badge">
-        <div class="card-badge">Popular</div>
-      </div>
-
-      <div class="card-icon">
-        <img width="40px" src="/Assets/Imagenes/libro.png" alt="">
-      </div>
-
-      <div class="card-content">
-        <div class="card-title">Resumen</div>
-        <div class="card-description">Crea resúmenes inteligentes de tus documentos</div>
-        <div class="card-stats">
-          <span class="usage-count">Usado 8 veces</span>
+        
+        <!-- Mapa Mental (Markmap) -->
+        <div class="carousel-slide">
+          <div class="card active" data-type="mapa-mental">
+            <div class="container-card-badge">
+              <div class="card-badge nuevo">Nuevo</div>
+            </div>
+            <div class="card-icon">
+              <img width="36px" src="/Assets/Imagenes/Resumen.png" alt="">
+            </div>
+            <div class="card-content">
+              <div class="card-title">Mapa mental</div>
+              <div class="card-description">Genera un mapa mental en formato Markmap</div>
+              <div class="card-stats">
+                <span class="usage-count">Usado 3 veces</span>
+              </div>
+            </div>
+            <div class="card-overlay">
+              <button class="card-action-btn">Crear Mapa</button>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div class="card-overlay">
-        <button class="card-action-btn">Crear Resumen</button>
-      </div>
-    </div>
-
-    <!-- Multiple Choice -->
-    <div class="card active" data-type="multiple-choice">
-      <div class="container-card-badge">
-        <div class="card-badge nuevo">Nuevo</div>
-      </div>
-
-      <div class="card-icon">
-        <img width="30px" src="/Assets/Imagenes/choice.png" alt="">
-      </div>
-
-      <div class="card-content">
-        <div class="card-title">Multiple Choice</div>
-        <div class="card-description">Crea exámenes de opción múltiple personalizados</div>
-        <div class="card-stats">
-          <span class="usage-count">Usado 15 veces</span>
-        </div>
-      </div>
-
-      <div class="card-overlay">
-        <button class="card-action-btn">Crear Examen</button>
       </div>
     </div>
     
-    <!-- Mapa Mental (Markmap) -->
-    <div class="card active" data-type="mapa-mental">
-      <div class="container-card-badge">
-        <div class="card-badge nuevo">Nuevo</div>
-      </div>
-      <div class="card-icon">
-        <img width="36px" src="/Assets/Imagenes/Resumen.png" alt="">
-      </div>
-      <div class="card-content">
-        <div class="card-title">Mapa mental</div>
-        <div class="card-description">Genera un mapa mental en formato Markmap</div>
-        <div class="card-stats">
-          <span class="usage-count">Usado 3 veces</span>
-        </div>
-      </div>
-      <div class="card-overlay">
-        <button class="card-action-btn">Crear Mapa</button>
-      </div>
+    <button class="carousel-btn carousel-btn-next" id="nextBtn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+      </svg>
+    </button>
+    
+    <!-- Indicadores del carrusel -->
+    <div class="carousel-indicators" id="carouselIndicators">
+      <button class="indicator active" data-slide="0"></button>
+      <button class="indicator" data-slide="1"></button>
     </div>
   </div> <!-- Loading Overlay -->
   <div class="loading-overlay" id="loadingOverlay">

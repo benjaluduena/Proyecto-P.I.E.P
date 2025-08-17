@@ -9,11 +9,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/Css/styles.css">
   <link rel="stylesheet" href="/Css/home.css">
+  <link rel="stylesheet" href="/Css/calendario.css">
   <script src="lib/supabase.js"></script>
   <script src="/JS/config.js"></script>
-  <script src="/JS/supabase-init.js"></script>
-  <script src="/JS/auth-check.js"></script>
-  <!-- Sistema modular -->
+  <!-- Sistema modular unificado -->
   <script type="module" src="/JS/modules/app.js"></script>
 </head>
 
@@ -41,7 +40,7 @@
             Inicio
           </button>
 
-          <button type="button" class="menu-item">
+          <button onclick="cargarSeccion('calendario')" type="button" class="menu-item">
             <span class="sidebar-ico">
               <svg>
                 <use href="/Assets/sprite.svg#icon-calendar"></use>
