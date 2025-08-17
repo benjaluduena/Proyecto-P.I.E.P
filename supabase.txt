@@ -37,9 +37,10 @@ CREATE TABLE public.plan_tasks (
   completed boolean DEFAULT false,
   related_output_id integer,
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  due_at text,
   CONSTRAINT plan_tasks_pkey PRIMARY KEY (id),
-  CONSTRAINT plan_tasks_related_output_id_fkey FOREIGN KEY (related_output_id) REFERENCES public.study_outputs(id),
-  CONSTRAINT plan_tasks_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.study_plans(id)
+  CONSTRAINT plan_tasks_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.study_plans(id),
+  CONSTRAINT plan_tasks_related_output_id_fkey FOREIGN KEY (related_output_id) REFERENCES public.study_outputs(id)
 );
 CREATE TABLE public.profiles (
   id uuid NOT NULL,
@@ -66,7 +67,7 @@ CREATE TABLE public.progress_tracking (
 CREATE TABLE public.study_outputs (
   id integer NOT NULL DEFAULT nextval('study_outputs_id_seq'::regclass),
   pdf_id integer NOT NULL,
-  type character varying NOT NULL CHECK (type::text = ANY (ARRAY['resumen'::character varying::text, 'recomendacion_video'::character varying::text, 'recomendacion_texto'::character varying::text, 'multiple_choice'::character varying::text, 'verdadero_falso'::character varying::text, 'flashcards'::character varying::text, 'problema'::character varying::text])),
+  type character varying NOT NULL CHECK (type::text = ANY (ARRAY['resumen'::character varying, 'recomendacion_video'::character varying, 'recomendacion_texto'::character varying, 'multiple_choice'::character varying, 'verdadero_falso'::character varying, 'flashcards'::character varying, 'problema'::character varying, 'mapa_mental'::character varying]::text[])),
   content jsonb NOT NULL,
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT study_outputs_pkey PRIMARY KEY (id),

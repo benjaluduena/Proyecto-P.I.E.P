@@ -487,6 +487,7 @@ function initDatePickers() {
           if (planEnd) window.flatpickr(planEnd, optsDate);
           if (due) window.flatpickr(due, optsDateTime);
           if (rem) window.flatpickr(rem, optsDateTime);
+          if (readyCb) readyCb();
         } else {
           setTimeout(waitFP, 150);
         }
@@ -495,19 +496,8 @@ function initDatePickers() {
     document.body.appendChild(s);
   } else {
     // Si ya está cargado, ejecutar callback inmediatamente
-    // Inicializar datepickers directamente
-    const optsDate = { dateFormat: 'Y-m-d' };
-    const optsDateTime = { enableTime: true, time_24hr: true, dateFormat: 'Y-m-d H:i' };
-    const planStart = document.getElementById('planStart');
-    const planEnd = document.getElementById('planEnd');
-    const due = document.getElementById('taskDueDate');
-    const rem = document.getElementById('remDateTime');
-    if (planStart) window.flatpickr(planStart, optsDate);
-    if (planEnd) window.flatpickr(planEnd, optsDate);
-    if (due) window.flatpickr(due, optsDateTime);
-    if (rem) window.flatpickr(rem, optsDateTime);
+    if (readyCb) readyCb();
   }
-}
 
 function parseDateTime(input) {
   if (!input) return null;

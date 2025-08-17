@@ -1,0 +1,29 @@
+<section class="plans-section">
+  <div class="plans-header">
+    <h2>Planes de estudio</h2>
+    <button id="btnNewPlan" class="btn">Nuevo plan</button>
+  </div>
+
+  <div id="planForm" class="plan-form" style="display:none;">
+    <div class="row">
+      <input id="pTitle" placeholder="Título del plan" />
+      <input id="pStart" type="date" />
+      <input id="pEnd" type="date" />
+    </div>
+    <div class="row">
+      <textarea id="pDesc" placeholder="Descripción (opcional)"></textarea>
+    </div>
+    <div class="row">
+      <label><input type="checkbox" id="pEmail" /> Notificar por email</label>
+      <label><input type="checkbox" id="pWhats" /> Notificar por WhatsApp</label>
+    </div>
+    <div class="actions">
+      <button id="pSave" class="btn">Guardar</button>
+      <button id="pCancel" class="btn btn-ghost">Cancelar</button>
+    </div>
+  </div>
+
+  <div id="plansContainer" class="plans-container"></div>
+</section>
+
+

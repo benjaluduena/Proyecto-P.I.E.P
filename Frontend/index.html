@@ -5,31 +5,38 @@
   <meta charset="UTF-8">
   <title>StudyAI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Plataforma de estudio inteligente con IA">
+  <meta name="keywords" content="estudio, IA, aprendizaje, PDF, resumen">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/Css/styles.css">
   <link rel="stylesheet" href="/Css/home.css">
+  <link id="fullcalendar-css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
+  
+  <!-- Scripts de configuración y utilidades -->
   <script src="lib/supabase.js"></script>
   <script src="/JS/config.js"></script>
+  <script src="/JS/utils.js"></script>
   <script src="/JS/auth-check.js"></script>
+  
+  <!-- Scripts de calendario -->
+  <script id="fullcalendar-js" src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+  <script src="/JS/calendar.js"></script>
 </head>
 
 <body>
   <div class="container">
     <!-- Sidebar -->
     <aside class="sidebar">
-
       <div>
-
         <!-- Logo -->
         <div class="logo-container">
-          <img class="logo" src="/Assets/Imagenes/Logo.png" alt="">
+          <img class="logo" src="/Assets/Imagenes/Logo.png" alt="StudyAI Logo">
         </div>
 
         <!-- Sidebar Menu -->
         <nav class="menu">
-
-          <button onclick="cargarSeccion('home')" type="button" class="menu-item active">
+          <button onclick="cargarSeccion('home')" type="button" class="menu-item active" data-section="home">
             <span class="sidebar-ico">
               <svg>
                 <use href="/Assets/sprite.svg#icon-home"></use>
@@ -38,7 +45,7 @@
             Inicio
           </button>
 
-          <button type="button" class="menu-item">
+          <button type="button" class="menu-item" data-section="calendar">
             <span class="sidebar-ico">
               <svg>
                 <use href="/Assets/sprite.svg#icon-calendar"></use>
@@ -47,7 +54,16 @@
             Calendario
           </button>
 
-          <button type="button" class="menu-item">
+          <button id="btnPlanesEstudio" type="button" class="menu-item" data-section="plans">
+            <span class="sidebar-ico">
+              <svg>
+                <use href="/Assets/sprite.svg#icon-history"></use>
+              </svg>
+            </span>
+            Planes de estudio
+          </button>
+
+          <button type="button" class="menu-item" data-section="history">
             <span class="sidebar-ico">
               <svg>
                 <use href="/Assets/sprite.svg#icon-history"></use>
@@ -55,15 +71,12 @@
             </span>
             Historial
           </button>
-
         </nav>
-
       </div>
 
       <!-- Sidebar Footer -->
       <div class="sidebar-footer">
-
-        <button type="button" class="menu-item">
+        <button type="button" class="menu-item" data-section="help">
           <span class="sidebar-ico">
             <svg>
               <use href="/Assets/sprite.svg#icon-help"></use>
@@ -72,7 +85,7 @@
           Ayuda y Soporte
         </button>
 
-        <button type="button" class="menu-item">
+        <button type="button" class="menu-item" id="btnLogout">
           <span class="sidebar-ico">
             <svg>
               <use href="/Assets/sprite.svg#icon-logout"></use>
@@ -87,8 +100,8 @@
             <img src="/Assets/Imagenes/usuario-sin-foto.png" alt="Foto de perfil" class="avatar-img">
           </div>
           <div class="user-info">
-            <div class="user-name">Juan Pérez</div>
-            <div class="user-email">juan.perez@email.com</div>
+            <div class="user-name">Cargando...</div>
+            <div class="user-email">cargando@email.com</div>
           </div>
           <!-- Dropdown Menu -->
           <div class="profile-dropdown" id="profileDropdown">
@@ -100,24 +113,113 @@
             </div>
             <div class="dropdown-item" id="btnCerrarSesion">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path
-                  d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+                <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
               </svg>
               Cerrar sesión
             </div>
           </div>
-
-
         </div>
-
+      </div>
     </aside>
 
-    <!-- Main -->
+    <!-- Main Content -->
     <main id="contenido">
       <!-- Aquí se carga el contenido dinámico -->
+      <div class="loading-placeholder">
+        <div class="loading-spinner"></div>
+        <p>Cargando StudyAI...</p>
+      </div>
     </main>
+  </div>
 
-    <script src="/JS/main.js"></script>
+  <!-- Modal Calendario global -->
+  <div id="calendarModal" class="calendar-modal">
+    <div class="calendar-container">
+      <div class="calendar-header">
+        <h3>Calendario de Tareas</h3>
+        <div class="calendar-actions">
+          <button id="btnNewPlanToggle" class="btn-small btn-ghost">Nuevo Plan</button>
+          <button id="btnNewTask" class="btn-small">Nueva Tarea</button>
+          <button id="btnCloseCalendar" class="btn-small btn-ghost">Cerrar</button>
+        </div>
+      </div>
+      
+      <div id="calendarFilters" class="calendar-filters" style="margin:8px 0 12px 0; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <select id="filterPlan" style="min-width:180px">
+          <option value="">Todos los planes</option>
+        </select>
+        <input id="filterFrom" type="text" placeholder="Desde" style="width:140px" />
+        <input id="filterTo" type="text" placeholder="Hasta" style="width:140px" />
+        <select id="filterStatus" style="min-width:160px">
+          <option value="all">Todas</option>
+          <option value="pending">Pendientes</option>
+          <option value="completed">Completadas</option>
+          <option value="overdue">Vencidas</option>
+          <option value="upcoming">Próximas (7 días)</option>
+        </select>
+        <button id="applyFilters" class="btn-small">Aplicar</button>
+        <button id="clearFilters" class="btn-small btn-ghost">Limpiar</button>
+      </div>
+      
+      <div id="calendar"></div>
+      
+      <!-- Formulario de nuevo plan -->
+      <div id="newPlanContainer" class="new-plan" style="display:none; margin-top:10px;">
+        <h4 style="margin:0 0 6px 0;">Crear nuevo plan</h4>
+        <input id="planTitle" placeholder="Título del plan" />
+        <textarea id="planDescription" placeholder="Descripción (opcional)"></textarea>
+        <div class="row">
+          <input id="planStart" type="text" placeholder="Fecha de inicio" />
+          <input id="planEnd" type="text" placeholder="Fecha de fin" />
+        </div>
+        <div class="row">
+          <label><input type="checkbox" id="planNotifyEmail" /> Recordatorios por email</label>
+          <label><input type="checkbox" id="planNotifyWhats" /> Recordatorios por WhatsApp</label>
+        </div>
+        <div class="actions">
+          <button id="btnSavePlan" class="btn-small">Guardar plan</button>
+          <button id="btnCancelPlan" class="btn-small btn-ghost">Cancelar</button>
+        </div>
+      </div>
+
+      <!-- Gestión de planes -->
+      <div id="managePlansContainer" class="manage-plans" style="display:none;">
+        <h4 style="margin:10px 0;">Mis planes</h4>
+        <div id="plansList"></div>
+      </div>
+      
+      <!-- Formulario de tarea -->
+      <div id="taskFormContainer" class="task-form" style="display:none;">
+        <input id="taskTitle" placeholder="Título" />
+        <textarea id="taskDescription" placeholder="Descripción (opcional)"></textarea>
+        <div class="row">
+          <input id="taskDueDate" type="text" placeholder="Fecha y hora" />
+          <select id="taskPlan">
+            <option value="">Selecciona plan</option>
+          </select>
+        </div>
+        <div class="row">
+          <label><input type="checkbox" id="taskCompleted" /> Completada</label>
+          <div>
+            <label style="font-weight:600;">Recordatorios:</label>
+            <div style="display:flex; gap:8px; margin-top:4px;">
+              <label><input type="checkbox" id="remEmail" /> Email</label>
+              <label><input type="checkbox" id="remWhatsapp" /> WhatsApp</label>
+              <input id="remDateTime" type="text" placeholder="Fecha y hora de recordatorio" />
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="btnSaveTask" class="btn-small">Guardar</button>
+          <button id="btnDeleteTask" class="btn-small btn-ghost" style="display:none;">Eliminar</button>
+          <button id="btnCancelTask" class="btn-small btn-ghost">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script principal -->
+  <script src="/JS/main.js"></script>
 </body>
 
 </html>
