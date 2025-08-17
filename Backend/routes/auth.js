@@ -3,7 +3,7 @@ const supabase = require('../config/supabase');
 const { supabaseAuth } = require('../middleware/auth');
 const router = express.Router();
 
-// Registro de usuario con Supabase Auth
+// 📌 Registro de usuario con Supabase Auth + creación en profiles
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role, education_level } = req.body;
@@ -12,16 +12,12 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
-    // Registrar usuario con Supabase Auth
+    // Crear usuario en Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: {
-          name: name,
-          role: role,
-          education_level: education_level
-        }
+        data: { name, role, education_level } // 👈 esto va al user_metadata
       }
     });
 
@@ -41,14 +37,13 @@ router.post('/register', async (req, res) => {
       .from('profiles')
       .insert([{
         id: authData.user.id,
-        name: name,
-        role: role,
-        education_level: education_level
+        name,
+        role,
+        education_level
       }]);
 
     if (profileError) {
-      console.error('Error al crear perfil:', profileError);
-      // No fallamos aquí porque el usuario ya se creó en auth
+      console.error('Error al crear perfil en profiles:', profileError);
     }
 
     res.status(201).json({ 
@@ -56,9 +51,9 @@ router.post('/register', async (req, res) => {
       user: {
         id: authData.user.id,
         email: authData.user.email,
-        name: name,
-        role: role,
-        education_level: education_level
+        name,
+        role,
+        education_level
       }
     });
 
@@ -68,7 +63,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login de usuario con Supabase Auth
+// 📌 Login con Supabase Auth + carga de perfil desde profiles
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -94,17 +89,17 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Usuario no encontrado' });
     }
 
-    // Obtener datos del perfil
+    // Consultar perfil en la tabla profiles
     let { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('name, role, education_level')
       .eq('id', authData.user.id)
-      .single();
+      .maybeSingle();
 
-    // Si no existe el perfil, crearlo automáticamente
-    if (profileError && profileError.code === 'PGRST116') {
+    // Si no existe perfil → crearlo automáticamente
+    if (!profile) {
       console.log('📝 Creando perfil automáticamente para:', authData.user.email);
-      
+
       const { data: newProfile, error: createError } = await supabase
         .from('profiles')
         .insert([{
@@ -118,7 +113,6 @@ router.post('/login', async (req, res) => {
 
       if (createError) {
         console.error('❌ Error creando perfil automáticamente:', createError);
-        // Continuar sin perfil
         profile = null;
       } else {
         profile = newProfile;
@@ -144,7 +138,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Logout de usuario
+// 📌 Logout
 router.post('/logout', async (req, res) => {
   try {
     const { error } = await supabase.auth.signOut();
@@ -164,10 +158,9 @@ router.post('/logout', async (req, res) => {
   }
 });
 
-// Obtener perfil del usuario autenticado
+// 📌 Obtener perfil del usuario autenticado (usa middleware supabaseAuth)
 router.get('/profile', supabaseAuth, async (req, res) => {
   try {
-    // El middleware ya obtiene el perfil, solo devolvemos los datos
     res.json({ user: req.user });
   } catch (error) {
     console.error('Error al obtener perfil:', error);
@@ -175,18 +168,18 @@ router.get('/profile', supabaseAuth, async (req, res) => {
   }
 });
 
-// Crear perfil manualmente (para usuarios existentes)
+// 📌 Crear perfil manualmente
 router.post('/create-profile', supabaseAuth, async (req, res) => {
   try {
     const { name, role, education_level } = req.body;
     const userId = req.user.id;
 
-    // Verificar si ya existe el perfil
+    // Verificar si ya existe
     const { data: existingProfile } = await supabase
       .from('profiles')
       .select('id')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (existingProfile) {
       return res.status(400).json({ 
@@ -195,30 +188,24 @@ router.post('/create-profile', supabaseAuth, async (req, res) => {
       });
     }
 
-    // Crear perfil en la tabla profiles
+    // Crear nuevo
     const { data: profile, error } = await supabase
       .from('profiles')
       .insert([{
         id: userId,
-        name: name || req.user.user_metadata?.name || 'Usuario',
-        role: role || req.user.user_metadata?.role || 'estudiante',
-        education_level: education_level || req.user.user_metadata?.education_level || 'universitario'
+        name: name || req.user.name || 'Usuario',
+        role: role || req.user.role || 'estudiante',
+        education_level: education_level || req.user.education_level || 'universitario'
       }])
       .select('name, role, education_level')
       .single();
 
     if (error) {
       console.error('Error creando perfil:', error);
-      return res.status(500).json({ 
-        error: 'Error al crear perfil',
-        message: error.message
-      });
+      return res.status(500).json({ error: 'Error al crear perfil', message: error.message });
     }
 
-    res.json({ 
-      message: 'Perfil creado exitosamente',
-      profile: profile
-    });
+    res.json({ message: 'Perfil creado exitosamente', profile });
 
   } catch (error) {
     console.error('Error creando perfil:', error);
@@ -226,13 +213,12 @@ router.post('/create-profile', supabaseAuth, async (req, res) => {
   }
 });
 
-// Actualizar perfil del usuario
+// 📌 Actualizar perfil
 router.put('/profile', supabaseAuth, async (req, res) => {
   try {
     const { name, role, education_level } = req.body;
     const userId = req.user.id;
 
-    // Actualizar perfil en la tabla profiles
     const { data: profile, error } = await supabase
       .from('profiles')
       .update({ name, role, education_level })
@@ -241,13 +227,10 @@ router.put('/profile', supabaseAuth, async (req, res) => {
       .single();
 
     if (error) {
-      return res.status(500).json({ 
-        error: 'Error al actualizar perfil',
-        message: error.message 
-      });
+      return res.status(500).json({ error: 'Error al actualizar perfil', message: error.message });
     }
 
-    // Actualizar metadata del usuario en auth si es necesario
+    // Sincronizar metadata en Auth
     await supabase.auth.updateUser({
       data: { name, role, education_level }
     });
@@ -269,4 +252,4 @@ router.put('/profile', supabaseAuth, async (req, res) => {
   }
 });
 
-module.exports = router; 
+module.exports = router;
