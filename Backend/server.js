@@ -12,6 +12,7 @@ const aiRoutes = require('./routes/ai');
 const studyRoutes = require('./routes/study');
 const notificationRoutes = require('./routes/notifications');
 const tasksRoutes = require('./routes/tasks');
+const classroomRoutes = require('./routes/classroom');
 
 const app = express();
 const PORT = process.env.PORT || 5500;
@@ -32,10 +33,11 @@ app.use(
         defaultSrc: ["'self'"],
         scriptSrc: [
           "'self'",
+          "'unsafe-inline'",
           'https://cdn.jsdelivr.net',
           'https://unpkg.com'
         ],
-        scriptSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://unpkg.com'],
+        scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc: [
           "'self'",
           "'unsafe-inline'",
@@ -80,6 +82,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/study', studyRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/tasks', tasksRoutes);
+app.use('/api/classroom', classroomRoutes);
 
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../Frontend'), { index: false }));
@@ -97,6 +100,15 @@ app.get('/login', (req, res) => {
 // Ruta para landing page
 app.get('/landing', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend', 'landing.html'));
+});
+
+// Rutas para classroom
+app.get('/classroom-teacher', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend', 'classroom-teacher.html'));
+});
+
+app.get('/classroom-student', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend', 'classroom-student.html'));
 });
 
 // Permitir que /index.html sirva el home real desde estáticos

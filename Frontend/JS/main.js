@@ -1,29 +1,65 @@
 let isDropdownOpen = false;
 // Carga inicial
 function cargarSeccion(nombre) {
+  console.log(`Cargando sección: ${nombre}`);
+  
+  const contenedor = document.getElementById('contenido');
+  if (!contenedor) {
+    console.error('Contenedor de contenido no encontrado');
+    return;
+  }
+
   fetch(`Pages/${nombre}.html`)
-    .then(res => res.text())
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      return res.text();
+    })
     .then(html => {
-      const contenedor = document.getElementById('contenido');
+      console.log(`HTML cargado para ${nombre}`);
       contenedor.innerHTML = html;
 
       // Carga el script después de insertar el HTML
       const script = document.createElement('script');
-      script.src = `/JS/${nombre}.js`; // Corregida la ruta
+      script.src = `/JS/${nombre}.js`;
       script.type = 'text/javascript';
       script.defer = true;
+      
+      // Manejar errores del script
+      script.onerror = () => {
+        console.warn(`Script ${nombre}.js no encontrado, continuando sin él`);
+      };
+      
       document.body.appendChild(script);
 
       // Reasignar logout por si la sección cambia el DOM
       asignarLogout();
+      
+      // Volver a poblar información del usuario después de cargar la sección
+      setTimeout(() => {
+        populateUserInfo();
+      }, 200);
     })
     .catch(err => {
-      document.getElementById('contenido').innerHTML = `<p>Error al cargar ${nombre}</p>`;
+      console.error(`Error cargando ${nombre}:`, err);
+      contenedor.innerHTML = `
+        <div style="padding: 20px; text-align: center;">
+          <h3>Error al cargar ${nombre}</h3>
+          <p>No se pudo cargar la sección solicitada.</p>
+          <button onclick="cargarSeccion('home')" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Volver al inicio
+          </button>
+        </div>
+      `;
     });
 }
 
 // Carga inicial
-window.onload = () => cargarSeccion('home');
+window.onload = () => {
+  console.log('Página cargada, iniciando aplicación...');
+  cargarSeccion('home');
+};
 
 // Función de logout mejorada
 async function logout() {
@@ -51,6 +87,14 @@ async function logout() {
 
 // Función para inicializar los event listeners
 document.addEventListener("DOMContentLoaded", () => {
+  console.log('DOMContentLoaded ejecutado');
+  
+  // Verificar si Supabase está disponible
+  if (typeof supabase === 'undefined') {
+    console.error('Supabase no está disponible');
+  } else {
+    console.log('Supabase está disponible');
+  }
   // Dropdown de perfil
   const userProfile = document.getElementById("userProfile");
   const profileDropdown = document.getElementById("profileDropdown");
@@ -85,8 +129,39 @@ document.addEventListener("DOMContentLoaded", () => {
     btnCerrarSesion.addEventListener("click", logout);
   }
 
+  // Event listeners para los botones del menú
+  const homeBtn = document.getElementById('homeBtn');
+  const classroomBtn = document.getElementById('classroomBtn');
+  
+  if (homeBtn) {
+    homeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      console.log('Botón Home clickeado');
+      cargarSeccion('home');
+      
+      // Actualizar clases activas
+      document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+      homeBtn.classList.add('active');
+    });
+  }
+  
+  if (classroomBtn) {
+    classroomBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      console.log('Botón de Classroom clickeado');
+      if (typeof window.openClassroomPage === 'function') {
+        window.openClassroomPage();
+      } else {
+        console.error('Función openClassroomPage no está disponible');
+      }
+    });
+  }
+
   // Rellenar información del usuario en el sidebar
-  populateUserInfo();
+  // Ejecutar populateUserInfo después de un pequeño delay para asegurar que todo esté listo
+  setTimeout(() => {
+    populateUserInfo();
+  }, 100);
 
   // Mostrar título completo solo si hay truncado
   const up = document.getElementById('userProfile');
@@ -96,6 +171,52 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.addEventListener('resize', updateUserProfileTitles);
 });
+
+// Función para abrir la página de classroom según el rol del usuario
+window.openClassroomPage = async function() {
+  console.log('Función openClassroomPage ejecutada');
+  
+  try {
+    // Verificar si Supabase está disponible
+    if (typeof supabase === 'undefined') {
+      console.error('Supabase no está disponible');
+      return;
+    }
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.log('No hay usuario autenticado, redirigiendo a login');
+      window.location.href = '/login.html';
+      return;
+    }
+
+    console.log('Usuario autenticado:', user.email);
+
+    // Verificar el rol del usuario
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    console.log('Perfil del usuario:', profile);
+
+    if (profile && profile.role === 'docente') {
+      console.log('Redirigiendo a classroom de docente');
+      window.location.href = '/classroom-teacher.html';
+    } else if (profile && profile.role === 'estudiante') {
+      console.log('Redirigiendo a classroom de estudiante');
+      window.location.href = '/classroom-student.html';
+    } else {
+      console.log('Rol no válido:', profile?.role);
+      console.error('Rol de usuario no válido');
+    }
+  } catch (error) {
+    console.error('Error verificando rol:', error);
+  }
+};
+
+
 
 // Función para alternar el dropdown
 function toggleDropdown() {
@@ -193,44 +314,65 @@ function getBestAvatarUrl(user) {
 }
 
 async function populateUserInfo() {
-  const nameEl = document.querySelector('.user-info .user-name');
-  const emailEl = document.querySelector('.user-info .user-email');
-  const avatarImg = document.querySelector('#userAvatar img');
+  try {
+    const nameEl = document.querySelector('.user-info .user-name');
+    const emailEl = document.querySelector('.user-info .user-email');
+    const avatarImg = document.querySelector('#userAvatar img');
 
-  if (!nameEl || !emailEl) return;
+    if (!nameEl || !emailEl) {
+      console.log('Elementos de usuario no encontrados');
+      return;
+    }
 
-  // Establecer avatar por defecto inicialmente
-  setAvatarImage(avatarImg, null);
+    // Establecer avatar por defecto inicialmente
+    setAvatarImage(avatarImg, null);
 
-  // Intentar con el usuario guardado
-  let user = getStoredUser();
-
-  // Si no existe aún, intentar obtenerlo desde Supabase
-  if (!user && window.supabase) {
+    // Intentar obtener la sesión actual de Supabase
+    let user = null;
+    
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session && session.user) {
         user = session.user;
+        // Guardar en localStorage
         localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(user));
         localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
+        localStorage.setItem(CONFIG.STORAGE_KEYS.ACCESS_TOKEN, session.access_token);
       }
-    } catch (_) {
-      // Ignorar errores silenciosamente
+    } catch (error) {
+      console.error('Error obteniendo sesión de Supabase:', error);
     }
+
+    // Si no se pudo obtener de Supabase, intentar con localStorage
+    if (!user) {
+      user = getStoredUser();
+    }
+
+    if (!user) {
+      console.log('No se pudo obtener información del usuario');
+      // Establecer valores por defecto
+      nameEl.textContent = 'Usuario';
+      emailEl.textContent = 'usuario@email.com';
+      return;
+    }
+
+    // Actualizar la información del usuario
+    const displayName = getBestDisplayName(user);
+    const userEmail = user.email || 'usuario@email.com';
+    
+    nameEl.textContent = displayName;
+    emailEl.textContent = userEmail;
+
+    const avatarUrl = getBestAvatarUrl(user);
+    setAvatarImage(avatarImg, avatarUrl);
+
+    // Actualizar títulos por si hay truncado
+    updateUserProfileTitles();
+    
+    console.log('Información del usuario actualizada:', { displayName, userEmail });
+  } catch (error) {
+    console.error('Error en populateUserInfo:', error);
   }
-
-  if (!user) return;
-
-  nameEl.textContent = getBestDisplayName(user);
-  if (user.email) {
-    emailEl.textContent = user.email;
-  }
-
-  const avatarUrl = getBestAvatarUrl(user);
-  setAvatarImage(avatarImg, avatarUrl);
-
-  // Actualizar títulos por si hay truncado
-  updateUserProfileTitles();
 }
 
 // Actualizar UI si cambia el estado de autenticación

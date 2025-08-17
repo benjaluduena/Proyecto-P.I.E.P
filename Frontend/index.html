@@ -12,6 +12,7 @@
   <script src="lib/supabase.js"></script>
   <script src="/JS/config.js"></script>
   <script src="/JS/auth-check.js"></script>
+  <script src="/JS/main.js"></script>
 </head>
 
 <body>
@@ -29,13 +30,22 @@
         <!-- Sidebar Menu -->
         <nav class="menu">
 
-          <button onclick="cargarSeccion('home')" type="button" class="menu-item active">
+          <button type="button" class="menu-item active" id="homeBtn">
             <span class="sidebar-ico">
               <svg>
                 <use href="/Assets/sprite.svg#icon-home"></use>
               </svg>
             </span>
             Inicio
+          </button>
+
+          <button type="button" class="menu-item" id="classroomBtn">
+            <span class="sidebar-ico">
+              <svg>
+                <use href="/Assets/sprite.svg#icon-list-check"></use>
+              </svg>
+            </span>
+            Classroom
           </button>
 
           <button type="button" class="menu-item">

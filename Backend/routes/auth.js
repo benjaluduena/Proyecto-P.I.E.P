@@ -95,11 +95,36 @@ router.post('/login', async (req, res) => {
     }
 
     // Obtener datos del perfil
-    const { data: profile } = await supabase
+    let { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('name, role, education_level')
       .eq('id', authData.user.id)
       .single();
+
+    // Si no existe el perfil, crearlo automáticamente
+    if (profileError && profileError.code === 'PGRST116') {
+      console.log('📝 Creando perfil automáticamente para:', authData.user.email);
+      
+      const { data: newProfile, error: createError } = await supabase
+        .from('profiles')
+        .insert([{
+          id: authData.user.id,
+          name: authData.user.user_metadata?.name || 'Usuario',
+          role: authData.user.user_metadata?.role || 'estudiante',
+          education_level: authData.user.user_metadata?.education_level || 'universitario'
+        }])
+        .select('name, role, education_level')
+        .single();
+
+      if (createError) {
+        console.error('❌ Error creando perfil automáticamente:', createError);
+        // Continuar sin perfil
+        profile = null;
+      } else {
+        profile = newProfile;
+        console.log('✅ Perfil creado automáticamente:', profile);
+      }
+    }
 
     res.json({ 
       message: 'Login exitoso',
@@ -146,6 +171,57 @@ router.get('/profile', supabaseAuth, async (req, res) => {
     res.json({ user: req.user });
   } catch (error) {
     console.error('Error al obtener perfil:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Crear perfil manualmente (para usuarios existentes)
+router.post('/create-profile', supabaseAuth, async (req, res) => {
+  try {
+    const { name, role, education_level } = req.body;
+    const userId = req.user.id;
+
+    // Verificar si ya existe el perfil
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .single();
+
+    if (existingProfile) {
+      return res.status(400).json({ 
+        error: 'El perfil ya existe',
+        message: 'Este usuario ya tiene un perfil creado'
+      });
+    }
+
+    // Crear perfil en la tabla profiles
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .insert([{
+        id: userId,
+        name: name || req.user.user_metadata?.name || 'Usuario',
+        role: role || req.user.user_metadata?.role || 'estudiante',
+        education_level: education_level || req.user.user_metadata?.education_level || 'universitario'
+      }])
+      .select('name, role, education_level')
+      .single();
+
+    if (error) {
+      console.error('Error creando perfil:', error);
+      return res.status(500).json({ 
+        error: 'Error al crear perfil',
+        message: error.message
+      });
+    }
+
+    res.json({ 
+      message: 'Perfil creado exitosamente',
+      profile: profile
+    });
+
+  } catch (error) {
+    console.error('Error creando perfil:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
