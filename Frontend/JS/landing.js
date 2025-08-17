@@ -1,7 +1,146 @@
 // ===== LANDING PAGE JAVASCRIPT =====
 // P.I.E.P. - Plataforma Inteligente de Estudio Personalizado
 
+
+const btnZofox = document.querySelector('.btn-zofox');
+const zofoxContainer = document.querySelector('.btn-zofox-container');
+
+btnZofox.addEventListener('mouseenter', () => {
+    zofoxContainer.classList.add('visible');
+});
+
+btnZofox.addEventListener('mouseleave', () => {
+    zofoxContainer.classList.remove('visible');
+});
+
+class Carousel3D {
+  constructor() {
+    this.carousel = document.getElementById("carousel3d")
+    this.items = document.querySelectorAll(".carousel-item")
+    this.indicators = document.querySelectorAll(".indicator")
+    this.currentIndex = 0
+    this.totalItems = this.items.length
+    this.autoPlayInterval = null
+    this.autoPlayDelay = 3000 // 3 segundos
+
+    this.init()
+  }
+
+  init() {
+    // Configurar posiciones iniciales
+    this.updateCarousel()
+
+    // Configurar indicadores
+    this.setupIndicators()
+
+    // Iniciar auto-play
+    this.startAutoPlay()
+
+    
+  }
+
+  updateCarousel() {
+    this.items.forEach((item, index) => {
+      // Remover clase active
+      item.classList.remove("active")
+
+      const mainIndex = this.currentIndex
+      const leftIndex = (this.currentIndex - 1 + this.totalItems) % this.totalItems
+      const rightIndex = (this.currentIndex + 1) % this.totalItems
+      const backIndex = (this.currentIndex + 2) % this.totalItems
+
+      if (index === mainIndex) {
+        // Tarjeta principal - al frente y centrada
+        item.classList.add("active")
+        item.style.opacity = "1"
+        item.style.filter = "blur(0px)"
+        item.style.transform = `translate(-50%, -50%) translateX(0px) scale(1.1)`
+        item.style.zIndex = "10"
+      } else if (index === leftIndex) {
+        // Tarjeta izquierda
+        item.style.opacity = "0.7"
+        item.style.filter = "blur(1px)"
+        item.style.transform = `translate(-50%, -50%) translateX(-150px) scale(0.9)`
+        item.style.zIndex = "5"
+      } else if (index === rightIndex) {
+        // Tarjeta derecha
+        item.style.opacity = "0.7"
+        item.style.filter = "blur(1px)"
+        item.style.transform = `translate(-50%, -50%) translateX(150px) scale(0.9)`
+        item.style.zIndex = "5"
+      } else if (index === backIndex) {
+        // Tarjeta trasera - atrás de la principal
+        item.style.opacity = "0.4"
+        item.style.filter = "blur(2px)"
+        item.style.transform = `translate(-50%, -50%) translateX(0px) translateZ(-100px) scale(0.8)`
+        item.style.zIndex = "1"
+      } else {
+        // Ocultar otras tarjetas
+        item.style.opacity = "0"
+        item.style.filter = "blur(3px)"
+        item.style.transform = `translate(-50%, -50%) translateX(0px) scale(0.5)`
+        item.style.zIndex = "0"
+      }
+    })
+
+    // Actualizar indicadores
+    this.updateIndicators()
+  }
+
+  setupIndicators() {
+    this.indicators.forEach((indicator, index) => {
+      indicator.addEventListener("click", () => {
+        this.goToSlide(index)
+      })
+    })
+  }
+
+  updateIndicators() {
+    this.indicators.forEach((indicator, index) => {
+      indicator.classList.toggle("active", index === this.currentIndex)
+    })
+  }
+
+  goToSlide(index) {
+    if (index !== this.currentIndex) {
+      this.currentIndex = index
+      this.updateCarousel()
+      this.restartAutoPlay()
+    }
+  }
+
+  nextSlide() {
+    this.currentIndex = (this.currentIndex + 1) % this.totalItems
+    this.updateCarousel()
+  }
+
+  prevSlide() {
+    this.currentIndex = (this.currentIndex - 1 + this.totalItems) % this.totalItems
+    this.updateCarousel()
+  }
+
+  startAutoPlay() {
+    this.autoPlayInterval = setInterval(() => {
+      this.nextSlide()
+    }, this.autoPlayDelay)
+  }
+
+  stopAutoPlay() {
+    if (this.autoPlayInterval) {
+      clearInterval(this.autoPlayInterval)
+      this.autoPlayInterval = null
+    }
+  }
+
+  restartAutoPlay() {
+    this.stopAutoPlay()
+    this.startAutoPlay()
+  }
+
+  
+}
 document.addEventListener('DOMContentLoaded', function() {
+    new Carousel3D()
     
     // ===== VARIABLES GLOBALES =====
     const navbar = document.querySelector('.navbar');
@@ -101,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // ===== CONTADORES ANIMADOS =====
+    /* // ===== CONTADORES ANIMADOS =====
     function animateCounters() {
         const counters = document.querySelectorAll('.stat-number');
         
@@ -124,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             updateCounter();
         });
-    }
+    } */
     
     // ===== FORMULARIO DE REGISTRO =====
     const registerForm = document.querySelector('.register-form');
@@ -284,7 +423,6 @@ document.addEventListener('DOMContentLoaded', function() {
             visibility: hidden;
             transition: all 0.3s ease;
             z-index: 1000;
-            box-shadow: 0 4px 20px rgba(162, 89, 250, 0.3);
         `;
         
         document.body.appendChild(backToTop);
@@ -311,12 +449,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hover effect
         backToTop.addEventListener('mouseenter', () => {
             backToTop.style.transform = 'translateY(-3px)';
-            backToTop.style.boxShadow = '0 6px 25px rgba(162, 89, 250, 0.4)';
         });
         
         backToTop.addEventListener('mouseleave', () => {
             backToTop.style.transform = 'translateY(0)';
-            backToTop.style.boxShadow = '0 4px 20px rgba(162, 89, 250, 0.3)';
         });
     }
     
@@ -367,12 +503,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // ===== EVENT LISTENERS =====
-    window.addEventListener('scroll', () => {
-        updateActiveNavLink();
-        updateNavbarStyle();
-        animateOnScroll();
-        parallaxEffect();
-    });
+	window.addEventListener('scroll', () => {
+		updateActiveNavLink();
+		updateNavbarStyle();
+		animateOnScroll();
+	});
     
     window.addEventListener('resize', () => {
         // Reajustar elementos en resize

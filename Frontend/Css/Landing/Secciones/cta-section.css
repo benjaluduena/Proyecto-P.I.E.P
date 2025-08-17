@@ -1,0 +1,119 @@
+@import url("General/variables.css");
+
+/* ===== CTA SECTION ===== */
+.cta {
+    padding: 100px 0;
+    background: var(--bg-light);
+    color: var(--text-dark);
+    text-align: center;
+}
+
+/* CTA - TITULO Y DESCRIPCION */
+.cta-content h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.cta-content p {
+    font-size: 1.2rem;
+    margin-bottom: 60px;
+    opacity: 0.9;
+}
+
+/* CTA - TITULO Y DESCRIPCION */
+.cta-form {
+    max-width: 500px;
+    margin: 0 auto 32px;
+}
+
+.register-form {
+    display: grid;
+    gap: 16px;
+}
+
+/* CTA - NOTA */
+.cta-note {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* CTA - BOTON DE EMPEZAR AHORA */
+.register-form .btn.btn-primary.btn-large {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+}
+
+.register-form .btn.btn-primary.btn-large i {
+    font-size: 1.5em;
+    margin: 0;
+}
+
+.btn-zofox-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    min-height: 120px;
+}
+
+/* CTA - IMAGENES DE MASCOTA */
+.zofox-img, .zofox-img-2 {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    height: auto;
+}
+    
+.zofox-img {
+    top: 28px;
+    z-index: 3;
+    width: 90px;
+}
+
+.zofox-img-2 {
+    top: -25px;
+    z-index: 1;
+    width: 110px;
+}
+
+.btn-zofox {
+    position: relative;
+    z-index: 2;
+    transition: transform 0.3s;
+    margin-top: 40px;
+}
+
+.btn-zofox:hover {
+    transform: rotate(-4deg) scale(1.03);
+}
+
+/* Estado visible MASCOTA */
+.btn-zofox-container.visible .zofox-img {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+    transition-delay: 0s; /* Aparece inmediatamente */
+}
+
+.btn-zofox-container.visible .zofox-img-2 {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-55px) scale(1);
+    transition-delay: 0.2s; /* Aparece 0.5s después */
+}
+
+/* Estado oculto MASCOTA - salida invertida */
+.btn-zofox-container:not(.visible) .zofox-img {
+    transition-delay: 0.2s; /* Se oculta después */
+}
+
+.btn-zofox-container:not(.visible) .zofox-img-2 {
+    transition-delay: 0s; /* Se oculta primero */
+}
