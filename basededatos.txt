@@ -27,9 +27,9 @@ CREATE TABLE public.classroom_assignments (
   created_by uuid NOT NULL,
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT classroom_assignments_pkey PRIMARY KEY (id),
+  CONSTRAINT classroom_assignments_classroom_id_fkey FOREIGN KEY (classroom_id) REFERENCES public.classrooms(id),
   CONSTRAINT classroom_assignments_material_id_fkey FOREIGN KEY (material_id) REFERENCES public.classroom_materials(id),
-  CONSTRAINT classroom_assignments_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
-  CONSTRAINT classroom_assignments_classroom_id_fkey FOREIGN KEY (classroom_id) REFERENCES public.classrooms(id)
+  CONSTRAINT classroom_assignments_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
 );
 CREATE TABLE public.classroom_enrollments (
   id integer NOT NULL DEFAULT nextval('classroom_enrollments_id_seq'::regclass),
@@ -37,7 +37,6 @@ CREATE TABLE public.classroom_enrollments (
   student_id uuid NOT NULL,
   enrolled_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   status character varying DEFAULT 'active'::character varying CHECK (status::text = ANY (ARRAY['active'::character varying, 'inactive'::character varying, 'pending'::character varying]::text[])),
-  created_at timestamp without time zone DEFAULT now(),
   CONSTRAINT classroom_enrollments_pkey PRIMARY KEY (id),
   CONSTRAINT classroom_enrollments_classroom_id_fkey FOREIGN KEY (classroom_id) REFERENCES public.classrooms(id),
   CONSTRAINT classroom_enrollments_student_id_fkey FOREIGN KEY (student_id) REFERENCES auth.users(id)
@@ -92,8 +91,7 @@ CREATE TABLE public.classrooms (
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT classrooms_pkey PRIMARY KEY (id),
-  CONSTRAINT classrooms_teacher_id_fkey FOREIGN KEY (teacher_id) REFERENCES auth.users(id),
-  CONSTRAINT fk_teacher FOREIGN KEY (teacher_id) REFERENCES public.profiles(id)
+  CONSTRAINT classrooms_teacher_id_fkey FOREIGN KEY (teacher_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.notifications (
   id integer NOT NULL DEFAULT nextval('notifications_id_seq'::regclass),
@@ -104,8 +102,8 @@ CREATE TABLE public.notifications (
   sent boolean DEFAULT false,
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT notifications_pkey PRIMARY KEY (id),
-  CONSTRAINT notifications_task_id_fkey FOREIGN KEY (task_id) REFERENCES public.plan_tasks(id),
-  CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+  CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT notifications_task_id_fkey FOREIGN KEY (task_id) REFERENCES public.plan_tasks(id)
 );
 CREATE TABLE public.pdf_uploads (
   id integer NOT NULL DEFAULT nextval('pdf_uploads_id_seq'::regclass),
@@ -128,8 +126,8 @@ CREATE TABLE public.plan_tasks (
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   due_at text,
   CONSTRAINT plan_tasks_pkey PRIMARY KEY (id),
-  CONSTRAINT plan_tasks_related_output_id_fkey FOREIGN KEY (related_output_id) REFERENCES public.study_outputs(id),
-  CONSTRAINT plan_tasks_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.study_plans(id)
+  CONSTRAINT plan_tasks_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.study_plans(id),
+  CONSTRAINT plan_tasks_related_output_id_fkey FOREIGN KEY (related_output_id) REFERENCES public.study_outputs(id)
 );
 CREATE TABLE public.profiles (
   id uuid NOT NULL,
@@ -151,8 +149,8 @@ CREATE TABLE public.progress_tracking (
   score numeric,
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT progress_tracking_pkey PRIMARY KEY (id),
-  CONSTRAINT progress_tracking_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
-  CONSTRAINT progress_tracking_output_id_fkey FOREIGN KEY (output_id) REFERENCES public.study_outputs(id)
+  CONSTRAINT progress_tracking_output_id_fkey FOREIGN KEY (output_id) REFERENCES public.study_outputs(id),
+  CONSTRAINT progress_tracking_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.study_outputs (
   id integer NOT NULL DEFAULT nextval('study_outputs_id_seq'::regclass),

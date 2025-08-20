@@ -93,6 +93,7 @@ app.use(
         defaultSrc: ["'self'"],
         scriptSrc: [
           "'self'",
+          "'unsafe-inline'",
           'https://cdn.jsdelivr.net',
           'https://unpkg.com',
           'https://apis.google.com'

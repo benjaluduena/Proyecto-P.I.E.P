@@ -1,5 +1,4 @@
 // Inicialización de Supabase para páginas que no usan el sistema modular
-let supabase;
 let initializationInProgress = false;
 let initializationCompleted = false;
 
@@ -11,34 +10,15 @@ async function initializeSupabaseForLogin() {
   initializationInProgress = true;
   try {
     if (window.supabase) {
-      console.log('Inicializando Supabase para login...');
+      console.log('Supabase personalizado encontrado...');
       
-      // Intentar cargar configuración del servidor
-      let config;
-      try {
-        const response = await fetch('/api/config/supabase');
-        if (response.ok) {
-          config = await response.json();
-          console.log('Configuración cargada desde servidor');
-        } else {
-          throw new Error('No se pudo cargar desde servidor');
-        }
-      } catch (error) {
-        console.error('Error crítico: No se pudo cargar configuración del servidor:', error.message);
-        throw new Error('Configuración de Supabase no disponible. Contacte al administrador.');
-      }
+      // Usar directamente el cliente personalizado de supabase.js
+      window.supabaseClient = window.supabase;
+      console.log('✅ Supabase inicializado correctamente');
+      initializationCompleted = true;
       
-      if (config.url && config.anonKey) {
-        supabase = window.supabase.createClient(config.url, config.anonKey);
-        window.supabase = supabase; // Exponer globalmente para compatibilidad
-        console.log('✅ Supabase inicializado correctamente');
-        initializationCompleted = true;
-        
-        // Disparar evento personalizado para notificar que Supabase está listo
-        document.dispatchEvent(new CustomEvent('supabaseReady', { detail: supabase }));
-      } else {
-        throw new Error('Configuración de Supabase incompleta');
-      }
+      // Disparar evento personalizado para notificar que Supabase está listo
+      document.dispatchEvent(new CustomEvent('supabaseReady', { detail: window.supabaseClient }));
     } else {
       throw new Error('Librería de Supabase no disponible');
     }
@@ -57,8 +37,8 @@ async function initializeSupabaseForLogin() {
 function waitForSupabase() {
   return new Promise((resolve, reject) => {
     // Si ya está inicializado y disponible
-    if (initializationCompleted && window.supabase && typeof window.supabase.auth !== 'undefined') {
-      resolve(window.supabase);
+    if (initializationCompleted && window.supabaseClient && typeof window.supabaseClient.auth !== 'undefined') {
+      resolve(window.supabaseClient);
       return;
     }
     

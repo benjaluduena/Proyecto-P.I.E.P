@@ -22,25 +22,22 @@ class App {
       // 1. Inicializar UI
       this.uiModule.initialize();
 
-      // 2. Cargar configuración de Supabase
-      await this.loadSupabaseConfig();
-
-      // 3. Inicializar Supabase
+      // 2. Inicializar Supabase
       await this.initializeSupabase();
 
-      // 4. Inicializar autenticación
+      // 3. Inicializar autenticación
       await this.initializeAuth();
 
-      // 5. Inicializar API
+      // 4. Inicializar API
       this.initializeApi();
 
-      // 6. Inicializar módulos específicos
+      // 5. Inicializar módulos específicos
       this.initializeModules();
 
-      // 7. Configurar navegación
+      // 6. Configurar navegación
       this.setupNavigation();
 
-      // 8. Verificar autenticación inicial
+      // 7. Verificar autenticación inicial
       this.checkInitialAuth();
 
       this.isInitialized = true;
@@ -54,36 +51,21 @@ class App {
     }
   }
 
-  // Cargar configuración de Supabase
-  async loadSupabaseConfig() {
-    try {
-      const response = await fetch('/api/config/supabase');
-      if (response.ok) {
-        window.SUPABASE_CONFIG = await response.json();
-      } else {
-        throw new Error('No se pudo obtener configuración de Supabase del servidor');
-      }
-    } catch (error) {
-      console.error('Error cargando configuración:', error);
-      throw error;
-    }
-  }
+  // Cargar configuración de Supabase (no necesario para implementación personalizada)
+  // async loadSupabaseConfig() {
+  //   // Tu implementación personalizada no requiere configuración del servidor
+  // }
 
   // Inicializar cliente de Supabase
   async initializeSupabase() {
-    if (window.supabase && window.SUPABASE_CONFIG) {
-      this.supabase = window.supabase.createClient(
-        window.SUPABASE_CONFIG.url, 
-        window.SUPABASE_CONFIG.anonKey
-      );
-      
-      // Exponer globalmente para compatibilidad
-      window.supabase = this.supabase;
+    if (window.supabase) {
+      // Tu implementación personalizada ya está lista, solo asignarla
+      this.supabase = window.supabase;
       
       // Crear función helper para otros scripts
       window.waitForSupabase = () => Promise.resolve(this.supabase);
       
-      console.log('✅ Supabase inicializado correctamente desde app.js');
+      console.log('✅ Supabase personalizado inicializado correctamente desde app.js');
     } else {
       throw new Error('Supabase no está disponible');
     }

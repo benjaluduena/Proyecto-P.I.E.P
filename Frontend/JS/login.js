@@ -1,71 +1,11 @@
-// Alternancia entre Iniciar Sesión y Registrarse
-const loginToggle = document.getElementById('login-toggle');
-const registerToggle = document.getElementById('register-toggle');
-const formTitle = document.getElementById('form-title');
-const submitBtn = document.getElementById('submit-btn');
+// Formulario de login
+const loginForm = document.getElementById('login-form');
+const isRegister = false; // Esta es la página de login, no de registro
 
-const nameGroup = document.getElementById('name-group');
-const roleGroup = document.getElementById('role-group');
-const educationGroup = document.getElementById('education-group');
-
-// Campos
-const nameInput = document.getElementById('name');
-const roleSelect = document.getElementById('role');
-const educationSelect = document.getElementById('education_level');
-const loginExtra = document.getElementById('login-extra');
-
-const authForm = document.getElementById('auth-form');
-
-function showLogin() {
-  loginToggle.classList.add('active');
-  registerToggle.classList.remove('active');
-  formTitle.textContent = 'Iniciar Sesión';
-  submitBtn.textContent = 'Entrar';
-  nameGroup.classList.add('hidden');
-  roleGroup.classList.add('hidden');
-  educationGroup.classList.add('hidden');
-  loginExtra.style.display = '';
-  document.getElementById('google-btn-text').textContent = 'Iniciar con Google';
-
-  // Deshabilitar y quitar required de campos de registro para evitar bloqueo de validación HTML
-  nameInput.disabled = true;
-  roleSelect.disabled = true;
-  educationSelect.disabled = true;
-  nameInput.removeAttribute('required');
-  roleSelect.removeAttribute('required');
-  educationSelect.removeAttribute('required');
-}
-
-function showRegister() {
-  loginToggle.classList.remove('active');
-  registerToggle.classList.add('active');
-  formTitle.textContent = 'Registrarse';
-  submitBtn.textContent = 'Registrarse';
-  nameGroup.classList.remove('hidden');
-  roleGroup.classList.remove('hidden');
-  educationGroup.classList.remove('hidden');
-  loginExtra.style.display = 'none';
-  document.getElementById('google-btn-text').textContent = 'Registrarte con Google';
-
-  // Habilitar y marcar required los campos necesarios de registro
-  nameInput.disabled = false;
-  roleSelect.disabled = false;
-  educationSelect.disabled = false;
-  nameInput.setAttribute('required', 'true');
-  roleSelect.setAttribute('required', 'true');
-}
-
-loginToggle.addEventListener('click', showLogin);
-registerToggle.addEventListener('click', showRegister);
-
-// Por defecto, mostrar login
-showLogin();
-
-authForm.addEventListener('submit', async function (e) {
+// Asegurarse de que el formulario esté disponible antes de agregar el listener
+if (loginForm) {
+  loginForm.addEventListener('submit', async function (e) {
   e.preventDefault();
-
-  // Detectar si estamos en modo registro o login
-  const isRegister = registerToggle.classList.contains('active');
 
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
@@ -120,7 +60,7 @@ authForm.addEventListener('submit', async function (e) {
       if (data.user && !data.session) {
         // Usuario creado pero requiere confirmación de email
         mostrarPantallaVerificaEmail();
-        authForm.reset();
+        loginForm.reset();
         return;
       }
 
@@ -146,7 +86,7 @@ authForm.addEventListener('submit', async function (e) {
       } else if (data.user === null && data.session === null && !error) {
         // Caso: usuario creado pero requiere confirmación de email
         mostrarPantallaVerificaEmail();
-        authForm.reset();
+        loginForm.reset();
       }
     } catch (err) {
       console.error('Error en registro:', err);
@@ -157,7 +97,7 @@ authForm.addEventListener('submit', async function (e) {
         err.message.toLowerCase().includes('email')
       )) {
         mostrarPantallaVerificaEmail();
-        authForm.reset();
+        loginForm.reset();
         return;
       }
       alert('Error de red o del servidor');
@@ -171,10 +111,10 @@ authForm.addEventListener('submit', async function (e) {
         password
       });
 
-      if (error) {
-        alert(error.message || 'Error al iniciar sesión');
-        return;
-      }
+    if (error) {
+      alert(error.message || 'Error al iniciar sesión');
+      return;
+    }
 
       if (data.user && data.session) {
         // Guardar sesión en localStorage
@@ -197,9 +137,24 @@ authForm.addEventListener('submit', async function (e) {
       }
     }
   }
-});
+  });
+} else {
+  console.error('Formulario de login no encontrado');
+}
 
 // Función waitForSupabase se carga desde supabase-init.js
+
+// Mostrar pantalla de verificación de email
+function mostrarPantallaVerificaEmail() {
+  document.querySelector('.form-container form').style.display = 'none';
+  document.getElementById('verify-email-container').style.display = '';
+}
+
+// Función para mostrar el formulario de login
+function showLogin() {
+  document.querySelector('.form-container form').style.display = '';
+  document.getElementById('verify-email-container').style.display = 'none';
+}
 
 // Verificar si ya hay una sesión activa al cargar la página (solo para login)
 let sessionCheckPerformed = false;
@@ -262,14 +217,13 @@ if (window.location.pathname.includes('login.html')) {
   document.addEventListener('supabaseReady', setupAuthStateListenerForLogin);
 }
 
-document.getElementById('google-auth-btn').addEventListener('click', async function () {
+const googleAuthBtn = document.getElementById('google-auth-btn');
+if (googleAuthBtn) {
+  googleAuthBtn.addEventListener('click', async function () {
   try {
     const supabase = await window.waitForSupabase();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + '/home'
-      }
+    const { error } = await supabase.auth.signInWithOAuth('google', {
+      redirectTo: window.location.origin + '/home'
     });
     if (error) {
       alert('Error al autenticar con Google');
@@ -278,20 +232,25 @@ document.getElementById('google-auth-btn').addEventListener('click', async funct
     console.error('Error en Google Auth:', err);
     alert('Error al inicializar autenticación con Google');
   }
-});
+  });
+} else {
+  console.error('Botón de Google Auth no encontrado');
+}
 
-// Mostrar pantalla de verificación de email
-function mostrarPantallaVerificaEmail() {
-  document.querySelector('.form-container form').style.display = 'none';
-  document.getElementById('verify-email-container').style.display = '';
+// Función para redirigir al home
+function redirectToHome() {
+  window.location.href = 'index.html';
 }
 
 // Evento para el botón 'Ya lo verifiqué'
-document.getElementById('btn-verified-email').addEventListener('click', function() {
-  document.querySelector('.form-container form').style.display = '';
-  document.getElementById('verify-email-container').style.display = 'none';
-  showLogin();
-});
+const btnVerifiedEmail = document.getElementById('btn-verified-email');
+if (btnVerifiedEmail) {
+  btnVerifiedEmail.addEventListener('click', function() {
+    document.querySelector('.form-container form').style.display = '';
+    document.getElementById('verify-email-container').style.display = 'none';
+    showLogin();
+  });
+}
 
 // Detectar parámetro URL para forzar limpieza de sesión
 if (window.location.search.includes('clear=true')) {
