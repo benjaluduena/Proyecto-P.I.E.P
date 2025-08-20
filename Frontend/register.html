@@ -4,18 +4,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Iniciar Sesión - P.I.E.P.</title>
-  <link rel="stylesheet" href="Css/login.css">
+  <title>Registrarse - P.I.E.P.</title>
+  <link rel="stylesheet" href="Css/register.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
 </head>
 
 <body>
   <div class="container">
     <div class="form-container">
-      <h2 class="form-title">Iniciar Sesión</h2>
-      <p class="form-subtitle">Bienvenido de vuelta a tu plataforma de estudio inteligente</p>
+      <h2 class="form-title">Crear Cuenta</h2>
+      <p class="form-subtitle">Únete a P.I.E.P. y transforma tu forma de estudiar</p>
 
-      <form id="login-form">
+      <form id="register-form">
+        <div class="input-group">
+          <label for="name">Nombre completo</label>
+          <input type="text" id="name" placeholder="Tu nombre completo" required />
+        </div>
+
         <div class="input-group">
           <label for="email">Correo electrónico</label>
           <input type="email" id="email" placeholder="tucorreo@ejemplo.com" required />
@@ -26,22 +31,41 @@
           <input type="password" id="password" placeholder="********" required />
         </div>
 
+        <div class="input-group">
+          <label for="role">Rol</label>
+          <select id="role" required>
+            <option value="">Selecciona tu rol</option>
+            <option value="estudiante">Estudiante</option>
+            <option value="docente">Docente</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label for="education_level">Nivel educativo</label>
+          <select id="education_level">
+            <option value="">Selecciona tu nivel educativo</option>
+            <option value="secundario">Secundario</option>
+            <option value="terciario">Terciario</option>
+            <option value="universitario">Universitario</option>
+            <option value="posgrado">Posgrado</option>
+          </select>
+        </div>
+
         <div class="form-options">
           <label class="checkbox-container">
-            <input type="checkbox" id="remember-me">
+            <input type="checkbox" id="terms" required>
             <span class="checkmark"></span>
-            Recordarme
+            Acepto los&nbsp;<a href="#" class="terms-link">Términos y Condiciones</a>
           </label>
-          <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
         </div>
 
         <button type="submit" class="submit-button">
-          <i class="fas fa-sign-in-alt"></i>
-          Iniciar Sesión
+          <i class="fas fa-user-plus"></i>
+          Crear Cuenta
         </button>
 
         <div class="divider">
-          <span>o continúa con</span>
+          <span>o regístrate con</span>
         </div>
 
         <button type="button" class="google-btn" id="google-auth-btn">
@@ -49,8 +73,8 @@
           <span>Iniciar Sesión con Google</span>
         </button>
 
-        <div class="register-link">
-          <p>¿No tienes una cuenta? <a href="register.html">Regístrate aquí</a></p>
+        <div class="login-link">
+          <p>¿Ya tienes una cuenta? <a href="login.html">Inicia sesión aquí</a></p>
         </div>
       </form>
     </div>
@@ -67,7 +91,7 @@
   <script src="https://kit.fontawesome.com/fb6adb0218.js" crossorigin="anonymous"></script>
   <script src="lib/supabase.js"></script>
   <script src="JS/config.js"></script>
-  <script src="JS/login.js"></script>
+  <script src="JS/register.js"></script>
 </body>
 
 </html>
