@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bienvenido Profesor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous"></script>
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn {
+      animation: fadeIn 0.3s ease-out;
+    }
+    .class-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .message-container {
+      max-height: none;
+      min-height: 300px;
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+    .post {
+      background-color: white;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+    .post-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .post-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #3b82f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      margin-right: 12px;
+    }
+    .post-info {
+      flex-grow: 1;
+    }
+    .post-author {
+      font-weight: bold;
+      color: #1f2937;
+    }
+    .post-time {
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+    .post-content {
+      color: #374151;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      white-space: pre-line;
+    }
+    .post-tag {
+      position: absolute;
+      top: -8px;
+      right: 16px;
+      background-color: #3b82f6;
+      color: white;
+      font-size: 0.7rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .post-footer {
+      display: flex;
+      gap: 16px;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 12px;
+    }
+    .post-action {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #64748b;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .post-action:hover {
+      color: #3b82f6;
+    }
+    .comments-section {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .comment {
+      padding: 8px 12px;
+      background-color: #f9fafb;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .comment-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .comment-author {
+      font-weight: 500;
+      font-size: 0.9rem;
+      margin-right: 8px;
+    }
+    .comment-time {
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+    .comment-content {
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+    .add-comment {
+      display: flex;
+      margin-top: 8px;
+    }
+    .add-comment input {
+      flex-grow: 1;
+      padding: 6px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      font-size: 0.9rem;
+    }
+    .message-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .message-container::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 10px;
+    }
+    .message-container::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+    .modal-backdrop {
+      backdrop-filter: blur(5px);
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    @keyframes modal-appear {
+      from { 
+        opacity: 0; 
+        transform: translate(-50%, -50%) scale(0.9);
+      }
+      to { 
+        opacity: 1; 
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+    .modal-animation {
+      animation: modal-appear 0.3s ease-out forwards;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 100;
+    }
+    .image-preview {
+      max-width: 200px;
+      max-height: 200px;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+    .upload-btn-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+      cursor: pointer;
+    }
+    .upload-btn-wrapper input[type=file] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .message-img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 5px;
+    }
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .sidebar {
+      width: 280px;
+      transition: all 0.3s ease;
+      border-right: 1px solid #e5e7eb;
+    }
+    .sidebar-closed {
+      margin-left: -280px;
+    }
+    .main-content {
+      transition: margin-left 0.3s ease;
+      width: calc(100% - 280px);
+    }
+    .main-content-expanded {
+      margin-left: 0;
+      width: 100%;
+    }
+    @media (max-width: 1024px) {
+      .sidebar {
+        position: fixed;
+        height: 100vh;
+        z-index: 30;
+        left: 0;
+        top: 0;
+        margin-left: 0;
+        background: white;
+      }
+      .sidebar-closed {
+        margin-left: -280px;
+      }
+      .main-content {
+        width: 100%;
+        margin-left: 0;
+      }
+    }
+    .class-item {
+      transition: all 0.2s ease;
+    }
+    .class-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      background-color: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border-radius: 8px;
+      padding: 0.5rem;
+      z-index: 50;
+      margin-top: 0.25rem;
+      min-width: 160px;
+    }
+    .dropdown-item {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .dropdown-item:hover {
+      background-color: #f1f5f9;
+    }
+    .dropdown-open {
+      display: block;
+    }
+    .delete-class-btn {
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .delete-class-btn:hover {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+  <!-- Header -->
+  <header class="bg-white shadow-sm sticky top-0 z-40 p-4 flex justify-between items-center">
+    <div class="flex items-center">
+      <button id="sidebarToggle" class="lg:hidden text-gray-700 mr-3">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+      <h1 class="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
+        <i class="fas fa-chalkboard-teacher text-blue-600"></i> 
+        <span>Bienvenido Profesor</span>
+      </h1>
+    </div>
+  </header>
+
+  <div class="flex min-h-screen" style="min-height: calc(100vh - 73px);">
+    <!-- Barra lateral izquierda: Mis Clases -->
+    <div id="sidebar" class="sidebar bg-white p-5 overflow-y-auto">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+          <i class="fas fa-list"></i> Mis Clases
+        </h2>
+        <button id="closeSidebar" class="lg:hidden text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3" id="clasesList">
+        <!-- Las clases se agregarán aquí dinámicamente -->
+      </div>
+
+      <div id="createBox" class="mt-6 rounded-lg p-4 cursor-pointer flex flex-col justify-center items-center bg-gray-50 border-2 border-dashed border-gray-300 hover:border-green-500 transition duration-300">
+        <button id="createClassBtn" class="text-green-600 font-medium flex items-center gap-2 text-sm">
+          <i class="fas fa-plus"></i> Crear Nueva Clase
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div id="mainContent" class="main-content p-5 overflow-auto">
+      <!-- Vista de lista de clases (inicialmente visible) -->
+      <div id="classesView">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-bold text-gray-800">Todas las clases</h2>
+          <div class="flex gap-2 relative">
+            <!-- Botón de ordenar con menú desplegable -->
+            <div class="relative">
+              <button id="sortBtn" class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm flex items-center gap-2">
+                <i class="fas fa-sort"></i> Ordenar
+              </button>
+              <div id="sortDropdown" class="dropdown-menu">
+                <div class="dropdown-item" data-sort="name-asc">
+                  <i class="fas fa-sort-alpha-down"></i> Nombre (A-Z)
+                </div>
+                <div class="dropdown-item" data-sort="name-desc">
+                  <i class="fas fa-sort-alpha-down-alt"></i> Nombre (Z-A)
+                </div>
+                <div class="dropdown-item" data-sort="date-asc">
+                  <i class="fas fa-sort-numeric-down"></i> Fecha reciente
+                </div>
+                <div class="dropdown-item" data-sort="date-desc">
+                  <i class="fas fa-sort-numeric-down-alt"></i> Fecha antigua
+                </div>
+              </div>
+            </div>
+            
+            <!-- Botón de filtrar con menú desplegable -->
+            <div class="relative">
+              <button id="filterBtn" class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm flex items-center gap-2">
+                <i class="fas fa-filter"></i> Filtrar
+              </button>
+              <div id="filterDropdown" class="dropdown-menu">
+                <div class="dropdown-item" data-filter="all">
+                  <i class="fas fa-layer-group"></i> Todas las clases
+                </div>
+                <div class="dropdown-item" data-filter="recent">
+                  <i class="fas fa-clock"></i> Actividad reciente
+                </div>
+                <div class="dropdown-item" data-filter="archived">
+                  <i class="fas fa-archive"></i> Archivadas
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="clasesContainer" class="class-grid">
+          <!-- Las clases se agregarán aquí dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Vista de historial de clase (inicialmente oculta) -->
+      <div id="classDetailView" class="hidden right-panel">
+        <div class="bg-white rounded-lg shadow p-6 flex flex-col h-full">
+          <div class="flex items-center gap-3 mb-6">
+            <button id="backToClasses" class="p-2 rounded-full hover:bg-gray-100">
+              <i class="fas fa-arrow-left"></i>
+            </button>
+            <div>
+              <h2 id="currentClassName" class="text-xl font-bold">Historial de la Sala</h2>
+            </div>
+          </div>
+          
+          <div id="messages" class="message-container border rounded-lg p-4 mb-4">
+            <div class="text-center text-gray-500 py-8">
+              <i class="fas fa-comments text-3xl mb-2"></i>
+              <p>No hay mensajes en esta clase todavía.</p>
+            </div>
+          </div>
+          
+          <div class="flex flex-col gap-2 mt-auto">
+            <div id="imagePreviewContainer" class="hidden mb-2">
+              <img id="imagePreview" class="image-preview" src="" alt="Vista previa">
+              <button id="removeImage" class="ml-2 px-2 py-1 bg-red-500 text-white rounded text-sm">Eliminar</button>
+            </div>
+            <div class="flex gap-2">
+              <div class="upload-btn-wrapper">
+                <button class="px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition flex items-center gap-2">
+                  <i class="fas fa-image"></i>
+                </button>
+                <input type="file" id="imageUpload" accept="image/*" />
+              </div>
+              <input type="text" id="messageInput" placeholder="Escribe un comentario..." class="flex-1 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <button id="sendMessage" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+                <i class="fas fa-paper-plane"></i> Enviar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Crear Clase -->
+  <div id="modalCreate" class="fixed inset-0 z-50 hidden">
+    <div class="modal-backdrop absolute inset-0"></div>
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-lg modal-animation">
+        <h2 class="text-xl font-bold mb-4">Crear Nueva Clase</h2>
+        <input id="newClassName" type="text" placeholder="Nombre de la clase" class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+        <div class="flex justify-end gap-2">
+          <button id="cancelCreate" class="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition">Cancelar</button>
+          <button id="addClass" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Agregar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Confirmación Eliminar Clase -->
+  <div id="modalConfirmDelete" class="fixed inset-0 z-50 hidden">
+    <div class="modal-backdrop absolute inset-0"></div>
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-lg modal-animation">
+        <div class="text-center mb-5">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+          </div>
+          <h2 class="text-xl font-bold text-gray-800">¿Eliminar clase?</h2>
+          <p class="text-gray-600 mt-2">Esta acción no se puede deshacer. Se perderán todos los datos de la clase.</p>
+        </div>
+        
+        <div class="bg-red-50 p-4 rounded-lg mb-5">
+          <p class="text-red-800 font-medium text-center" id="classNameToDelete">Álgebra Avanzada</p>
+        </div>
+        
+        <div class="flex justify-center gap-3">
+          <button id="cancelDelete" class="px-5 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition font-medium">Cancelar</button>
+          <button id="confirmDelete" class="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium flex items-center gap-2">
+            <i class="fas fa-trash"></i> Sí, eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Elementos DOM
+    const modalCreate = document.getElementById('modalCreate');
+    const modalConfirmDelete = document.getElementById('modalConfirmDelete');
+    const createClassBtn = document.getElementById('createClassBtn');
+    const cancelCreate = document.getElementById('cancelCreate');
+    const addClassBtn = document.getElementById('addClass');
+    const cancelDelete = document.getElementById('cancelDelete');
+    const confirmDelete = document.getElementById('confirmDelete');
+    const clasesContainer = document.getElementById('clasesContainer');
+    const clasesList = document.getElementById('clasesList');
+    const messages = document.getElementById('messages');
+    const messageInput = document.getElementById('messageInput');
+    const sendMessage = document.getElementById('sendMessage');
+    const classNameToDelete = document.getElementById('classNameToDelete');
+    const imageUpload = document.getElementById('imageUpload');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+    const removeImage = document.getElementById('removeImage');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const closeSidebar = document.getElementById('closeSidebar');
+    const classesView = document.getElementById('classesView');
+    const classDetailView = document.getElementById('classDetailView');
+    const backToClasses = document.getElementById('backToClasses');
+    const currentClassName = document.getElementById('currentClassName');
+    const sortBtn = document.getElementById('sortBtn');
+    const sortDropdown = document.getElementById('sortDropdown');
+    const filterBtn = document.getElementById('filterBtn');
+    const filterDropdown = document.getElementById('filterDropdown');
+
+    // Datos y estado
+    const classMessages = {};
+    const classComments = {};
+    const classDates = {};
+    let currentClass = null;
+    let classToDelete = null;
+    let selectedImage = null;
+    let isSidebarOpen = window.innerWidth >= 1024;
+    let currentSort = 'date-asc';
+    let currentFilter = 'all';
+
+    // Colores para las tarjetas de clase
+    const classColors = [
+      'bg-gradient-to-br from-blue-500 to-blue-700',
+      'bg-gradient-to-br from-green-500 to-green-700',
+      'bg-gradient-to-br from-red-500 to-red-700',
+      'bg-gradient-to-br from-yellow-500 to-yellow-700',
+      'bg-gradient-to-br from-purple-500 to-purple-700',
+      'bg-gradient-to-br from-pink-500 to-pink-700',
+      'bg-gradient-to-br from-indigo-500 to-indigo-700'
+    ];
+
+    // Inicializar con algunas clases de ejemplo
+    const initialClasses = [
+      { name: "Programación Orientada a Objetos", lastActivity: "30/05/2024", date: new Date(2024, 4, 30) },
+      { name: "Álgebra Avanzada", lastActivity: "10/08/2025", date: new Date(2025, 7, 10) },
+      { name: "Historia Contemporánea", lastActivity: "09/08/2025", date: new Date(2025, 7, 9) },
+      { name: "Literatura Española", lastActivity: "08/08/2025", date: new Date(2025, 7, 8) },
+      { name: "Física Cuántica", lastActivity: "07/08/2025", date: new Date(2025, 7, 7) }
+    ];
+
+    // Mensajes iniciales
+    classMessages["Programación Orientada a Objetos"] = [
+      { 
+        id: 1,
+        author: "Jorge Sanchez", 
+        text: "Aclaración de la clase del 29/05\n\n- + public: universalmente accesible.\n- * protected: accesible en la misma clase y en subclases.\n- - private: solo accesible dentro de la misma clase", 
+        time: "30/05/2024 10:30", 
+        tag: "Profesor",
+        avatar: "JH"
+      }
+    ];
+
+    classMessages["Álgebra Avanzada"] = [
+      { 
+        id: 1,
+        author: "Prof. García", 
+        text: "Recuerden que la tarea es para el próximo lunes", 
+        time: "10/08/2025 14:30", 
+        tag: "Profesor",
+        avatar: "PG"
+      },
+      { 
+        id: 2,
+        author: "Prof. García", 
+        text: "¿Alguien tiene dudas sobre los ejercicios?", 
+        time: "10/08/2025 15:45", 
+        tag: "Profesor",
+        avatar: "PG"
+      }
+    ];
+
+    // Comentarios iniciales
+    classComments["Programación Orientada a Objetos"] = {
+      1: [
+        {
+          author: "María López",
+          text: "Gracias por la aclaración, profesor",
+          time: "30/05/2024 11:15"
+        }
+      ]
+    };
+
+    classComments["Álgebra Avanzada"] = {
+      1: [
+        {
+          author: "Carlos Rodríguez",
+          text: "¿Podría extender la fecha de entrega?",
+          time: "10/08/2025 15:05"
+        }
+      ],
+      2: [
+        {
+          author: "Ana Martínez",
+          text: "¿Podría explicar el ejercicio 5 de nuevo?",
+          time: "10/08/2025 16:20"
+        }
+      ]
+    };
+
+    // Inicializar la interfaz
+    function initializeUI() {
+      // Añadir clases iniciales
+      initialClasses.forEach(cls => {
+        addClassToUI(cls.name, cls.lastActivity, cls.date);
+      });
+      
+      // Ajustar sidebar según el tamaño de pantalla
+      if (window.innerWidth < 1024) {
+        sidebar.classList.add('sidebar-closed');
+        isSidebarOpen = false;
+      }
+      
+      // Adjuntar eventos
+      attachEventListeners();
+    }
+
+    // Añadir una clase a la interfaz
+    function addClassToUI(name, lastActivity, date) {
+      // Generar un color aleatorio para la clase
+      const colorIndex = Math.floor(Math.random() * classColors.length);
+      const color = classColors[colorIndex];
+      
+      // Crear elemento para la vista de cuadrícula
+      const gridItem = document.createElement('div');
+      gridItem.className = 'rounded-xl shadow p-6 cursor-pointer flex flex-col justify-between bg-white transform hover:scale-105 hover:shadow-2xl transition duration-300 animate-fadeIn class-item';
+      gridItem.setAttribute('data-name', name);
+      gridItem.setAttribute('data-date', date.getTime());
+      gridItem.innerHTML = `
+        <div>
+          <div class="w-12 h-12 rounded-lg ${color} flex items-center justify-center text-white font-bold text-xl mb-3">
+            ${name.charAt(0)}
+          </div>
+          <h3 class="text-lg font-semibold text-gray-800">${name}</h3>
+          <p class="text-gray-600 mt-2">Última actividad: ${lastActivity}</p>
+        </div>
+        <div class="flex justify-between items-center mt-4">
+          <button class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition flex items-center gap-2 open-btn">
+            <i class="fas fa-door-open"></i> Abrir
+          </button>
+          <button class="px-3 py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition delete-class-btn">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      `;
+      
+      // Crear elemento para la lista lateral
+      const listItem = document.createElement('div');
+      listItem.className = 'rounded-lg p-3 cursor-pointer bg-gray-50 hover:bg-gray-100 transition class-item relative';
+      listItem.setAttribute('data-name', name);
+      listItem.innerHTML = `
+        <h3 class="font-medium text-gray-800 pr-8">${name}</h3>
+        <button class="absolute top-3 right-3 text-red-500 hover:text-red-700 delete-class-btn">
+          <i class="fas fa-times-circle"></i>
+        </button>
+      `;
+      
+      // Añadir a los contenedores
+      clasesContainer.appendChild(gridItem);
+      clasesList.appendChild(listItem);
+      
+      // Guardar fecha de la clase
+      classDates[name] = date;
+      
+      // Configurar eventos para los nuevos elementos
+      const openBtn = gridItem.querySelector('.open-btn');
+      openBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openClassDetail(name);
+      });
+      
+      gridItem.addEventListener('click', () => openClassDetail(name));
+      listItem.addEventListener('click', () => openClassDetail(name));
+      
+      const deleteBtnGrid = gridItem.querySelector('.delete-class-btn');
+      deleteBtnGrid.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDeleteConfirmation(name, gridItem, listItem);
+      });
+      
+      const deleteBtnList = listItem.querySelector('.delete-class-btn');
+      deleteBtnList.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDeleteConfirmation(name, gridItem, listItem);
+      });
+      
+      // Aplicar filtros y ordenamiento
+      applyFiltersAndSorting();
+    }
+
+    // Abrir el detalle de una clase
+    function openClassDetail(className) {
+      currentClass = className;
+      
+      // Actualizar la información en la vista de detalle
+      currentClassName.textContent = className;
+      
+      // Cambiar de vista
+      classesView.classList.add('hidden');
+      classDetailView.classList.remove('hidden');
+      
+      // Mostrar mensajes
+      displayMessages();
+      
+      // En móviles, cerrar el sidebar
+      if (window.innerWidth < 1024) {
+        sidebar.classList.add('sidebar-closed');
+        isSidebarOpen = false;
+      }
+    }
+
+    // Volver a la vista de clases
+    function backToClassesView() {
+      classesView.classList.remove('hidden');
+      classDetailView.classList.add('hidden');
+      currentClass = null;
+    }
+
+    // Mostrar confirmación de eliminación
+    function showDeleteConfirmation(className, gridElement, listElement) {
+      classToDelete = { name: className, gridElement: gridElement, listElement: listElement };
+      classNameToDelete.textContent = className;
+      modalConfirmDelete.classList.remove('hidden');
+    }
+
+    // Eliminar una clase
+    function deleteClass() {
+      if (classToDelete) {
+        const { name, gridElement, listElement } = classToDelete;
+        
+        // Eliminar de la interfaz
+        gridElement.remove();
+        listElement.remove();
+        
+        // Eliminar datos
+        delete classMessages[name];
+        delete classComments[name];
+        delete classDates[name];
+        
+        // Si la clase eliminada es la actual, volver a la vista de clases
+        if (currentClass === name) {
+          backToClassesView();
+        }
+        
+        // Cerrar modal
+        modalConfirmDelete.classList.add('hidden');
+        classToDelete = null;
+      }
+    }
+
+    // Mostrar mensajes en formato de posts
+    function displayMessages() {
+      if (!currentClass) {
+        messages.innerHTML = `
+          <div class="text-center text-gray-500 py-8">
+            <i class="fas fa-comments text-3xl mb-2"></i>
+            <p>No hay mensajes en esta clase todavía.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // Limpiar contenedor
+      messages.innerHTML = '';
+      
+      // Mostrar mensajes existentes
+      if (classMessages[currentClass] && classMessages[currentClass].length > 0) {
+        classMessages[currentClass].forEach(msg => {
+          const postDiv = document.createElement('div');
+          postDiv.className = 'post';
+          postDiv.setAttribute('data-msg-id', msg.id);
+          
+          // Preservar saltos de línea en el texto
+          const formattedText = msg.text.replace(/\n/g, '<br>');
+          
+          postDiv.innerHTML = `
+            ${msg.tag ? `<span class="post-tag">${msg.tag}</span>` : ''}
+            <div class="post-header">
+              <div class="post-avatar">${msg.avatar || msg.author.charAt(0)}</div>
+              <div class="post-info">
+                <div class="post-author">${msg.author}</div>
+                <div class="post-time">${msg.time}</div>
+              </div>
+            </div>
+            <div class="post-content">${formattedText}</div>
+            ${msg.image ? `<img src="${msg.image}" class="message-img" alt="Imagen del mensaje">` : ''}
+            <div class="post-footer">
+              <div class="post-action comment-btn">
+                <i class="far fa-comment"></i> Comentar
+              </div>
+            </div>
+            <div class="comments-section" style="display: none;">
+              ${renderComments(msg.id)}
+              <div class="add-comment">
+                <input type="text" placeholder="Escribe un comentario..." class="comment-input">
+                <button class="ml-2 px-3 py-1 bg-blue-500 text-white rounded comment-submit">Enviar</button>
+              </div>
+            </div>
+          `;
+          
+          messages.appendChild(postDiv);
+        });
+        
+        // Añadir event listeners para los botones de comentar
+        document.querySelectorAll('.comment-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const commentsSection = this.closest('.post').querySelector('.comments-section');
+            commentsSection.style.display = commentsSection.style.display === 'none' ? 'block' : 'none';
+          });
+        });
+        
+        // Añadir event listeners para enviar comentarios
+        document.querySelectorAll('.comment-submit').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const input = this.previousElementSibling;
+            const commentText = input.value.trim();
+            if (commentText) {
+              const post = this.closest('.post');
+              const msgId = parseInt(post.getAttribute('data-msg-id'));
+              addComment(msgId, commentText);
+              input.value = '';
+            }
+          });
+        });
+        
+        // Permitir enviar comentarios con Enter
+        document.querySelectorAll('.comment-input').forEach(input => {
+          input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+              const commentText = this.value.trim();
+              if (commentText) {
+                const post = this.closest('.post');
+                const msgId = parseInt(post.getAttribute('data-msg-id'));
+                addComment(msgId, commentText);
+                this.value = '';
+              }
+            }
+          });
+        });
+      } else {
+        messages.innerHTML = `
+          <div class="text-center text-gray-500 py-8">
+            <i class="fas fa-comment-slash text-2xl mb-2"></i>
+            <p>No hay mensajes en esta clase todavía.</p>
+          </div>
+        `;
+      }
+      
+      // Hacer scroll al final de los mensajes
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    // Renderizar comentarios
+    function renderComments(msgId) {
+      if (!classComments[currentClass] || !classComments[currentClass][msgId]) {
+        return '<div class="text-gray-500 text-sm py-2">No hay comentarios aún.</div>';
+      }
+      
+      return classComments[currentClass][msgId].map(comment => `
+        <div class="comment">
+          <div class="comment-header">
+            <span class="comment-author">${comment.author}</span>
+            <span class="comment-time">${comment.time}</span>
+          </div>
+          <div class="comment-content">${comment.text}</div>
+        </div>
+      `).join('');
+    }
+
+    // Añadir un comentario
+    function addComment(msgId, text) {
+      if (!classComments[currentClass]) {
+        classComments[currentClass] = {};
+      }
+      
+      if (!classComments[currentClass][msgId]) {
+        classComments[currentClass][msgId] = [];
+      }
+      
+      const now = new Date();
+      const timeString = `${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+      
+      classComments[currentClass][msgId].push({
+        author: "Profesor",
+        text: text,
+        time: timeString
+      });
+      
+      // Actualizar la visualización
+      displayMessages();
+      
+      // Actualizar la fecha de última actividad
+      classDates[currentClass] = now;
+      
+      // Actualizar la UI de las clases
+      updateClassUI(currentClass, now.toLocaleDateString());
+    }
+
+    // Enviar un mensaje
+    function sendNewMessage() {
+      if (!currentClass) {
+        alert("Por favor, selecciona una clase primero.");
+        return;
+      }
+      
+      const text = messageInput.value.trim();
+      
+      // Only send if there's text or an image
+      if(text || selectedImage){
+        // Crear nuevo mensaje
+        const now = new Date();
+        const timeString = `${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+        
+        // Generate unique ID for the message
+        const msgId = classMessages[currentClass] ? classMessages[currentClass].length + 1 : 1;
+        
+        // Create message object
+        const newMessage = {
+          id: msgId,
+          author: "Profesor",
+          text: text,
+          time: timeString,
+          tag: "Profesor",
+          avatar: "P"
+        };
+        
+        // Add image if available
+        if (selectedImage) {
+          newMessage.image = selectedImage;
+        }
+        
+        // Guardar mensaje
+        if (!classMessages[currentClass]) {
+          classMessages[currentClass] = [];
+        }
+        classMessages[currentClass].push(newMessage);
+        
+        // Actualizar la visualización
+        displayMessages();
+        
+        // Limpiar input y imagen
+        messageInput.value = '';
+        selectedImage = null;
+        imagePreview.src = '';
+        imagePreviewContainer.classList.add('hidden');
+        imageUpload.value = '';
+        
+        // Actualizar la fecha de última actividad
+        classDates[currentClass] = now;
+        
+        // Actualizar la UI de las clases
+        updateClassUI(currentClass, now.toLocaleDateString());
+      }
+    }
+
+    // Actualizar la UI de una clase específica
+    function updateClassUI(className, lastActivity) {
+      // Actualizar en la vista de cuadrícula
+      const gridItems = clasesContainer.querySelectorAll('.class-item');
+      for (let item of gridItems) {
+        if (item.getAttribute('data-name') === className) {
+          const activityElement = item.querySelector('p');
+          if (activityElement) {
+            activityElement.textContent = `Última actividad: ${lastActivity}`;
+          }
+          item.setAttribute('data-date', new Date().getTime());
+          break;
+        }
+      }
+      
+      // Reordenar según el criterio actual
+      applyFiltersAndSorting();
+    }
+
+    // Aplicar filtros y ordenamiento
+    function applyFiltersAndSorting() {
+      const classItems = Array.from(clasesContainer.querySelectorAll('.class-item'));
+      
+      // Aplicar filtro
+      let filteredItems = classItems;
+      if (currentFilter === 'recent') {
+        // Filtrar clases con actividad reciente (últimos 7 días)
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        
+        filteredItems = classItems.filter(item => {
+          const classDate = new Date(parseInt(item.getAttribute('data-date')));
+          return classDate >= oneWeekAgo;
+        });
+      } else if (currentFilter === 'archived') {
+        // Filtrar clases archivadas (más de 30 días sin actividad)
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
+        
+        filteredItems = classItems.filter(item => {
+          const classDate = new Date(parseInt(item.getAttribute('data-date')));
+          return classDate < oneMonthAgo;
+        });
+      }
+      
+      // Aplicar ordenamiento
+      filteredItems.sort((a, b) => {
+        const nameA = a.getAttribute('data-name').toLowerCase();
+        const nameB = b.getAttribute('data-name').toLowerCase();
+        const dateA = parseInt(a.getAttribute('data-date'));
+        const dateB = parseInt(b.getAttribute('data-date'));
+        
+        switch(currentSort) {
+          case 'name-asc':
+            return nameA.localeCompare(nameB);
+          case 'name-desc':
+            return nameB.localeCompare(nameA);
+          case 'date-asc':
+            return dateB - dateA; // Más recientes primero
+          case 'date-desc':
+            return dateA - dateB; // Más antiguos primero
+          default:
+            return 0;
+        }
+      });
+      
+      // Limpiar contenedor
+      while (clasesContainer.firstChild) {
+        clasesContainer.removeChild(clasesContainer.firstChild);
+      }
+      
+      // Agregar elementos ordenados y filtrados
+      filteredItems.forEach(item => {
+        clasesContainer.appendChild(item);
+      });
+    }
+
+    // Adjuntar event listeners
+    function attachEventListeners() {
+      // Sidebar toggle
+      sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('sidebar-closed');
+        isSidebarOpen = !isSidebarOpen;
+      });
+
+      closeSidebar.addEventListener('click', () => {
+        sidebar.classList.add('sidebar-closed');
+        isSidebarOpen = false;
+      });
+
+      // Crear clase
+      createClassBtn.addEventListener('click', () => modalCreate.classList.remove('hidden'));
+      cancelCreate.addEventListener('click', () => modalCreate.classList.add('hidden'));
+
+      addClassBtn.addEventListener('click', () => {
+        const name = document.getElementById('newClassName').value.trim();
+        if(name){
+          const now = new Date();
+          const lastActivity = now.toLocaleDateString();
+          
+          addClassToUI(name, lastActivity, now);
+          
+          document.getElementById('newClassName').value = '';
+          modalCreate.classList.add('hidden');
+          
+          // Inicializar array de mensajes para la nueva clase
+          classMessages[name] = [];
+        }
+      });
+
+      // Eliminar clase
+      cancelDelete.addEventListener('click', () => {
+        modalConfirmDelete.classList.add('hidden');
+        classToDelete = null;
+      });
+
+      confirmDelete.addEventListener('click', deleteClass);
+
+      // Navegación
+      backToClasses.addEventListener('click', backToClassesView);
+
+      // Mensajes
+      sendMessage.addEventListener('click', sendNewMessage);
+
+      // Permitir enviar mensaje con Enter
+      messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          sendNewMessage();
+        }
+      });
+
+      // Subir imagen
+      imageUpload.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            selectedImage = event.target.result;
+            imagePreview.src = selectedImage;
+            imagePreviewContainer.classList.remove('hidden');
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Eliminar imagen seleccionada
+      removeImage.addEventListener('click', function() {
+        selectedImage = null;
+        imagePreview.src = '';
+        imagePreviewContainer.classList.add('hidden');
+        imageUpload.value = '';
+      });
+
+      // Menús desplegables de ordenar y filtrar
+      sortBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        sortDropdown.classList.toggle('dropdown-open');
+        filterDropdown.classList.remove('dropdown-open');
+      });
+
+      filterBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        filterDropdown.classList.toggle('dropdown-open');
+        sortDropdown.classList.remove('dropdown-open');
+      });
+
+      // Opciones de ordenamiento
+      sortDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', function() {
+          currentSort = this.getAttribute('data-sort');
+          applyFiltersAndSorting();
+          sortDropdown.classList.remove('dropdown-open');
+        });
+      });
+
+      // Opciones de filtrado
+      filterDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', function() {
+          currentFilter = this.getAttribute('data-filter');
+          applyFiltersAndSorting();
+          filterDropdown.classList.remove('dropdown-open');
+        });
+      });
+
+      // Cerrar menús desplegables al hacer clic fuera
+      document.addEventListener('click', function() {
+        sortDropdown.classList.remove('dropdown-open');
+        filterDropdown.classList.remove('dropdown-open');
+      });
+
+      // Evitar que se cierren los menús al hacer clic dentro de ellos
+      sortDropdown.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+
+      filterDropdown.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+
+      // Cerrar modales al hacer clic fuera de ellos
+      document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-backdrop')) {
+          modalCreate.classList.add('hidden');
+          modalConfirmDelete.classList.add('hidden');
+          classToDelete = null;
+        }
+      });
+
+      // Ajustar el grid al cambiar el tamaño de la ventana
+      window.addEventListener('resize', () => {
+        if (window.innerWidth < 1024 && isSidebarOpen) {
+          sidebar.classList.add('sidebar-closed');
+          isSidebarOpen = false;
+        } else if (window.innerWidth >= 1024 && !isSidebarOpen) {
+          sidebar.classList.remove('sidebar-closed');
+          isSidebarOpen = true;
+        }
+      });
+    }
+
+    // Inicializar la aplicación
+    initializeUI();
+  </script>
+</body>
+</html>
