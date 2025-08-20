@@ -97,6 +97,7 @@ app.use(
           'https://unpkg.com',
           'https://apis.google.com'
         ],
+        scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc: [
           "'self'",
           "'unsafe-inline'",
@@ -221,6 +222,11 @@ app.get('/Frontend/resumen.html', (req, res) => {
 // Ruta para mapa-mental.html
 app.get('/Frontend/mapa-mental.html', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend', 'mapa-mental.html'));
+});
+
+// Ruta para chat-qa.html
+app.get('/chat-qa.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend', 'chat-qa.html'));
 });
 
 // Middleware de manejo de errores

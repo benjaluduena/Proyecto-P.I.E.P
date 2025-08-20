@@ -1,29 +1,99 @@
-const uploadBox = document.querySelector('.upload-box');
-const uploadText = document.querySelector('.upload-text');
-const fileInput = document.querySelector('.file-input');
-const loadingOverlay = document.getElementById("loadingOverlay")
-const cardActionBtns = document.querySelectorAll('.card-action-btn');
-const cards = document.querySelectorAll('.card');
-const uploadedFilesContainer = document.getElementById('uploadedFilesContainer');
+// Variables globales - se reasignarán cuando se recargue la página
+let uploadBox, uploadText, fileInput, loadingOverlay, cardActionBtns, cards, uploadedFilesContainer;
 
-cards.forEach(card => card.classList.add('disabled'));
+// Función para obtener referencias a los elementos DOM
+function getHomeElements() {
+  uploadBox = document.querySelector('.upload-box');
+  uploadText = document.querySelector('.upload-text');
+  fileInput = document.querySelector('.file-input');
+  loadingOverlay = document.getElementById("loadingOverlay");
+  cardActionBtns = document.querySelectorAll('.card-action-btn');
+  cards = document.querySelectorAll('.card');
+  uploadedFilesContainer = document.getElementById('uploadedFilesContainer');
+}
 
-// Arrastrar encima
-uploadBox.addEventListener('dragover', e => {
+// Función helper para ocultar el overlay de carga
+function hideLoadingOverlay() {
+  if (loadingOverlay) {
+    loadingOverlay.classList.remove("show");
+    loadingOverlay.style.display = "none";
+  }
+}
+
+// Función helper para mostrar el overlay de carga
+function showLoadingOverlay() {
+  if (loadingOverlay) {
+    loadingOverlay.style.display = "flex";
+    loadingOverlay.classList.add("show");
+  }
+}
+
+// Función para configurar todos los event listeners
+function setupEventListeners() {
+  if (!uploadBox || !fileInput || !cardActionBtns) return;
+
+  // Event listeners para drag & drop
+  uploadBox.addEventListener('dragover', handleDragOver);
+  uploadBox.addEventListener('dragleave', handleDragLeave);
+  uploadBox.addEventListener('drop', handleDrop);
+
+  // Event listener para selección de archivo
+  fileInput.addEventListener('change', handleFileChange);
+
+  // Event listeners para botones de acción
+  cardActionBtns.forEach(btn => {
+    // Remover event listeners previos para evitar duplicados
+    btn.removeEventListener('click', handleCardAction);
+    btn.addEventListener('click', handleCardAction);
+  });
+}
+
+// Función de inicialización de la página home
+function initializeHome() {
+  console.log('Inicializando página home...');
+  
+  // Obtener referencias a elementos DOM
+  getHomeElements();
+  
+  // Asegurar que el overlay esté oculto
+  hideLoadingOverlay();
+  
+  // Deshabilitar tarjetas hasta que se cargue un archivo
+  if (cards) {
+    cards.forEach(card => card.classList.add('disabled'));
+  }
+  
+  // Limpiar estado de archivo
+  if (fileInput) {
+    fileInput.value = '';
+  }
+  if (uploadedFilesContainer) {
+    uploadedFilesContainer.innerHTML = '';
+  }
+  if (uploadText) {
+    uploadText.textContent = "Ningún archivo seleccionado";
+  }
+  
+  // Configurar event listeners
+  setupEventListeners();
+  
+  console.log('Home inicializado correctamente');
+}
+
+// Funciones handler para eventos
+function handleDragOver(e) {
   e.preventDefault();
-  uploadBox.classList.add('hover');
-});
+  if (uploadBox) uploadBox.classList.add('hover');
+}
 
-// Salir del área
-uploadBox.addEventListener('dragleave', e => {
+function handleDragLeave(e) {
   e.preventDefault();
-  uploadBox.classList.remove('hover');
-});
+  if (uploadBox) uploadBox.classList.remove('hover');
+}
 
-// Soltar archivo
-uploadBox.addEventListener('drop', e => {
+function handleDrop(e) {
   e.preventDefault();
-  uploadBox.classList.remove('hover');
+  if (uploadBox) uploadBox.classList.remove('hover');
 
   const files = e.dataTransfer.files;
 
@@ -39,14 +109,15 @@ uploadBox.addEventListener('drop', e => {
     return;
   }
 
-  fileInput.files = files;
-  mostrarArchivos(files);
-});
+  if (fileInput) {
+    fileInput.files = files;
+    mostrarArchivos(files);
+  }
+}
 
-
-
-// Manejar selección de archivo
-fileInput.addEventListener('change', () => {
+function handleFileChange() {
+  if (!fileInput) return;
+  
   const files = fileInput.files;
 
   if (files.length > 1) {
@@ -64,26 +135,51 @@ fileInput.addEventListener('change', () => {
   if (files.length) {
     mostrarArchivos(files);
   } else {
-    uploadText.textContent = "Ningún archivo válido";
-    cards.forEach(card => card.classList.add('disabled'));
+    if (uploadText) uploadText.textContent = "Ningún archivo válido";
+    if (cards) cards.forEach(card => card.classList.add('disabled'));
   }
-});
+}
+
+// Variable para controlar la inicialización
+let homeInitialized = false;
+
+// Función para ejecutar la inicialización una sola vez
+function runInitialization() {
+  if (!homeInitialized) {
+    initializeHome();
+    homeInitialized = true;
+  }
+}
+
+// Hacer la función de inicialización disponible globalmente para cuando se carguen las páginas dinámicamente
+window.initializeHomeIfNeeded = function() {
+  homeInitialized = false; // Permitir re-inicialización
+  runInitialization();
+};
+
+// Ejecutar inicialización
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', runInitialization);
+} else {
+  // Si el DOM ya está listo, ejecutar inmediatamente
+  runInitialization();
+}
 
 // Resetear input de archivo
 
 function resetFileInput() {
-  fileInput.value = '';
-  uploadedFilesContainer.innerHTML = '';
-  uploadText.textContent = "Ningún archivo seleccionado";
-  cards.forEach(card => card.classList.add('disabled'));
+  if (fileInput) fileInput.value = '';
+  if (uploadedFilesContainer) uploadedFilesContainer.innerHTML = '';
+  if (uploadText) uploadText.textContent = "Ningún archivo seleccionado";
+  if (cards) cards.forEach(card => card.classList.add('disabled'));
 }
 
 
 // Mostrar archivos
 function mostrarArchivos(files) {
-  uploadedFilesContainer.innerHTML = '';
-  uploadText.textContent = `${files.length} archivo(s) cargado(s)`;
-  cards.forEach(card => card.classList.remove('disabled'));
+  if (uploadedFilesContainer) uploadedFilesContainer.innerHTML = '';
+  if (uploadText) uploadText.textContent = `${files.length} archivo(s) cargado(s)`;
+  if (cards) cards.forEach(card => card.classList.remove('disabled'));
 
   [...files].forEach((file, index) => {
     const fileDiv = document.createElement('div');
@@ -92,236 +188,215 @@ function mostrarArchivos(files) {
       <span title="${file.name}">${file.name} <small>(${file.type || 'desconocido'})</small></span>
       <button class="remove-btn" data-index="${index}">❌</button>
     `;
-    uploadedFilesContainer.appendChild(fileDiv);
+    if (uploadedFilesContainer) uploadedFilesContainer.appendChild(fileDiv);
   });
 
   // Manejar eliminar archivo (esto borra todo porque input.files es readonly)
   document.querySelectorAll('.remove-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      fileInput.value = '';
-      uploadedFilesContainer.innerHTML = '';
-      uploadText.textContent = "Ningún archivo seleccionado";
-      cards.forEach(card => card.classList.add('disabled'));
+      if (fileInput) fileInput.value = '';
+      if (uploadedFilesContainer) uploadedFilesContainer.innerHTML = '';
+      if (uploadText) uploadText.textContent = "Ningún archivo seleccionado";
+      if (cards) cards.forEach(card => card.classList.add('disabled'));
     });
   });
 }
 
 
-// Manejar clics en botones de acción de tarjetas
+// Función helper para subir PDF
+async function uploadPdf() {
+  const formData = new FormData();
+  formData.append('pdf', fileInput.files[0]);
+  
+  const response = await apiCall('/api/pdfs/upload', {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'Authorization': getAuthHeaders().Authorization
+    }
+  });
 
-cardActionBtns.forEach(btn => {
-  btn.addEventListener('click', async () => {
-    // Solo continuar si hay archivo cargado
-    if (fileInput.files.length === 0) {
-      showInfoMessage("Primero debes subir un archivo PDF.");
+  if (!response || !response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Error al subir el PDF');
+  }
+
+  const { pdf } = await response.json();
+  return pdf;
+}
+
+// Función helper para generar contenido IA
+async function generateAIContent(pdfId, contentType) {
+  console.log(`Generando contenido: PDF ID ${pdfId}, Tipo: ${contentType}`);
+  
+  const response = await apiCall(`/api/ai/generate/${pdfId}`, {
+    method: 'POST',
+    body: JSON.stringify({ type: contentType })
+  });
+
+  if (!response) {
+    throw new Error(`Error al generar contenido de tipo ${contentType}`);
+  }
+
+  console.log(`Respuesta recibida: Status ${response.status}`);
+
+  // Obtener el JSON una sola vez
+  let responseData = {};
+  try {
+    responseData = await response.json();
+    console.log('Datos de respuesta:', responseData);
+  } catch (error) {
+    console.error('Error parsing response:', error);
+    throw new Error(`Error al procesar respuesta para ${contentType}`);
+  }
+
+  // Manejar caso especial de contenido ya existente (status 400)
+  if (response.status === 400) {
+    if (responseData && responseData.outputId) {
+      console.log(`Contenido existente encontrado para ${contentType}, usando outputId: ${responseData.outputId}`);
+      // Retornar el output existente
+      return { id: responseData.outputId };
+    } else {
+      console.log('Error 400 sin outputId:', responseData);
+      // Error 400 sin outputId - mostrar el error real
+      throw new Error(responseData.error || `Ya existe contenido de tipo ${contentType}`);
+    }
+  }
+
+  if (!response.ok) {
+    console.error('Respuesta no exitosa:', response.status, responseData);
+    throw new Error(responseData.error || `Error al generar contenido de tipo ${contentType}`);
+  }
+
+  // Respuesta exitosa
+  console.log('Contenido generado exitosamente');
+  const { output } = responseData;
+  return output;
+}
+
+// Función handler para los clics en botones de acción de tarjetas
+async function handleCardAction(e) {
+  // Solo continuar si hay archivo cargado
+  if (!fileInput || fileInput.files.length === 0) {
+    showInfoMessage("Primero debes subir un archivo PDF.");
+    return;
+  }
+
+  showLoadingOverlay();
+
+  const btn = e.target.closest('.card-action-btn');
+  const card = btn.closest(".card");
+  const type = card?.dataset.type;
+  
+  let pdfId, fileName;
+
+  try {
+    // Subir PDF una sola vez
+    const pdf = await uploadPdf();
+    pdfId = pdf.id;
+    fileName = fileInput.files[0].name;
+
+    if (type === "resumen") {
+      // Generar resumen con IA
+      const output = await generateAIContent(pdfId, 'resumen');
+      
+      // Notificar al historial que se generó nuevo contenido
+      if (window.refreshHistorial) {
+        window.refreshHistorial();
+      }
+      
+      // Redirigir a la página de resumen con los datos
+      const params = new URLSearchParams({
+        pdfId: String(pdfId),
+        outputId: String(output.id),
+        fileName: fileName
+      });
+      
+      window.location.href = `/resumen.html?${params.toString()}`;
       return;
     }
 
-    loadingOverlay.classList.add("show");
-
-    const card = btn.closest(".card");
-    const type = card?.dataset.type;
-
-    try {
-      if (type === "resumen") {
-        // Subir PDF y generar resumen
-        const formData = new FormData();
-        formData.append('pdf', fileInput.files[0]);
-        
-        const response = await apiCall('/api/pdfs/upload', {
-          method: 'POST',
-          body: formData,
-          headers: {
-            // Remover Content-Type para FormData
-            'Authorization': getAuthHeaders().Authorization
-          }
-        });
-
-        if (!response || !response.ok) {
-          throw new Error('Error al subir el PDF');
-        }
-
-        const { pdf } = await response.json();
-        const pdfId = pdf.id;
-
-        // Generar resumen con IA
-        const summaryResponse = await apiCall(`/api/ai/generate/${pdfId}`, {
-          method: 'POST',
-          body: JSON.stringify({ type: 'resumen' })
-        });
-
-        if (!summaryResponse || !summaryResponse.ok) {
-          throw new Error('Error al generar el resumen');
-        }
-
-        const { output } = await summaryResponse.json();
-
-        // Redirigir a la página de resumen con los datos
-        const params = new URLSearchParams({
-          pdfId: pdfId,
-          outputId: output.id,
-          fileName: fileInput.files[0].name
-        });
-        
-        window.location.href = `/Frontend/resumen.html?${params.toString()}`;
-        return;
+    if (type === "verdadero-falso") {
+      // Generar verdadero/falso con IA
+      const output = await generateAIContent(pdfId, 'verdadero_falso');
+      
+      // Notificar al historial que se generó nuevo contenido
+      if (window.refreshHistorial) {
+        window.refreshHistorial();
       }
-
-      if (type === "verdadero-falso") {
-        // Subir PDF y generar preguntas de verdadero/falso
-        const formData = new FormData();
-        formData.append('pdf', fileInput.files[0]);
-
-        const response = await apiCall('/api/pdfs/upload', {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'Authorization': getAuthHeaders().Authorization
-          }
-        });
-
-        if (!response || !response.ok) {
-          throw new Error('Error al subir el PDF');
-        }
-
-        const { pdf } = await response.json();
-        const pdfId = pdf.id;
-
-        // Generar verdadero/falso con IA
-        const vfResponse = await apiCall(`/api/ai/generate/${pdfId}`, {
-          method: 'POST',
-          body: JSON.stringify({ type: 'verdadero_falso' })
-        });
-
-        if (!vfResponse || !vfResponse.ok) {
-          throw new Error('Error al generar las preguntas de Verdadero/Falso');
-        }
-
-        const { output } = await vfResponse.json();
-
-        // Redirigir a la vista de verdadero/falso
-        const params = new URLSearchParams({
-          pdfId: String(pdfId),
-          outputId: String(output.id),
-          fileName: fileInput.files[0].name
-        });
-        window.location.href = `/verdadero-falso.html?${params.toString()}`;
-        return;
-      }
-
-      if (type === "multiple-choice") {
-        const formData = new FormData();
-        formData.append('pdf', fileInput.files[0]);
-
-        const response = await apiCall('/api/pdfs/upload', {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'Authorization': getAuthHeaders().Authorization
-          }
-        });
-
-        if (!response || !response.ok) {
-          throw new Error('Error al subir el PDF');
-        }
-
-        const { pdf } = await response.json();
-        const pdfId = pdf.id;
-
-        const mcResponse = await apiCall(`/api/ai/generate/${pdfId}`, {
-          method: 'POST',
-          body: JSON.stringify({ type: 'multiple_choice' })
-        });
-
-        if (!mcResponse || !mcResponse.ok) {
-          throw new Error('Error al generar el examen Multiple Choice');
-        }
-
-        const { output } = await mcResponse.json();
-
-        const params = new URLSearchParams({
-          pdfId: String(pdfId),
-          outputId: String(output.id),
-          fileName: fileInput.files[0].name
-        });
-        window.location.href = `/multiple-choice.html?${params.toString()}`;
-        return;
-      }
-
-      if (type === "mapa-mental") {
-        const formData = new FormData();
-        formData.append('pdf', fileInput.files[0]);
-
-        const response = await apiCall('/api/pdfs/upload', {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'Authorization': getAuthHeaders().Authorization
-          }
-        });
-
-        if (!response || !response.ok) {
-          throw new Error('Error al subir el PDF');
-        }
-
-        const { pdf } = await response.json();
-        const pdfId = pdf.id;
-
-        let mapResponse = await apiCall(`/api/ai/generate/${pdfId}`, {
-          method: 'POST',
-          body: JSON.stringify({ type: 'mapa_mental' })
-        });
-        // Manejar caso 400 por contenido existente
-        if (mapResponse && mapResponse.status === 400) {
-          try {
-            const data = await mapResponse.json();
-            if (data && data.outputId) {
-              const params = new URLSearchParams({
-                pdfId: String(pdfId),
-                outputId: String(data.outputId),
-                fileName: fileInput.files[0].name
-              });
-              window.location.href = `/Frontend/mapa-mental.html?${params.toString()}`;
-              return;
-            }
-          } catch (_) {
-            // Ignorar parse error y continuar como error genérico
-          }
-        }
-
-        if (!mapResponse || !mapResponse.ok) {
-          throw new Error('Error al generar el mapa mental');
-        }
-
-        const { output } = await mapResponse.json();
-
-        const params = new URLSearchParams({
-          pdfId: String(pdfId),
-          outputId: String(output.id),
-          fileName: fileInput.files[0].name
-        });
-        window.location.href = `/Frontend/mapa-mental.html?${params.toString()}`;
-        return;
-      }
-
-      // Para otros tipos de contenido (mantener lógica existente)
-      setTimeout(() => {
-        loadingOverlay.classList.remove("show");
-        if (type) {
-          showSuccessMessage(type);
-        } else {
-          showInfoMessage("¡Proceso completado!");
-        }
-      }, 3000);
-
-    } catch (error) {
-      console.error('Error:', error);
-      loadingOverlay.classList.remove("show");
-      showNotification(`Error: ${error.message}`, "error");
+      
+      // Redirigir a la vista de verdadero/falso
+      const params = new URLSearchParams({
+        pdfId: String(pdfId),
+        outputId: String(output.id),
+        fileName: fileName
+      });
+      window.location.href = `/verdadero-falso.html?${params.toString()}`;
+      return;
     }
-  });
-});
 
+    if (type === "multiple-choice") {
+      // Generar multiple choice con IA
+      const output = await generateAIContent(pdfId, 'multiple_choice');
+      
+      // Notificar al historial que se generó nuevo contenido
+      if (window.refreshHistorial) {
+        window.refreshHistorial();
+      }
+      
+      const params = new URLSearchParams({
+        pdfId: String(pdfId),
+        outputId: String(output.id),
+        fileName: fileName
+      });
+      window.location.href = `/multiple-choice.html?${params.toString()}`;
+      return;
+    }
+
+    if (type === "mapa-mental") {
+      // Generar mapa mental con IA
+      const output = await generateAIContent(pdfId, 'mapa_mental');
+      
+      // Notificar al historial que se generó nuevo contenido
+      if (window.refreshHistorial) {
+        window.refreshHistorial();
+      }
+      
+      const params = new URLSearchParams({
+        pdfId: String(pdfId),
+        outputId: String(output.id),
+        fileName: fileName
+      });
+      window.location.href = `/mapa-mental.html?${params.toString()}`;
+      return;
+    }
+
+    if (type === "chat-qa") {
+      // Redirigir directamente a la página de chat (no necesita generar contenido IA)
+      const params = new URLSearchParams({
+        pdfId: String(pdfId),
+        fileName: fileName
+      });
+      window.location.href = `/chat-qa.html?${params.toString()}`;
+      return;
+    }
+
+    // Para tipos no reconocidos
+    hideLoadingOverlay();
+    showInfoMessage(`Tipo de contenido "${type}" no reconocido`);
+    console.warn('Tipo de contenido no reconocido:', type);
+
+  } catch (error) {
+    console.error('Error en handleCardAction:', error);
+    console.error('Tipo de contenido:', type);
+    console.error('PDF ID:', pdfId || 'No definido');
+    hideLoadingOverlay();
+    
+    // Mostrar mensaje de error más informativo
+    const errorMessage = error.message || 'Error desconocido';
+    showNotification(`Error al procesar ${type || 'contenido'}: ${errorMessage}`, "error");
+  }
+}
 
 // Mostrar mensajes de éxito o información
 

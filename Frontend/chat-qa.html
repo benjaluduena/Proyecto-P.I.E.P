@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Q&A - P.I.E.P</title>
+    <link rel="stylesheet" href="/Css/styles.css">
+    <style>
+        .chat-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .header-section h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .pdf-info {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #3498db;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            max-height: 500px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 15px;
+            border-radius: 18px;
+            line-height: 1.5;
+        }
+
+        .message.user .message-content {
+            background: #3498db;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.ai .message-content {
+            background: #ecf0f1;
+            color: #2c3e50;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: #3498db;
+        }
+
+        .message.ai .message-avatar {
+            background: #2c3e50;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 25px;
+            outline: none;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            border-color: #3498db;
+        }
+
+        .send-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: #2980b9;
+        }
+
+        .send-button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .back-button {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            align-self: flex-start;
+        }
+
+        .back-button:hover {
+            background: #7f8c8d;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            max-width: 70%;
+            margin-bottom: 20px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #7f8c8d;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.6;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .suggestion-chip {
+            background: #ecf0f1;
+            color: #2c3e50;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+
+        .suggestion-chip:hover {
+            background: #d5dbdb;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <button class="back-button" onclick="history.back()">← Volver</button>
+        
+        <div class="header-section">
+            <h1>Chat con tu PDF</h1>
+            <p>Haz preguntas sobre el contenido de tu documento y obtén respuestas inteligentes</p>
+            <div class="pdf-info" id="pdfInfo">
+                <strong id="pdfTitle">Cargando información del PDF...</strong>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <img src="/Assets/Imagenes/Zorro-IA.png" alt="AI Assistant" width="60" style="margin-bottom: 15px;">
+                <p>¡Hola! Soy tu asistente de estudio. Puedes hacerme cualquier pregunta sobre el contenido de tu PDF.</p>
+                <div class="suggestions">
+                    <div class="suggestion-chip" data-suggestion="¿Cuál es el tema principal del documento?">
+                        ¿Cuál es el tema principal?
+                    </div>
+                    <div class="suggestion-chip" data-suggestion="¿Puedes resumir los puntos más importantes?">
+                        Resumir puntos clave
+                    </div>
+                    <div class="suggestion-chip" data-suggestion="¿Qué conceptos son más difíciles de entender?">
+                        Conceptos complejos
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="message-avatar">
+                <span>🤖</span>
+            </div>
+            <div>
+                <span>El asistente está escribiendo</span>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <input 
+                type="text" 
+                class="chat-input" 
+                id="messageInput" 
+                placeholder="Escribe tu pregunta aquí..."
+                maxlength="500"
+            >
+            <button class="send-button" id="sendButton">
+                <span>Enviar</span>
+                <span>📤</span>
+            </button>
+        </div>
+
+        <div id="errorContainer"></div>
+    </div>
+
+    <script src="/JS/config.js"></script>
+    <script src="/JS/chat-qa.js"></script>
+</body>
+</html>

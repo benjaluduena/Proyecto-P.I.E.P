@@ -1,0 +1,131 @@
+<!-- Historial - StudyAI -->
+<div class="historial-container">
+  <!-- Header del historial -->
+  <div class="historial-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <svg class="title-icon">
+          <use href="/Assets/sprite.svg#icon-history"></use>
+        </svg>
+        Historial de Contenido IA
+      </h1>
+      <p class="page-subtitle">Revisa todo el contenido generado por la IA desde tus documentos PDF</p>
+    </div>
+    <div class="header-actions">
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">Todos</button>
+        <button class="filter-btn" data-filter="resumen">Resúmenes</button>
+        <button class="filter-btn" data-filter="multiple_choice">Exámenes</button>
+        <button class="filter-btn" data-filter="verdadero_falso">V/F</button>
+        <button class="filter-btn" data-filter="mapa_mental">Mapas</button>
+        <button class="filter-btn" data-filter="chat-qa">Q&A</button>
+      </div>
+      <button class="btn-action btn-secondary" id="btnLimpiarHistorial">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+        </svg>
+        Limpiar Todo
+      </button>
+    </div>
+  </div>
+
+  <!-- Estadísticas rápidas -->
+  <div class="stats-section" id="statsSection">
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <div class="stat-number" id="totalItems">0</div>
+        <div class="stat-label">Items Totales</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📚</div>
+      <div class="stat-content">
+        <div class="stat-number" id="totalPdfs">0</div>
+        <div class="stat-label">PDFs Procesados</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🧠</div>
+      <div class="stat-content">
+        <div class="stat-number" id="favType">-</div>
+        <div class="stat-label">Tipo Favorito</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de contenido del historial -->
+  <div class="historial-content">
+    <div class="content-grid" id="contentGrid">
+      <!-- El contenido se cargará dinámicamente -->
+    </div>
+
+    <!-- Estado vacío -->
+    <div class="empty-state" id="emptyState" style="display: none;">
+      <div class="empty-icon">
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+      </div>
+      <h3>No hay contenido en tu historial</h3>
+      <p>Comienza subiendo un PDF y generando contenido con IA en la página de inicio</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmación para limpiar historial -->
+<div class="modal-overlay" id="confirmModal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Confirmar Limpieza</h3>
+      <button class="modal-close" id="btnCerrarConfirm">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>¿Estás seguro de que deseas eliminar todo el historial? Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="btnCancelarLimpieza">Cancelar</button>
+      <button class="btn-danger" id="btnConfirmarLimpieza">Eliminar Todo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de vista previa -->
+<div class="modal-overlay modal-preview" id="previewModal" style="display: none;">
+  <div class="modal-content modal-large">
+    <div class="modal-header">
+      <h3 id="previewTitle">Vista Previa</h3>
+      <button class="modal-close" id="btnCerrarPreview">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="previewContent">
+        <!-- Contenido dinámico -->
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="btnCerrarVistaPrevia">Cerrar</button>
+      <button class="btn-primary" id="btnAbrirCompleto">Abrir Completo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay" style="display: none;">
+  <div class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Cargando historial...</p>
+  </div>
+</div>
+
+<script>
+// El historial se inicializa automáticamente desde historial.js
+console.log('Página del historial cargada');
+</script>

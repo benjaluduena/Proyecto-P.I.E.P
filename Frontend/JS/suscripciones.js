@@ -5,6 +5,13 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 async function loadSubscriptionStatus() {
   try {
+    // Solo cargar si estamos en una página que tiene los elementos de suscripción
+    const statusElement = document.getElementById('subscriptionStatus');
+    if (!statusElement) {
+      console.log('Elementos de suscripción no encontrados, saltando carga...');
+      return;
+    }
+
     console.log('Cargando estado de suscripción...');
     const response = await apiCall('/api/payments/subscription/status');
     console.log('Respuesta de estado de suscripción:', response);
@@ -15,11 +22,14 @@ async function loadSubscriptionStatus() {
       updateSubscriptionUI(data);
     } else {
       console.warn('Respuesta no OK al cargar estado de suscripción:', response);
-      document.getElementById('subscriptionStatus').textContent = 'No disponible';
+      statusElement.textContent = 'No disponible';
     }
   } catch (error) {
     console.error('Error al cargar estado de suscripción:', error);
-    document.getElementById('subscriptionStatus').textContent = 'Error al cargar';
+    const statusElement = document.getElementById('subscriptionStatus');
+    if (statusElement) {
+      statusElement.textContent = 'Error al cargar';
+    }
   }
 }
 
@@ -27,28 +37,54 @@ function updateSubscriptionUI(data) {
   const statusElement = document.getElementById('subscriptionStatus');
   const detailsElement = document.getElementById('subscriptionDetails');
   
+  // Verificar que los elementos existan antes de modificarlos
+  if (!statusElement) {
+    console.log('Elemento subscriptionStatus no encontrado');
+    return;
+  }
+  
   if (data.status === 'authorized') {
     statusElement.textContent = 'Activa';
     statusElement.className = 'status-active';
-    detailsElement.innerHTML = `
-      <p>Plan: ${data.plan || 'Estudiante'}</p>
-      <p>Próximo pago: ${data.next_payment_date ? new Date(data.next_payment_date).toLocaleDateString() : 'No disponible'}</p>
-    `;
+    if (detailsElement) {
+      detailsElement.innerHTML = `
+        <p>Plan: ${data.plan || 'Estudiante'}</p>
+        <p>Próximo pago: ${data.next_payment_date ? new Date(data.next_payment_date).toLocaleDateString() : 'No disponible'}</p>
+      `;
+    }
   } else if (data.status === 'pending') {
     statusElement.textContent = 'Pendiente de activación';
     statusElement.className = 'status-pending';
   } else {
     statusElement.textContent = 'Inactiva';
     statusElement.className = 'status-inactive';
-    detailsElement.innerHTML = '<p>Activa una suscripción para acceder a todas las funcionalidades.</p>';
+    if (detailsElement) {
+      detailsElement.innerHTML = '<p>Activa una suscripción para acceder a todas las funcionalidades.</p>';
+    }
   }
 }
 
 function setupEventListeners() {
-  document.getElementById('btnEstudiante').addEventListener('click', () => startSubscriptionPlan('estudiante'));
-  document.getElementById('btnDocente').addEventListener('click', () => startSubscriptionPlan('docente'));
-  document.getElementById('btnManageSubscription').addEventListener('click', manageSubscription);
-  document.getElementById('btnCancelSubscription').addEventListener('click', cancelSubscription);
+  // Solo agregar event listeners si los elementos existen
+  const btnEstudiante = document.getElementById('btnEstudiante');
+  if (btnEstudiante) {
+    btnEstudiante.addEventListener('click', () => startSubscriptionPlan('estudiante'));
+  }
+
+  const btnDocente = document.getElementById('btnDocente');
+  if (btnDocente) {
+    btnDocente.addEventListener('click', () => startSubscriptionPlan('docente'));
+  }
+
+  const btnManageSubscription = document.getElementById('btnManageSubscription');
+  if (btnManageSubscription) {
+    btnManageSubscription.addEventListener('click', manageSubscription);
+  }
+
+  const btnCancelSubscription = document.getElementById('btnCancelSubscription');
+  if (btnCancelSubscription) {
+    btnCancelSubscription.addEventListener('click', cancelSubscription);
+  }
   
   // Agregar evento para sincronización si el botón existe
   const syncBtn = document.getElementById('btnSyncSubscription');

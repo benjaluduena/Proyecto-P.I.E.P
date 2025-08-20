@@ -16,6 +16,16 @@ function cargarSeccion(nombre) {
 
       // Reasignar logout por si la sección cambia el DOM
       asignarLogout();
+      
+      // Si se está cargando la sección home, re-inicializarla
+      if (nombre === 'home' && window.initializeHomeIfNeeded) {
+        setTimeout(() => window.initializeHomeIfNeeded(), 100);
+      }
+      
+      // Si se está cargando la sección historial, inicializarla
+      if (nombre === 'historial' && window.initializeHistorial) {
+        setTimeout(() => window.initializeHistorial(), 200);
+      }
     })
     .catch(err => {
       document.getElementById('contenido').innerHTML = `<p>Error al cargar ${nombre}</p>`;

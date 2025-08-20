@@ -278,11 +278,26 @@ const uuidParam = Joi.object({
     })
 });
 
+// Validación de parámetros de PDF ID (enteros)
+const pdfIdParam = Joi.object({
+  pdfId: Joi.number()
+    .integer()
+    .positive()
+    .required()
+    .messages({
+      'number.base': 'El PDF ID debe ser un número',
+      'number.integer': 'El PDF ID debe ser un número entero',
+      'number.positive': 'El PDF ID debe ser un número positivo',
+      'any.required': 'El PDF ID es obligatorio'
+    })
+});
+
 module.exports = {
   validate,
   authSchemas,
   aiSchemas,
   paymentSchemas,
   taskSchemas,
-  uuidParam
+  uuidParam,
+  pdfIdParam
 };
