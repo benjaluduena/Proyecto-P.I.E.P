@@ -1,6 +1,9 @@
 // ===== LANDING PAGE JAVASCRIPT =====
 // P.I.E.P. - Plataforma Inteligente de Estudio Personalizado
-
+const btnComenzar = document.getElementById('btnComenzar')
+btnComenzar.addEventListener('click', () => {
+    window.location.href = 'register.html';
+});
 
 const btnZofox = document.querySelector('.btn-zofox');
 const zofoxContainer = document.querySelector('.btn-zofox-container');

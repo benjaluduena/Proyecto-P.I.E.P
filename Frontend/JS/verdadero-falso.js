@@ -1,93 +1,781 @@
-// Obtener parámetros de la URL
-const urlParams = new URLSearchParams(window.location.search);
-const pdfId = urlParams.get('pdfId');
-const outputId = urlParams.get('outputId');
-const fileName = urlParams.get('fileName');
+// ===== VARIABLES GLOBALES =====
+let currentQuestionIndex = 0;
+let questions = [];
+let userAnswers = [];
+let isQuestionAnswered = false;
+let pdfId, outputId, fileName;
 
-const vfMeta = document.getElementById('vfMeta');
-const vfList = document.getElementById('vfList');
-const vfStats = document.getElementById('vfStats');
-const toggleExplain = document.getElementById('toggleExplain');
+// ===== ELEMENTOS DEL DOM =====
+const vfOptions = document.querySelectorAll('.vf-option');
+const vfFeedback = document.getElementById('vfFeedback');
+const feedbackText = document.getElementById('feedbackText');
+const explanationLink = document.getElementById('explanationLink');
+const vfExplanation = document.getElementById('vfExplanation');
+const continueContainer = document.getElementById('continueContainer');
+const continueBtn = document.getElementById('continueBtn');
+const closeBtn = document.getElementById('closeBtn');
+const quizTitle = document.getElementById('quizTitle');
+const printBtn = document.getElementById('printBtn');
+const shareBtn = document.getElementById('shareBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
 
-function renderVF(data) {
-  const preguntas = Array.isArray(data?.preguntas) ? data.preguntas : [];
-  if (preguntas.length === 0) {
-    vfList.innerHTML = '<p style="color:#666;">No se generaron preguntas. Intenta con otro PDF.</p>';
-    return;
-  }
-  let v = 0, f = 0;
-  vfList.innerHTML = preguntas
-    .map((p, idx) => {
-      const respuesta = (p.respuesta || '').toString().toLowerCase().includes('verd') ? 'verdadero' : 'falso';
-      if (respuesta === 'verdadero') v++; else f++;
-      return `
-      <article class="vf-card" tabindex="0" role="group" aria-label="Pregunta ${idx + 1}">
-        <header class="vf-card-title">
-          <h3 style="margin:0; font-size:16px; line-height:1.3;">${idx + 1}. ${p.enunciado || ''}</h3>
-          <span class="vf-chip ${respuesta === 'verdadero' ? 'v' : 'f'}">${respuesta === 'verdadero' ? 'Verdadero' : 'Falso'}</span>
-        </header>
-        ${p.explicacion ? `<p class="vf-explain">${p.explicacion}</p>` : ''}
-      </article>
-      `;
-    })
-    .join('');
-  vfStats.textContent = `V: ${v} · F: ${f}`;
+// ===== INICIALIZACIÓN =====
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar autenticación antes de continuar
+    if (!checkAuthentication()) {
+        return;
+    }
+    
+    // Obtener parámetros de la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    pdfId = urlParams.get('pdfId');
+    outputId = urlParams.get('outputId');
+    fileName = urlParams.get('fileName');
+    
+    if (!pdfId || !outputId) {
+        showError('Faltan parámetros necesarios para cargar el quiz');
+        return;
+    }
+    
+    initializeQuiz();
+    setupEventListeners();
+});
 
-  // Toggle explicaciones
-  const applyExplain = () => {
-    document.querySelectorAll('.vf-card').forEach(card => {
-      if (toggleExplain.checked) card.classList.add('show-exp');
-      else card.classList.remove('show-exp');
+// ===== VERIFICAR AUTENTICACIÓN =====
+function checkAuthentication() {
+    try {
+        // Verificar si hay sesión en localStorage
+        const storedSession = localStorage.getItem('session');
+        const storedUser = localStorage.getItem('user');
+        
+        if (!storedSession && !storedUser) {
+            console.log('No hay sesión ni usuario, redirigiendo a login');
+            redirectToLogin();
+            return false;
+        }
+        
+        // Verificar sesión de Supabase si existe
+        if (storedSession) {
+            const sessionData = JSON.parse(storedSession);
+            
+            // Verificar si la sesión tiene expires_at
+            if (sessionData.expires_at) {
+                const now = Math.floor(Date.now() / 1000);
+                if (sessionData.expires_at <= now) {
+                    console.log('Sesión expirada, redirigiendo a login');
+                    localStorage.clear();
+                    redirectToLogin();
+                    return false;
+                }
+            }
+            
+            // Verificar si tiene access_token
+            if (sessionData.access_token) {
+                console.log('Sesión válida con token, continuando...');
+                return true;
+            }
+        }
+        
+        // Verificar usuario si existe
+        if (storedUser) {
+            const userData = JSON.parse(storedUser);
+            if (userData.id) {
+                console.log('Usuario válido encontrado, continuando...');
+                return true;
+            }
+        }
+        
+        console.log('Sesión inválida, redirigiendo a login');
+        localStorage.clear();
+        redirectToLogin();
+        return false;
+        
+    } catch (error) {
+        console.error('Error verificando autenticación:', error);
+        localStorage.clear();
+        redirectToLogin();
+        return false;
+    }
+}
+
+// ===== REDIRIGIR A LOGIN =====
+function redirectToLogin() {
+    // Guardar la URL actual para redirigir después del login
+    const currentUrl = window.location.href;
+    localStorage.setItem('redirectAfterLogin', currentUrl);
+    
+    // Redirigir a login
+    window.location.replace('/login.html');
+}
+
+// ===== OBTENER HEADERS DE AUTORIZACIÓN =====
+function getAuthHeaders() {
+    try {
+        // Intentar obtener token de la sesión
+        const storedSession = localStorage.getItem('session');
+        if (storedSession) {
+            const sessionData = JSON.parse(storedSession);
+            const token = sessionData.access_token;
+            
+            if (token) {
+                return {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                };
+            }
+        }
+        
+        // Si no hay token, intentar con el usuario
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const userData = JSON.parse(storedUser);
+            if (userData.id) {
+                // Para usuarios autenticados sin token específico
+                return {
+                    'Content-Type': 'application/json',
+                    'X-User-ID': userData.id
+                };
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error obteniendo headers de autorización:', error);
+    }
+    
+    // Headers por defecto
+    return {
+        'Content-Type': 'application/json'
+    };
+}
+
+// ===== CONFIGURACIÓN DE EVENTOS =====
+function setupEventListeners() {
+    // Event listeners para las opciones
+    vfOptions.forEach(option => {
+        option.addEventListener('click', handleOptionClick);
     });
-  };
-  toggleExplain.addEventListener('change', applyExplain);
-  applyExplain();
+
+    // Event listener para el enlace de explicación
+    explanationLink.addEventListener('click', toggleExplanation);
+
+    // Event listener para el botón continuar
+    continueBtn.addEventListener('click', goToNextQuestion);
+
+    // Event listeners para botones de navegación
+    closeBtn.addEventListener('click', handleClose);
+    quizTitle.addEventListener('click', handleQuizTitle);
+    printBtn.addEventListener('click', handlePrint);
+    shareBtn.addEventListener('click', handleShare);
+    prevBtn.addEventListener('click', goToPreviousQuestion);
+    nextBtn.addEventListener('click', goToNextQuestion);
+
+    // Deshabilitar botones de navegación inicialmente
+    updateNavigationButtons();
 }
 
-async function loadVF() {
-  try {
-    vfMeta.textContent = `Archivo: ${fileName || 'Documento PDF'} | Generado ahora`;
-
-    const response = await apiCall(`/api/ai/content/${outputId}`);
-    if (!response || !response.ok) {
-      throw new Error('No se pudo cargar el contenido');
+// ===== MANEJO DE OPCIONES =====
+function handleOptionClick(event) {
+    console.log('Opción clickeada:', event.currentTarget);
+    
+    if (isQuestionAnswered) {
+        console.log('Pregunta ya respondida, ignorando click');
+        return; // Evitar múltiples respuestas
     }
-    const { output } = await response.json();
 
-    let data;
-    if (typeof output.content === 'string') {
-      try { data = JSON.parse(output.content); } catch { data = {}; }
+    const selectedOption = event.currentTarget;
+    const isCorrect = selectedOption.dataset.correct === 'true';
+    
+    console.log('Respuesta seleccionada:', {
+        option: selectedOption.dataset.option,
+        isCorrect: isCorrect,
+        questionIndex: currentQuestionIndex
+    });
+    
+    // Marcar la pregunta como respondida
+    isQuestionAnswered = true;
+    
+    // Guardar la respuesta del usuario
+    const currentQuestion = questions[currentQuestionIndex];
+    userAnswers.push({
+        questionId: currentQuestion.id,
+        userAnswer: selectedOption.dataset.option === 'true',
+        correctAnswer: currentQuestion.correctAnswer,
+        isCorrect: isCorrect
+    });
+    
+    // Aplicar estilos visuales
+    applyAnswerStyles(selectedOption, isCorrect);
+    
+    // Mostrar feedback
+    showFeedback(isCorrect);
+    
+    // Mostrar enlace de explicación
+    if (explanationLink) {
+        explanationLink.style.display = 'inline-flex';
+    }
+    
+    // Mostrar botón de continuar
+    if (continueContainer) {
+        continueContainer.style.display = 'flex';
+    }
+    
+    // Deshabilitar todas las opciones
+    vfOptions.forEach(option => {
+        option.classList.add('answered');
+        option.style.cursor = 'default';
+        option.disabled = true;
+    });
+
+    // Actualizar botones de navegación
+    updateNavigationButtons();
+    
+    console.log('Pregunta respondida exitosamente');
+}
+
+// ===== APLICAR ESTILOS DE RESPUESTA =====
+function applyAnswerStyles(selectedOption, isCorrect) {
+    console.log('Aplicando estilos de respuesta:', { isCorrect, selectedOption });
+    
+    vfOptions.forEach(option => {
+        const optionIsCorrect = option.dataset.correct === 'true';
+        
+        if (option === selectedOption) {
+            // Opción seleccionada por el usuario
+            if (isCorrect) {
+                option.classList.add('correct');
+                console.log('Opción seleccionada marcada como correcta');
+            } else {
+                option.classList.add('incorrect');
+                console.log('Opción seleccionada marcada como incorrecta');
+            }
+        } else if (optionIsCorrect) {
+            // Mostrar la respuesta correcta si el usuario se equivocó
+            option.classList.add('correct');
+            console.log('Respuesta correcta resaltada');
+        }
+    });
+    
+    console.log('Estilos de respuesta aplicados correctamente');
+}
+
+// ===== MOSTRAR FEEDBACK =====
+function showFeedback(isCorrect) {
+    vfFeedback.style.display = 'block';
+    
+    if (isCorrect) {
+        feedbackText.textContent = '¡Correcto!';
+        feedbackText.className = 'vf-feedback-text';
     } else {
-      data = output.content || {};
+        feedbackText.textContent = '¡Incorrecto!';
+        feedbackText.className = 'vf-feedback-text incorrect';
     }
-
-    // Normalizar estructura mínima
-    if (!Array.isArray(data.preguntas)) {
-      data = { preguntas: [] };
-    }
-    renderVF(data);
-  } catch (error) {
-    vfList.innerHTML = `<div class="error-message"><p>${error.message}</p></div>`;
-  }
 }
 
-document.addEventListener('DOMContentLoaded', loadVF);
+// ===== TOGGLE EXPLICACIÓN =====
+function toggleExplanation() {
+    const isVisible = vfExplanation.classList.contains('show');
+    
+    if (isVisible) {
+        vfExplanation.classList.remove('show');
+        explanationLink.innerHTML = 'Ver explicación <span class="arrow">></span>';
+    } else {
+        vfExplanation.classList.add('show');
+        explanationLink.innerHTML = 'Ocultar explicación <span class="arrow">∧</span>';
+    }
+}
 
-document.querySelector('.back-btn').addEventListener('click', function () {
-  window.location.href = '/index.html';
-});
+// ===== CONFIGURAR PREGUNTA ACTUAL =====
+function setupCurrentQuestion() {
+    if (currentQuestionIndex >= questions.length) {
+        showResults();
+        return;
+    }
 
-document.getElementById('downloadBtn').addEventListener('click', function() {
-  window.print();
-});
+    const currentQuestion = questions[currentQuestionIndex];
+    
+    // Primero resetear completamente el estado de la pregunta anterior
+    resetQuestionState();
+    
+    // Actualizar el título de la pregunta
+    const questionTitle = document.querySelector('.vf-question-title');
+    if (questionTitle) {
+        questionTitle.textContent = currentQuestion.question;
+    }
+    
+    // Actualizar el número de pregunta
+    const questionNumber = document.querySelector('.vf-question-number');
+    if (questionNumber) {
+        questionNumber.textContent = currentQuestion.id;
+    }
+    
+    // Actualizar las opciones con la respuesta correcta
+    updateOptions(currentQuestion);
+    
+    // Actualizar la explicación
+    const explanationText = document.querySelector('#vfExplanation p');
+    if (explanationText) {
+        explanationText.textContent = currentQuestion.explanation;
+    }
+    
+    // Actualizar barra de progreso
+    updateProgressBar();
+    
+    // Actualizar botones de navegación
+    updateNavigationButtons();
+    
+    // Actualizar título del quiz con el nombre del archivo
+    if (quizTitle && fileName) {
+        quizTitle.textContent = `Quiz: ${fileName}`;
+    }
+    
+    // Resetear el estado de respuesta
+    isQuestionAnswered = false;
+}
 
-document.getElementById('shareBtn').addEventListener('click', function() {
-  if (navigator.share) {
-    navigator.share({ title: 'Verdadero/Falso generado', url: window.location.href });
-  } else {
-    navigator.clipboard.writeText(window.location.href);
-    alert('URL copiada al portapapeles');
-  }
-});
+// ===== ACTUALIZAR OPCIONES =====
+function updateOptions(currentQuestion) {
+    console.log('Actualizando opciones para pregunta:', currentQuestion.id);
+    
+    vfOptions.forEach((option, index) => {
+        const isCorrect = index === 0 ? currentQuestion.correctAnswer : !currentQuestion.correctAnswer;
+        
+        // Limpiar completamente el estado anterior
+        option.classList.remove('correct', 'incorrect', 'answered');
+        option.style.cursor = 'pointer';
+        option.disabled = false;
+        
+        // Actualizar el dataset con la respuesta correcta
+        option.dataset.correct = isCorrect.toString();
+        option.dataset.option = index === 0 ? 'true' : 'false';
+        
+        // Actualizar el texto de la opción
+        const optionText = option.querySelector('.vf-option-text');
+        if (optionText) {
+            optionText.textContent = index === 0 ? 'Verdadero' : 'Falso';
+        }
+        
+        // Asegurar que el event listener esté funcionando
+        option.onclick = null; // Remover listeners previos
+        option.addEventListener('click', handleOptionClick);
+        
+        console.log(`Opción ${index + 1} configurada:`, {
+            text: index === 0 ? 'Verdadero' : 'Falso',
+            isCorrect: isCorrect,
+            dataset: option.dataset
+        });
+    });
+    
+    console.log('Opciones actualizadas correctamente');
+}
+
+// ===== ACTUALIZAR BARRA DE PROGRESO =====
+function updateProgressBar() {
+    const progressFill = document.querySelector('.vf-progress-fill');
+    if (progressFill) {
+        const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+        progressFill.style.width = `${progress}%`;
+    }
+    
+    // Actualizar números de progreso
+    const currentNumber = document.querySelector('.vf-progress span:first-child');
+    const totalNumber = document.querySelector('.vf-progress span:last-child');
+    
+    if (currentNumber) {
+        currentNumber.textContent = currentQuestionIndex + 1;
+    }
+    if (totalNumber) {
+        totalNumber.textContent = questions.length;
+    }
+}
+
+// ===== IR A LA SIGUIENTE PREGUNTA =====
+function goToNextQuestion() {
+    if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        setupCurrentQuestion();
+        updateNavigationButtons();
+    } else {
+        // Última pregunta - mostrar resultados
+        showResults();
+    }
+}
+
+// ===== IR A LA PREGUNTA ANTERIOR =====
+function goToPreviousQuestion() {
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        setupCurrentQuestion();
+        updateNavigationButtons();
+    }
+}
+
+// ===== RESETEAR ESTADO DE LA PREGUNTA =====
+function resetQuestionState() {
+    console.log('Reseteando estado de la pregunta...');
+    
+    // Remover clases de estado de las opciones
+    vfOptions.forEach(option => {
+        option.classList.remove('correct', 'incorrect', 'answered');
+        option.style.cursor = 'pointer';
+        option.disabled = false;
+    });
+    
+    // Ocultar feedback y explicación
+    if (vfFeedback) {
+        vfFeedback.style.display = 'none';
+    }
+    
+    if (explanationLink) {
+        explanationLink.style.display = 'none';
+    }
+    
+    if (vfExplanation) {
+        vfExplanation.classList.remove('show');
+    }
+    
+    if (continueContainer) {
+        continueContainer.style.display = 'none';
+    }
+    
+    // Resetear estado interno
+    isQuestionAnswered = false;
+    
+    console.log('Estado de la pregunta reseteado completamente');
+}
+
+// ===== ACTUALIZAR BOTONES DE NAVEGACIÓN =====
+function updateNavigationButtons() {
+    prevBtn.disabled = currentQuestionIndex === 0;
+    nextBtn.disabled = currentQuestionIndex === questions.length - 1;
+    
+    // Aplicar estilos visuales para botones deshabilitados
+    if (prevBtn.disabled) {
+        prevBtn.classList.add('disabled');
+    } else {
+        prevBtn.classList.remove('disabled');
+    }
+    
+    if (nextBtn.disabled) {
+        nextBtn.classList.add('disabled');
+    } else {
+        nextBtn.classList.remove('disabled');
+    }
+}
+
+// ===== MANEJO DE BOTONES DEL HEADER =====
+function handleClose() {
+    if (confirm('¿Estás seguro de que quieres cerrar el quiz?')) {
+        window.location.href = '/index.html';
+    }
+}
+
+function handleQuizTitle() {
+    // Aquí puedes implementar la funcionalidad para mostrar información del quiz
+    alert('Información del Quiz: Quizzes De Dificultad Creciente');
+}
+
+function handlePrint() {
+    window.print();
+}
+
+function handleShare() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Quiz Verdadero/Falso',
+            text: '¡Mira este quiz que estoy haciendo!',
+            url: window.location.href
+        });
+    } else {
+        // Fallback para navegadores que no soportan Web Share API
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            alert('URL copiada al portapapeles');
+        }).catch(() => {
+            alert('No se pudo copiar la URL');
+        });
+    }
+}
+
+// ===== INICIALIZAR QUIZ =====
+function initializeQuiz() {
+    loadQuestions();
+}
+
+// ===== CARGAR PREGUNTAS DESDE LA API =====
+async function loadQuestions() {
+    try {
+        console.log('Iniciando carga de preguntas...');
+        console.log('outputId:', outputId);
+        console.log('pdfId:', pdfId);
+        console.log('fileName:', fileName);
+        
+        showLoading(true);
+        
+        const apiUrl = `/api/ai/content/${outputId}`;
+        console.log('Llamando a API:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: getAuthHeaders(),
+        });
+        
+        console.log('Respuesta de API recibida:', response);
+        console.log('Status:', response.status);
+        console.log('Status Text:', response.statusText);
+        
+        if (response.status === 401) {
+            throw new Error('No estás autenticado. Por favor, inicia sesión nuevamente.');
+        }
+        
+        if (response.status === 403) {
+            throw new Error('No tienes permisos para acceder a este contenido.');
+        }
+        
+        if (response.status === 404) {
+            throw new Error('El contenido solicitado no fue encontrado. Verifica que el PDF se haya procesado correctamente.');
+        }
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error en respuesta:', errorText);
+            throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const responseData = await response.json();
+        console.log('Datos de respuesta completos:', responseData);
+        
+        if (!responseData.output) {
+            throw new Error('No se encontró el campo "output" en la respuesta');
+        }
+        
+        const { output } = responseData;
+        console.log('Output extraído:', output);
+        console.log('Tipo de contenido:', output.content);
+        
+        let data;
+        
+        if (typeof output.content === 'string') {
+            try {
+                data = JSON.parse(output.content);
+                console.log('Contenido parseado como JSON:', data);
+            } catch (parseError) {
+                console.error('Error al parsear JSON:', parseError);
+                console.log('Contenido que falló al parsear:', output.content);
+                data = {};
+            }
+        } else {
+            data = output.content || {};
+            console.log('Contenido directo:', data);
+        }
+        
+        // Normalizar estructura mínima
+        if (!Array.isArray(data.preguntas)) {
+            console.warn('No se encontró array de preguntas, estructura:', data);
+            data = { preguntas: [] };
+        }
+        
+        console.log('Preguntas encontradas:', data.preguntas);
+        
+        // Convertir las preguntas al formato que espera nuestro sistema
+        questions = data.preguntas.map((pregunta, index) => {
+            console.log(`Procesando pregunta ${index + 1}:`, pregunta);
+            
+            const respuesta = (pregunta.respuesta || '').toString().toLowerCase().includes('verd');
+            const preguntaFormateada = {
+                id: index + 1,
+                question: pregunta.enunciado || `Pregunta ${index + 1}`,
+                correctAnswer: respuesta,
+                explanation: pregunta.explicacion || 'Sin explicación disponible'
+            };
+            
+            console.log(`Pregunta ${index + 1} formateada:`, preguntaFormateada);
+            return preguntaFormateada;
+        });
+        
+        if (questions.length === 0) {
+            showError('No se generaron preguntas para este PDF. Intenta con otro documento.');
+            return;
+        }
+        
+        console.log(`Preguntas cargadas exitosamente: ${questions.length}`);
+        console.log('Preguntas finales:', questions);
+        
+        setupCurrentQuestion();
+        
+    } catch (error) {
+        console.error('Error completo al cargar preguntas:', error);
+        console.error('Stack trace:', error.stack);
+        showError(`Error al cargar las preguntas: ${error.message}`);
+    } finally {
+        showLoading(false);
+    }
+}
+
+// ===== MOSTRAR/OCULTAR LOADING =====
+function showLoading(show) {
+    const loadingElement = document.getElementById('loadingOverlay');
+    if (loadingElement) {
+        loadingElement.style.display = show ? 'flex' : 'none';
+        if (show) {
+            loadingElement.classList.add('show');
+        } else {
+            loadingElement.classList.remove('show');
+        }
+    }
+}
+
+// ===== MOSTRAR ERROR =====
+function showError(message) {
+    const questionCard = document.querySelector('.vf-question-card');
+    if (questionCard) {
+        const debugInfo = `
+            <div class="vf-debug-info">
+                <h4>Información de Debug:</h4>
+                <p><strong>outputId:</strong> ${outputId || 'No definido'}</p>
+                <p><strong>pdfId:</strong> ${pdfId || 'No definido'}</p>
+                <p><strong>fileName:</strong> ${fileName || 'No definido'}</p>
+                <p><strong>URL actual:</strong> ${window.location.href}</p>
+            </div>
+        `;
+        
+        // Mensaje específico para errores de autenticación
+        let specificMessage = message;
+        let specificActions = '';
+        
+        if (message.includes('autenticado') || message.includes('401')) {
+            specificMessage = 'No estás autenticado o tu sesión ha expirado.';
+            specificActions = `
+                <div class="vf-auth-help">
+                    <h4>¿Qué hacer?</h4>
+                    <ol>
+                        <li>Ve a la página de inicio</li>
+                        <li>Inicia sesión nuevamente</li>
+                        <li>Sube tu PDF</li>
+                        <li>Selecciona "Verdadero o Falso"</li>
+                    </ol>
+                </div>
+            `;
+        }
+        
+        questionCard.innerHTML = `
+            <div class="vf-error">
+                <h3>Error</h3>
+                <p>${specificMessage}</p>
+                ${specificActions}
+                ${debugInfo}
+                <div class="vf-error-actions">
+                    <button class="btn btn-primary" onclick="window.location.href='/'">Volver al Inicio</button>
+                    <button class="btn" onclick="retryLoadQuestions()">Reintentar</button>
+                    <button class="btn" onclick="openConsole()">Abrir Consola</button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// ===== REINTENTAR CARGA =====
+function retryLoadQuestions() {
+    console.log('Reintentando carga de preguntas...');
+    loadQuestions();
+}
+
+// ===== ABRIR CONSOLA =====
+function openConsole() {
+    alert('Presiona F12 para abrir la consola del navegador y ver los logs de error.');
+}
+
+// ===== CALCULAR PUNTUACIÓN =====
+function calculateScore() {
+    return userAnswers.filter(answer => answer.isCorrect).length;
+}
+
+// ===== MOSTRAR RESULTADOS =====
+function showResults() {
+    const score = calculateScore();
+    const totalQuestions = questions.length;
+    const percentage = (score / totalQuestions) * 100;
+    
+    // Determinar el mensaje según la puntuación
+    let message = '';
+    let color = '';
+    
+    if (percentage >= 90) {
+        message = '¡Excelente! Eres un experto en este tema.';
+        color = 'var(--success-color)';
+    } else if (percentage >= 70) {
+        message = '¡Muy bien! Tienes un buen conocimiento del tema.';
+        color = 'var(--primary-color)';
+    } else if (percentage >= 50) {
+        message = '¡Bien! Tienes conocimientos básicos del tema.';
+        color = 'var(--secondary-color)';
+    } else {
+        message = '¡Sigue estudiando! Puedes mejorar tu conocimiento del tema.';
+        color = 'var(--error-color)';
+    }
+    
+    const resultsHTML = `
+        <div class="vf-results">
+            <h2>¡Quiz Completado!</h2>
+            <p class="vf-score">Puntuación: ${score}/${totalQuestions} (${percentage.toFixed(1)}%)</p>
+            <p class="vf-message" style="color: ${color}">${message}</p>
+            <div class="vf-results-actions">
+                <button class="btn btn-primary" onclick="restartQuiz()">Reiniciar Quiz</button>
+                <button class="btn" onclick="goToFirstQuestion()">Ver Primera Pregunta</button>
+                <button class="btn" onclick="window.location.href='/'">Nuevo PDF</button>
+            </div>
+        </div>
+    `;
+    
+    document.querySelector('.vf-question-card').innerHTML = resultsHTML;
+}
+
+// ===== REINICIAR QUIZ =====
+function restartQuiz() {
+    currentQuestionIndex = 0;
+    userAnswers = [];
+    location.reload();
+}
+
+// ===== IR A LA PRIMERA PREGUNTA =====
+function goToFirstQuestion() {
+    currentQuestionIndex = 0;
+    setupCurrentQuestion();
+    updateNavigationButtons();
+}
+
+// ===== FUNCIONES DE UTILIDAD =====
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+// ===== DEBUG: VERIFICAR ESTADO DE OPCIONES =====
+function debugOptionsState() {
+    console.log('=== DEBUG: Estado de las opciones ===');
+    vfOptions.forEach((option, index) => {
+        console.log(`Opción ${index + 1}:`, {
+            text: option.querySelector('.vf-option-text')?.textContent,
+            classes: Array.from(option.classList),
+            dataset: option.dataset,
+            cursor: option.style.cursor,
+            disabled: option.disabled,
+            isQuestionAnswered: isQuestionAnswered
+        });
+    });
+    console.log('=== FIN DEBUG ===');
+}
+
+// ===== EXPORTAR FUNCIONES PARA USO EXTERNO =====
+window.verdaderoFalso = {
+    goToNextQuestion,
+    goToPreviousQuestion,
+    calculateScore,
+    resetQuestionState,
+    restartQuiz,
+    debugOptionsState // Agregar función de debug
+};
 
 

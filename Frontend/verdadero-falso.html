@@ -4,34 +4,99 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Verdadero o Falso</title>
-  <link rel="stylesheet" href="/Css/styles.css">
-  <link rel="stylesheet" href="/Css/resumen.css">
   <link rel="stylesheet" href="/Css/vf.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <main class="container vf-container">
+  <!-- Overlay de Loading -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p>Cargando preguntas...</p>
+    </div>
+  </div>
+
+  <main class="vf-container">
+    <!-- Header con botones de navegación y acciones -->
     <header class="vf-header">
       <div class="vf-header-left">
-        <button class="back-btn" aria-label="Volver">⟵ Volver</button>
-        <div>
-          <h1 class="section-title">Preguntas: Verdadero o Falso</h1>
-          <div id="vfMeta" class="vf-meta"></div>
-        </div>
+        <button class="back-btn" id="closeBtn" aria-label="Cerrar">✕</button>
+        <button class="back-btn" id="quizTitle" aria-label="Título del Quiz">Quizzes De Dificultad Creciente</button>
       </div>
       <div class="vf-header-right">
-        <div class="vf-stats" id="vfStats">V: 0 · F: 0</div>
-        <label class="vf-switch">
-          <input type="checkbox" id="toggleExplain" />
-          <span>Ver explicaciones</span>
-        </label>
-        <button id="downloadBtn" class="btn btn-primary">Descargar</button>
-        <button id="shareBtn" class="btn">Compartir</button>
+        <button class="btn" id="printBtn" aria-label="Imprimir">
+          <span>📥</span>
+          Imprimir
+        </button>
+        <button class="btn btn-primary" id="shareBtn" aria-label="Compartir">
+          <span>🔗</span>
+          Compartir
+        </button>
       </div>
     </header>
 
-    <section id="vfList" class="vf-grid"></section>
+    <!-- Tarjeta principal de pregunta -->
+    <section class="vf-question-card">
+      <div class="vf-question-header">
+        <h2 class="vf-question-title">
+          Cargando pregunta...
+        </h2>
+        <div class="vf-question-number">-</div>
+      </div>
+      
+      <!-- Opciones Verdadero/Falso -->
+      <div class="vf-options">
+        <button class="vf-option" data-option="true" data-correct="false">
+          <span class="vf-option-text">Verdadero</span>
+        </button>
+        <button class="vf-option" data-option="false" data-correct="true">
+          <span class="vf-option-text">Falso</span>
+        </button>
+      </div>
+      
+      <!-- Feedback de respuesta -->
+      <div class="vf-feedback" id="vfFeedback" style="display: none;">
+        <p class="vf-feedback-text" id="feedbackText"></p>
+        <button class="vf-explanation-link" id="explanationLink" style="display: none;">
+          Ver explicación <span class="arrow">></span>
+        </button>
+      </div>
+      
+      <!-- Explicación (se muestra cuando se activa) -->
+      <div class="vf-explanation" id="vfExplanation">
+        <h4>Explicación:</h4>
+        <p>Cargando explicación...</p>
+      </div>
+      
+      <!-- Botón de continuar -->
+      <div class="vf-continue-container" id="continueContainer" style="display: none;">
+        <button class="btn btn-primary vf-continue-btn" id="continueBtn">
+          Continuar <span class="arrow">></span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Navegación inferior -->
+    <nav class="vf-navigation">
+      <div class="vf-nav-left">
+        <span class="vf-grid-icon">⊞</span>
+        <div class="vf-progress">
+          <span>-</span>
+          <div class="vf-progress-bar">
+            <div class="vf-progress-fill" style="width: 0%"></div>
+          </div>
+          <span>-</span>
+        </div>
+      </div>
+      <div class="vf-nav-right">
+        <button class="vf-nav-btn" id="prevBtn" aria-label="Anterior">‹</button>
+        <button class="vf-nav-btn" id="nextBtn" aria-label="Siguiente">›</button>
+      </div>
+    </nav>
   </main>
 
+  <!-- Scripts -->
+  <script src="/JS/simple-auth-check.js"></script>
   <script src="/JS/config.js"></script>
   <script src="/lib/supabase.js"></script>
   <script src="/JS/verdadero-falso.js"></script>
