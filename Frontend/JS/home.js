@@ -146,13 +146,23 @@ let homeInitialized = false;
 // Función para ejecutar la inicialización una sola vez
 function runInitialization() {
   if (!homeInitialized) {
-    initializeHome();
-    homeInitialized = true;
+    console.log('Ejecutando inicialización de home...');
+    // Verificar que los elementos DOM existan antes de inicializar
+    if (document.querySelector('.upload-box')) {
+      initializeHome();
+      homeInitialized = true;
+      console.log('Home inicializado con éxito');
+    } else {
+      console.error('Error: Elementos DOM de home no encontrados');
+      // Intentar nuevamente después de un breve retraso
+      setTimeout(runInitialization, 200);
+    }
   }
 }
 
 // Hacer la función de inicialización disponible globalmente para cuando se carguen las páginas dinámicamente
 window.initializeHomeIfNeeded = function() {
+  console.log('initializeHomeIfNeeded llamado');
   homeInitialized = false; // Permitir re-inicialización
   runInitialization();
 };

@@ -4,6 +4,9 @@ import { createApiModule } from './api.js';
 import { uiModule } from './ui.js';
 import { createUploadModule } from './upload.js';
 
+// Variable global para la instancia de la aplicación
+let appInstance = null;
+
 class App {
   constructor() {
     this.authModule = null;
@@ -18,6 +21,18 @@ class App {
   async initialize() {
     try {
       console.log('Inicializando aplicación...');
+
+      // Guardar instancia global
+      appInstance = this;
+      
+      // Crear función global para cargar secciones
+      window.cargarSeccion = (sectionName) => {
+        if (appInstance) {
+          appInstance.loadSection(sectionName);
+        } else {
+          console.error('Error: La aplicación no está inicializada');
+        }
+      };
 
       // 1. Inicializar UI
       this.uiModule.initialize();
@@ -205,11 +220,25 @@ class App {
     try {
       this.uiModule.showLoading('Cargando sección...');
       
+      // Guardar la sección anterior para limpieza
+      const previousSection = window.activeScript;
+      console.log(`🔄 Cambiando de sección: ${previousSection || 'ninguna'} -> ${sectionName}`);
+      
+      // Limpiar variables y funciones de la sección anterior
+      this.cleanupPreviousSection();
+      
       const response = await fetch(`Pages/${sectionName}.html`);
       const html = await response.text();
       
       const contenedor = document.getElementById('contenido');
       if (contenedor) {
+        // Limpiar contenedor antes de insertar nuevo contenido
+        contenedor.innerHTML = '';
+        
+        // Pequeña pausa para asegurar limpieza del DOM
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Insertar nuevo contenido
         contenedor.innerHTML = html;
         
         // Cargar script específico de la sección
@@ -221,32 +250,59 @@ class App {
     } catch (error) {
       console.error('Error cargando sección:', error);
       this.uiModule.showNotification('Error al cargar la sección', 'error');
+      
+      // Mostrar mensaje de error en el contenedor
+      const contenedor = document.getElementById('contenido');
+      if (contenedor) {
+        contenedor.innerHTML = `
+          <div class="error-state">
+            <h3>Error</h3>
+            <p>No se pudo cargar la sección ${sectionName}</p>
+            <button onclick="app.loadSection('home')" class="btn-primary">
+              <i class="fas fa-home"></i> Volver al inicio
+            </button>
+          </div>
+        `;
+      }
     } finally {
       this.uiModule.hideLoading();
     }
   }
 
-  // Cargar script de sección con caché optimizado
+  // Cargar script de sección con caché optimizado y limpieza de scripts anteriores
   loadSectionScript(sectionName) {
     return new Promise((resolve) => {
-      // Cache de scripts cargados
+      // Limpiar variables globales y funciones de la sección anterior
+      this.cleanupPreviousSection();
+      
+      // Cache de scripts cargados y scripts activos
       if (!window.loadedScripts) {
         window.loadedScripts = new Set();
       }
-
-      // Si ya está cargado, resolver inmediatamente
-      if (window.loadedScripts.has(sectionName)) {
-        resolve();
-        return;
+      
+      if (!window.activeScript) {
+        window.activeScript = null;
       }
 
+      // Registrar el script activo actual
+      window.activeScript = sectionName;
+      
+      // Verificar si ya existe un script con este ID y eliminarlo
+      const existingScript = document.getElementById(`section-script-${sectionName}`);
+      if (existingScript) {
+        existingScript.remove();
+        console.log(`🗑️ Script existente de ${sectionName} eliminado`);
+      }
+      
       const script = document.createElement('script');
-      script.src = `/JS/${sectionName}.js`;
+      script.src = `/JS/${sectionName}.js?t=${new Date().getTime()}`; // Añadir timestamp para evitar caché
       script.type = 'text/javascript';
       script.defer = true;
+      script.id = `section-script-${sectionName}`;
       
       script.onload = () => {
         window.loadedScripts.add(sectionName);
+        console.log(`📜 Script de ${sectionName} cargado correctamente`);
         resolve();
       };
       
@@ -255,7 +311,10 @@ class App {
         resolve(); // Continuar aunque el script falle
       };
       
-      document.head.appendChild(script);
+      // Pequeña pausa antes de añadir el script
+      setTimeout(() => {
+        document.head.appendChild(script);
+      }, 100);
     });
   }
 
@@ -268,6 +327,89 @@ class App {
     const activeItem = document.querySelector(`[onclick*="${sectionName}"]`);
     if (activeItem) {
       activeItem.classList.add('active');
+    }
+  }
+  
+  // Limpiar variables y funciones de la sección anterior
+  cleanupPreviousSection() {
+    // Eliminar scripts anteriores por ID
+    if (window.activeScript) {
+      const oldScriptId = `section-script-${window.activeScript}`;
+      const oldScript = document.getElementById(oldScriptId);
+      if (oldScript) {
+        oldScript.remove();
+      }
+      
+      // Eliminar cualquier otro script dinámico que pueda haber sido añadido
+      const dynamicScripts = document.querySelectorAll(`script[src*="/JS/${window.activeScript}.js"]`);
+      dynamicScripts.forEach(script => script.remove());
+      
+      // Eliminar cualquier script adicional que pueda haber sido añadido sin src
+      const inlineScripts = document.querySelectorAll('script:not([src])');
+      inlineScripts.forEach(script => {
+        // Solo eliminar scripts que parezcan ser dinámicos (no los originales del HTML)
+        if (script.textContent.includes('initializeHistorial') || 
+            script.textContent.includes('refreshHistorial')) {
+          script.remove();
+        }
+      });
+    }
+    
+    // Limpiar variables globales específicas de historial
+    if (window.activeScript === 'historial') {
+      // Limpiar variables globales del historial
+      window.historialData = undefined;
+      window.filteredData = undefined;
+      window.currentFilter = undefined;
+      window.refreshHistorial = undefined;
+      window.initializeHistorial = undefined;
+      window.historialInitialized = undefined;
+      
+      // Limpiar otras variables que puedan interferir
+      window.contentGrid = undefined;
+      window.emptyState = undefined;
+      window.historialLoadingOverlay = undefined;
+      window.filterButtons = undefined;
+      window.confirmModal = undefined;
+      window.previewModal = undefined;
+      window.totalItems = undefined;
+      window.totalPdfs = undefined;
+      window.favType = undefined;
+      
+      // Eliminar event listeners específicos del historial
+      const filterButtons = document.querySelectorAll('.filter-btn');
+      if (filterButtons && filterButtons.length > 0) {
+        filterButtons.forEach(btn => {
+          const newBtn = btn.cloneNode(true);
+          if (btn.parentNode) {
+            btn.parentNode.replaceChild(newBtn, btn);
+          }
+        });
+      }
+      
+      // Eliminar otros elementos que puedan tener event listeners
+      const btnLimpiarHistorial = document.getElementById('btnLimpiarHistorial');
+      if (btnLimpiarHistorial) {
+        const newBtn = btnLimpiarHistorial.cloneNode(true);
+        if (btnLimpiarHistorial.parentNode) {
+          btnLimpiarHistorial.parentNode.replaceChild(newBtn, btnLimpiarHistorial);
+        }
+      }
+      
+      // Eliminar modales que puedan quedar abiertos
+      const modales = document.querySelectorAll('.modal-overlay');
+      modales.forEach(modal => {
+        modal.style.display = 'none';
+      });
+      
+      // Eliminar cualquier timeout o interval que pueda estar corriendo
+      // Esto es una medida extrema pero puede ayudar con problemas de memoria
+      const highestTimeoutId = setTimeout(";");
+      for (let i = 0; i < highestTimeoutId; i++) {
+        clearTimeout(i);
+      }
+      
+      console.log('🧹 Limpieza completa del historial realizada');
     }
   }
 

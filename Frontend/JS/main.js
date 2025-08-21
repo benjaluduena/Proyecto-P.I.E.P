@@ -1,6 +1,20 @@
 let isDropdownOpen = false;
 // Carga inicial
 function cargarSeccion(nombre) {
+  // Limpiar recursos de la sección anterior
+  if (window.cleanupHistorial && document.getElementById('historialContainer')) {
+    console.log('Limpiando recursos de historial antes de cargar nueva sección');
+    window.cleanupHistorial();
+  }
+  
+  // Eliminar scripts anteriores para evitar duplicados
+  const oldScripts = document.querySelectorAll('script[data-section]');
+  oldScripts.forEach(script => {
+    if (script.parentNode) {
+      script.parentNode.removeChild(script);
+    }
+  });
+  
   fetch(`Pages/${nombre}.html`)
     .then(res => res.text())
     .then(html => {
@@ -12,6 +26,16 @@ function cargarSeccion(nombre) {
       script.src = `/JS/${nombre}.js`; // Corregida la ruta
       script.type = 'text/javascript';
       script.defer = true;
+      script.setAttribute('data-section', nombre); // Marcar el script con la sección
+      
+      // Agregar evento para verificar que el script se cargó correctamente
+      script.onload = function() {
+        console.log(`Script ${nombre}.js cargado correctamente`);
+      };
+      script.onerror = function() {
+        console.error(`Error al cargar el script ${nombre}.js`);
+      };
+      
       document.body.appendChild(script);
 
       // Reasignar logout por si la sección cambia el DOM
@@ -19,7 +43,15 @@ function cargarSeccion(nombre) {
       
       // Si se está cargando la sección home, re-inicializarla
       if (nombre === 'home' && window.initializeHomeIfNeeded) {
-        setTimeout(() => window.initializeHomeIfNeeded(), 100);
+        console.log('Inicializando home después de cargar HTML...');
+        setTimeout(() => {
+          if (window.initializeHomeIfNeeded) {
+            window.initializeHomeIfNeeded();
+            console.log('Home inicializado correctamente');
+          } else {
+            console.error('Error: initializeHomeIfNeeded no está disponible');
+          }
+        }, 300);
       }
       
       // Si se está cargando la sección historial, inicializarla
@@ -28,12 +60,32 @@ function cargarSeccion(nombre) {
       }
     })
     .catch(err => {
+      console.error('Error al cargar sección:', err);
       document.getElementById('contenido').innerHTML = `<p>Error al cargar ${nombre}</p>`;
     });
 }
 
 // Carga inicial
-window.onload = () => cargarSeccion('home');
+window.onload = () => {
+  console.log('Evento window.onload disparado');
+  // Verificar que supabase esté disponible antes de cargar la sección home
+  if (window.supabase) {
+    console.log('Supabase disponible, cargando sección home');
+    cargarSeccion('home');
+  } else {
+    console.error('Supabase no disponible, esperando...');
+    // Esperar a que supabase esté disponible
+    setTimeout(() => {
+      if (window.supabase) {
+        console.log('Supabase disponible después de espera, cargando sección home');
+        cargarSeccion('home');
+      } else {
+        console.error('Supabase no disponible después de espera, cargando sección home de todos modos');
+        cargarSeccion('home');
+      }
+    }, 500);
+  }
+};
 
 // Función de logout mejorada
 async function logout() {
