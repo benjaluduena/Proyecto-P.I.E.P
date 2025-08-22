@@ -1,0 +1,34 @@
+@import url(/Css/Login-Register/General/variables.css);
+
+.form-container {
+    background: var(--white);
+    padding: 1.5rem 1.8rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-heavy);
+    text-align: center;
+    transition: var(--transition);
+    min-height: 450px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.form-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 60px rgba(162, 89, 250, 0.15);
+}
+
+
+.form-title {
+    color: var(--text-dark);
+    margin-bottom: 0.2rem;
+    font-weight: 700;
+    font-size: 1.6rem;
+}
+
+.form-subtitle {
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.3;
+}

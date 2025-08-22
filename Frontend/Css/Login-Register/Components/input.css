@@ -1,0 +1,37 @@
+@import url(/Css/Login-Register/General/variables.css);
+
+.input-group {
+    margin-bottom: 1rem;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+
+.input-group input,
+.input-group select {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius-small);
+  background: var(--white);
+  color: var(--text-dark);
+  font-size: 1rem;
+  transition: var(--transition);
+  font-family: 'Poppins', sans-serif;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(162, 89, 250, 0.1);
+}

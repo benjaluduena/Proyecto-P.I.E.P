@@ -27,8 +27,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Obtener parámetros de la URL
-    const urlParams = new URLSearchParams(window.location.search);
+// Obtener parámetros de la URL
+const urlParams = new URLSearchParams(window.location.search);
     pdfId = urlParams.get('pdfId');
     outputId = urlParams.get('outputId');
     fileName = urlParams.get('fileName');
@@ -278,10 +278,10 @@ function toggleExplanation() {
     
     if (isVisible) {
         vfExplanation.classList.remove('show');
-        explanationLink.innerHTML = 'Ver explicación <span class="arrow">></span>';
+        explanationLink.innerHTML = 'Ver explicación <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>';
     } else {
         vfExplanation.classList.add('show');
-        explanationLink.innerHTML = 'Ocultar explicación <span class="arrow">∧</span>';
+        explanationLink.innerHTML = 'Ocultar explicación <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>';
     }
 }
 
@@ -289,8 +289,8 @@ function toggleExplanation() {
 function setupCurrentQuestion() {
     if (currentQuestionIndex >= questions.length) {
         showResults();
-        return;
-    }
+    return;
+  }
 
     const currentQuestion = questions[currentQuestionIndex];
     
@@ -551,10 +551,10 @@ async function loadQuestions() {
         const { output } = responseData;
         console.log('Output extraído:', output);
         console.log('Tipo de contenido:', output.content);
+
+    let data;
         
-        let data;
-        
-        if (typeof output.content === 'string') {
+    if (typeof output.content === 'string') {
             try {
                 data = JSON.parse(output.content);
                 console.log('Contenido parseado como JSON:', data);
@@ -563,16 +563,16 @@ async function loadQuestions() {
                 console.log('Contenido que falló al parsear:', output.content);
                 data = {};
             }
-        } else {
-            data = output.content || {};
+    } else {
+      data = output.content || {};
             console.log('Contenido directo:', data);
-        }
-        
-        // Normalizar estructura mínima
-        if (!Array.isArray(data.preguntas)) {
+    }
+
+    // Normalizar estructura mínima
+    if (!Array.isArray(data.preguntas)) {
             console.warn('No se encontró array de preguntas, estructura:', data);
-            data = { preguntas: [] };
-        }
+      data = { preguntas: [] };
+    }
         
         console.log('Preguntas encontradas:', data.preguntas);
         
@@ -602,7 +602,7 @@ async function loadQuestions() {
         
         setupCurrentQuestion();
         
-    } catch (error) {
+  } catch (error) {
         console.error('Error completo al cargar preguntas:', error);
         console.error('Stack trace:', error.stack);
         showError(`Error al cargar las preguntas: ${error.message}`);
@@ -708,7 +708,7 @@ function showResults() {
     } else if (percentage >= 50) {
         message = '¡Bien! Tienes conocimientos básicos del tema.';
         color = 'var(--secondary-color)';
-    } else {
+  } else {
         message = '¡Sigue estudiando! Puedes mejorar tu conocimiento del tema.';
         color = 'var(--error-color)';
     }
