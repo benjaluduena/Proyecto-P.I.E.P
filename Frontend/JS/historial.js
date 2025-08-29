@@ -8,6 +8,56 @@ let currentFilter = 'all';
 let contentGrid, emptyState, filterButtons, confirmModal, previewModal;
 let totalItems, totalPdfs, favType;
 
+// Utilidades optimizadas
+const utils = {
+  // Debounce para optimizar eventos frecuentes
+  debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  },
+  
+  // Manejo optimizado de errores
+  handleError(error, context = 'Operación') {
+    const errorMessage = error?.message || error || 'Error desconocido';
+    if (process?.env?.NODE_ENV !== 'production') {
+      console.error(`❌ ${context}:`, errorMessage);
+    }
+    return errorMessage;
+  },
+  
+  // Formateo optimizado de fechas con cache
+  formatDate(dateString) {
+    if (!dateString) return 'Fecha desconocida';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Fecha inválida';
+      
+      // Cache del formateador para mejor rendimiento
+      if (!this.dateFormatter) {
+        this.dateFormatter = new Intl.DateTimeFormat('es-ES', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+      
+      return this.dateFormatter.format(date);
+    } catch (error) {
+      return 'Fecha inválida';
+    }
+  }
+};
+
 // Función local para hacer llamadas a la API con autenticación
 async function apiCall(url, options = {}) {
   // Obtener headers de autenticación
@@ -95,10 +145,19 @@ window.initializeHistorial = async function() {
   try {
     // Obtener elementos DOM
     getHistorialElements();
-    showLoading();
+    showLoading('🔄 Inicializando historial...');
+    
+    // Simular un pequeño delay para mostrar el loader
+    await new Promise(resolve => setTimeout(resolve, 800));
     
     // Cargar datos y actualizar la interfaz
     await loadHistorialData();
+    
+    // Configurar datos en el sistema de búsqueda avanzada
+    if (advancedSearch && historialData) {
+      advancedSearch.setData(historialData);
+    }
+    
     updateStats();
     renderContent();
     
@@ -252,6 +311,10 @@ let historialInitialized = false;
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     if (!historialInitialized) {
+      // Inicializar sistema de búsqueda avanzada
+      advancedSearch = new AdvancedSearchSystem();
+      advancedSearch.init();
+      
       window.initializeHistorial();
       historialInitialized = true;
     }
@@ -259,6 +322,10 @@ if (document.readyState === 'loading') {
 } else {
   // Si el DOM ya está listo, ejecutar inmediatamente
   if (!historialInitialized) {
+    // Inicializar sistema de búsqueda avanzada
+    advancedSearch = new AdvancedSearchSystem();
+    advancedSearch.init();
+    
     window.initializeHistorial();
     historialInitialized = true;
   }
@@ -272,19 +339,53 @@ function setupEventListeners() {
   const currentFilterButtons = document.querySelectorAll('.filter-btn');
   console.log(`🔘 Filter buttons encontrados: ${currentFilterButtons.length}`);
   
-  // Filtros
+  // Filtros con tooltips y retroalimentación mejorada
   currentFilterButtons.forEach(btn => {
+    // Añadir tooltips informativos
+    const filterType = btn.dataset.filter;
+    const tooltipTexts = {
+      'all': 'Mostrar todos los elementos',
+      'resumen': 'Mostrar solo resúmenes',
+      'flashcards': 'Mostrar solo flashcards',
+      'multiple-choice': 'Mostrar solo preguntas de opción múltiple',
+      'mapa-mental': 'Mostrar solo mapas mentales',
+      'preguntas-respuestas': 'Mostrar solo preguntas y respuestas'
+    };
+    btn.setAttribute('data-tooltip', tooltipTexts[filterType] || 'Filtrar contenido');
+    
     btn.addEventListener('click', (e) => {
+      // Añadir efecto de carga temporal
+      btn.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        btn.style.transform = '';
+      }, 150);
+      
       const filter = e.target.dataset.filter;
-      setActiveFilter(filter);
+      
+      // Integrar con el sistema de búsqueda avanzada
+      if (advancedSearch) {
+        advancedSearch.currentFilters.type = filter === 'all' ? 'all' : filter;
+        advancedSearch.applyFilters();
+      } else {
+        // Fallback al sistema anterior
+        setActiveFilter(filter);
+      }
       filterContent(filter);
     });
   });
 
-  // Botón limpiar historial
+  // Botón limpiar historial con tooltip y retroalimentación
   const btnLimpiarHistorial = document.getElementById('btnLimpiarHistorial');
   if (btnLimpiarHistorial) {
-    btnLimpiarHistorial.addEventListener('click', showConfirmModal);
+    btnLimpiarHistorial.setAttribute('data-tooltip', 'Eliminar todo el historial');
+    btnLimpiarHistorial.addEventListener('click', (e) => {
+      // Añadir efecto visual
+      e.target.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        e.target.style.transform = '';
+      }, 150);
+      showConfirmModal();
+    });
   }
 
   // Modal confirmación
@@ -319,41 +420,13 @@ function setupEventListeners() {
   }
 }
 
-// Inicializar historial
-async function initializeHistorial() {
-  console.log('🔧 Inicializando historial interno...');
-  
-  // Obtener elementos DOM
-  getHistorialElements();
-  
-  showLoading();
-  try {
-    const data = await loadHistorialData();
-    
-    if (Array.isArray(data) && data.length === 0) {
-      // No hay datos pero no es un error
-      updateStats();
-      renderContent(); // Esto mostrará el estado vacío
-    } else {
-      // Hay datos, actualizar UI
-      updateStats();
-      renderContent();
-    }
-  } catch (error) {
-    console.error('❌ Error inicializando historial:', error);
-    showError(error.message || 'Error al cargar el historial');
-  } finally {
-    hideLoading();
-  }
-  
-  // Marcar como inicializado
-  historialInitialized = true;
-}
+
 
 // Cargar datos del historial
 async function loadHistorialData() {
   try {
     console.log('🔄 Cargando datos del historial...');
+    showLoading('📚 Cargando tu historial de contenido...');
     
     // Obtener todos los PDFs del usuario
     const pdfResponse = await apiCall('/api/pdfs/my-pdfs', {
@@ -388,6 +461,9 @@ async function loadHistorialData() {
     // Para cada PDF, obtener su contenido generado
     historialData = [];
     let errorCount = 0;
+    
+    showLoading('📄 Procesando documentos PDF...');
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     for (const pdf of pdfs) {
       try {
@@ -425,6 +501,12 @@ async function loadHistorialData() {
 
     console.log(`🎯 Total items en historial: ${historialData.length}`, historialData);
 
+    // Mostrar progreso de procesamiento
+    if (historialData.length > 0) {
+      showLoading('⚡ Procesando contenido...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
     // Mostrar advertencia si hubo errores en algunos PDFs
     if (errorCount > 0) {
       console.warn(`⚠️ No se pudo cargar el contenido de ${errorCount} PDFs`);
@@ -433,6 +515,11 @@ async function loadHistorialData() {
     // Ordenar por fecha de creación (más reciente primero)
     historialData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     filteredData = [...historialData];
+    
+    // Configurar datos en el sistema de búsqueda avanzada si está disponible
+    if (advancedSearch) {
+      advancedSearch.setData(historialData);
+    }
     
     return historialData;
 
@@ -444,60 +531,98 @@ async function loadHistorialData() {
 
 // Actualizar estadísticas
 function updateStats() {
-  // Total items
-  if (totalItems) {
-    totalItems.textContent = historialData.length;
+  if (!historialData || !Array.isArray(historialData)) {
+    return;
   }
 
+  const dataLength = historialData.length;
+  
+  // Total items
+  if (totalItems) {
+    totalItems.textContent = dataLength;
+  }
+
+  if (dataLength === 0) {
+    if (totalPdfs) totalPdfs.textContent = '0';
+    if (favType) favType.textContent = '-';
+    return;
+  }
+
+  // Calcular estadísticas en una sola pasada
+  const uniquePdfs = new Set();
+  const typeCounts = {};
+  
+  historialData.forEach(item => {
+    // PDFs únicos
+    if (item.pdf_id) {
+      uniquePdfs.add(item.pdf_id);
+    }
+    
+    // Conteo de tipos
+    const type = getTypeDisplayName(item.type);
+    typeCounts[type] = (typeCounts[type] || 0) + 1;
+  });
+
   // Total PDFs únicos
-  const uniquePdfs = new Set(historialData.map(item => item.pdf_id));
   if (totalPdfs) {
     totalPdfs.textContent = uniquePdfs.size;
   }
 
   // Tipo más usado
-  const typeCounts = {};
-  historialData.forEach(item => {
-    const type = getTypeDisplayName(item.type);
-    typeCounts[type] = (typeCounts[type] || 0) + 1;
-  });
-
   const mostUsedType = Object.entries(typeCounts)
-    .sort(([,a], [,b]) => b - a)[0];
+    .reduce((max, current) => current[1] > max[1] ? current : max, ['', 0]);
 
   if (favType) {
-    favType.textContent = mostUsedType ? mostUsedType[0] : '-';
+    favType.textContent = mostUsedType[0] || '-';
   }
 }
 
 // Renderizar contenido
 function renderContent() {
   if (!contentGrid) {
-    console.error('Error: contentGrid no está definido');
+    console.error('❌ Error: contentGrid no encontrado');
     return;
   }
 
-  // Verificar si hay datos filtrados
-  if (!filteredData || !Array.isArray(filteredData) || filteredData.length === 0) {
-    console.log('No hay elementos para mostrar en el historial');
-    contentGrid.style.display = 'none';
+  // Si no hay datos filtrados, mostrar estado vacío
+  if (!filteredData || filteredData.length === 0) {
+    contentGrid.innerHTML = '';
+    contentGrid.classList.remove('loading');
     if (emptyState) {
       emptyState.style.display = 'flex';
     }
     return;
   }
 
-  // Mostrar grid y ocultar estado vacío
-  contentGrid.style.display = 'grid';
+  // Ocultar estado vacío si hay contenido
   if (emptyState) {
     emptyState.style.display = 'none';
   }
 
+  // Remover clase de carga y preparar para mostrar contenido
+  contentGrid.classList.remove('loading');
+  
+  // Usar renderizado optimizado según el tamaño de la lista
+  if (filteredData.length > 20) {
+    renderContentBatched();
+  } else {
+    renderContentDirect();
+  }
+  
+  // Aplicar transición suave después de un breve delay
+  setTimeout(() => {
+    contentGrid.style.opacity = '1';
+  }, 50);
+}
+
+// Renderizado directo para listas pequeñas
+function renderContentDirect() {
   // Limpiar contenido anterior
   contentGrid.innerHTML = '';
-
-  // Renderizar cada elemento
+  
+  const fragment = document.createDocumentFragment();
   let renderedCount = 0;
+  
   filteredData.forEach(item => {
     try {
       if (!item || !item.id) {
@@ -506,16 +631,19 @@ function renderContent() {
       }
       
       const card = createHistorialCard(item);
-      contentGrid.appendChild(card);
-      renderedCount++;
+      if (card) {
+        fragment.appendChild(card);
+        renderedCount++;
+      }
     } catch (error) {
       console.error('Error al renderizar item:', error, item);
     }
   });
   
-  console.log(`✅ Renderizados ${renderedCount} de ${filteredData.length} elementos`);
+  contentGrid.appendChild(fragment);
+  console.log(`✅ Renderizado directo completado: ${renderedCount} de ${filteredData.length} elementos`);
   
-  // Si no se pudo renderizar ningún elemento, mostrar estado vacío
+  // Si no se pudo renderizar ningún elemento, mostrar estado de error
   if (renderedCount === 0 && filteredData.length > 0) {
     console.warn('No se pudo renderizar ningún elemento a pesar de tener datos');
     contentGrid.innerHTML = `
@@ -526,26 +654,64 @@ function renderContent() {
         </button>
       </div>
     `;
-  } else if (renderedCount > 0) {
-    // Agregar el botón de limpiar historial después del último elemento
-    const clearHistoryContainer = document.createElement('div');
-    clearHistoryContainer.className = 'clear-history-container';
-    clearHistoryContainer.innerHTML = `
-      <button class="btn-action btn-danger" id="btnLimpiarHistorialBottom">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-        </svg>
-        Limpiar Todo
-      </button>
-    `;
-    contentGrid.parentNode.appendChild(clearHistoryContainer);
+  }
+}
+
+// Renderizado por lotes para listas grandes
+function renderContentBatched() {
+  // Limpiar contenido anterior
+  contentGrid.innerHTML = '';
+  
+  const batchSize = 10;
+  let currentIndex = 0;
+  let renderedCount = 0;
+  
+  function renderBatch() {
+    const fragment = document.createDocumentFragment();
+    const endIndex = Math.min(currentIndex + batchSize, filteredData.length);
     
-    // Agregar event listener al nuevo botón
-    const btnLimpiarHistorialBottom = document.getElementById('btnLimpiarHistorialBottom');
-    if (btnLimpiarHistorialBottom) {
-      btnLimpiarHistorialBottom.addEventListener('click', showConfirmModal);
+    for (let i = currentIndex; i < endIndex; i++) {
+      try {
+        const item = filteredData[i];
+        if (!item || !item.id) {
+          console.warn('Item inválido en filteredData:', item);
+          continue;
+        }
+        
+        const card = createHistorialCard(item);
+        if (card) {
+          fragment.appendChild(card);
+          renderedCount++;
+        }
+      } catch (error) {
+        console.error('Error al renderizar item:', error, filteredData[i]);
+      }
+    }
+    
+    contentGrid.appendChild(fragment);
+    currentIndex = endIndex;
+    
+    if (currentIndex < filteredData.length) {
+      requestAnimationFrame(renderBatch);
+    } else {
+      console.log(`✅ Renderizado por lotes completado: ${renderedCount} de ${filteredData.length} elementos`);
+      
+      // Si no se pudo renderizar ningún elemento, mostrar estado de error
+      if (renderedCount === 0 && filteredData.length > 0) {
+        console.warn('No se pudo renderizar ningún elemento a pesar de tener datos');
+        contentGrid.innerHTML = `
+          <div class="error-state">
+            <p>No se pudieron mostrar los elementos. Intenta refrescar la página.</p>
+            <button onclick="window.refreshHistorial()" class="btn-primary">
+              <i class="fas fa-sync-alt"></i> Reintentar
+            </button>
+          </div>
+        `;
+      }
     }
   }
+  
+  renderBatch();
 }
 
 // Crear tarjeta de historial
@@ -564,36 +730,34 @@ function createHistorialCard(item) {
   const typeName = getTypeDisplayName(item.type || 'unknown');
   const typeClass = `type-${item.type || 'unknown'}`;
   
-  // Manejar fechas inválidas
-  let dateStr = 'Fecha desconocida';
-  try {
-    if (item.created_at) {
-      const date = new Date(item.created_at);
-      if (!isNaN(date.getTime())) { // Verificar si la fecha es válida
-        dateStr = date.toLocaleDateString('es-ES', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      }
-    }
-  } catch (e) {
-    console.warn('Error al formatear fecha:', e);
-  }
+  // Formatear fecha usando utilidad optimizada
+  const dateStr = utils.formatDate(item.created_at);
 
   // Título seguro
   const safeTitle = item.pdf_title || item.pdf_file_name || 'Documento sin título';
 
+  // Generar vista previa inteligente del contenido
+  const contentPreview = generateContentPreview(item.content || item.contenido_generado, item.type);
+
+  // Determinar estado del elemento
+  const statusClass = item.status === 'processing' ? 'processing' : 
+                     item.status === 'error' ? 'error' : 'completed';
+  
+  // Determinar longitud del contenido para indicador
+  const contentLength = JSON.stringify(item.content || item.contenido_generado || {}).length;
+  const lengthClass = contentLength < 500 ? 'short' : contentLength < 2000 ? 'medium' : 'long';
+  const lengthText = contentLength < 500 ? 'Corto' : contentLength < 2000 ? 'Medio' : 'Largo';
+  
   card.innerHTML = `
+    <div class="status-indicator ${statusClass}"></div>
+    <div class="content-length-indicator ${lengthClass}">${lengthText}</div>
     <div class="card-header ${typeClass}">
       <div class="card-type">
         <span class="type-icon">${typeIcon}</span>
         <span class="type-name">${typeName}</span>
       </div>
       <div class="card-actions">
-        <button class="action-btn preview-btn" title="Vista previa" data-id="${item.id}">
+        <button class="action-btn preview-btn" title="Vista previa completa" data-id="${item.id}">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
           </svg>
@@ -607,9 +771,22 @@ function createHistorialCard(item) {
     </div>
     <div class="card-content">
       <h4 class="card-title">${safeTitle}</h4>
-      <p class="card-description">Contenido generado de tipo ${typeName}</p>
+      <div class="content-preview-section">
+        <div class="content-preview ${contentPreview.isLong ? 'expandable' : ''}" data-full-content='${JSON.stringify(item.content || item.contenido_generado || {}).replace(/'/g, '&apos;')}'>
+          ${contentPreview.preview}
+          ${contentPreview.isLong ? '<button class="expand-btn" title="Ver más"><i class="fas fa-chevron-down"></i></button>' : ''}
+        </div>
+        ${contentPreview.stats ? `<div class="content-stats"><i class="fas fa-info-circle"></i> ${contentPreview.stats}</div>` : ''}
+      </div>
       <div class="card-meta">
-        <span class="creation-date">${dateStr}</span>
+        <span class="creation-date">
+          <i class="fas fa-calendar-alt"></i>
+          ${dateStr}
+        </span>
+        <span class="content-source" title="Generado desde PDF">
+          <i class="fas fa-file-pdf"></i>
+          PDF
+        </span>
       </div>
     </div>
   `;
@@ -617,18 +794,95 @@ function createHistorialCard(item) {
   // Event listeners para los botones
   const previewBtn = card.querySelector('.preview-btn');
   const deleteBtn = card.querySelector('.delete-btn');
+  const expandBtn = card.querySelector('.expand-btn');
 
+  // Añadir tooltips informativos
   if (previewBtn) {
+    previewBtn.setAttribute('data-tooltip', 'Vista previa del contenido');
     previewBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      showPreview(item);
+      // Añadir estado de carga
+      previewBtn.classList.add('loading');
+      setTimeout(() => {
+        showEnhancedPreview(item);
+        previewBtn.classList.remove('loading');
+      }, 300);
     });
   }
 
   if (deleteBtn) {
+    deleteBtn.setAttribute('data-tooltip', 'Eliminar elemento');
     deleteBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      confirmDeleteItem(item.id);
+      // Añadir estado de carga
+      deleteBtn.classList.add('loading');
+      setTimeout(() => {
+        confirmDeleteItem(item.id);
+        deleteBtn.classList.remove('loading');
+      }, 200);
+    });
+  }
+
+  // Funcionalidad de expansión de contenido
+  if (expandBtn) {
+    expandBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const previewElement = card.querySelector('.content-preview');
+      const isExpanded = previewElement.classList.contains('expanded');
+      
+      if (isExpanded) {
+        // Contraer
+        previewElement.classList.remove('expanded');
+        previewElement.innerHTML = contentPreview.preview + '<button class="expand-btn" title="Ver más"><i class="fas fa-chevron-down"></i></button>';
+        // Re-agregar event listener
+        const newExpandBtn = previewElement.querySelector('.expand-btn');
+        if (newExpandBtn) {
+          newExpandBtn.addEventListener('click', arguments.callee);
+        }
+      } else {
+        // Expandir - mostrar contenido completo
+        previewElement.classList.add('expanded');
+        try {
+          const fullContentStr = previewElement.dataset.fullContent;
+          const fullContent = fullContentStr ? JSON.parse(fullContentStr) : {};
+          let expandedContent = '';
+          
+          switch (item.type) {
+            case 'resumen':
+              expandedContent = fullContent.resumen || fullContent.summary || 'Contenido de resumen no disponible';
+              break;
+            case 'flashcards':
+              const flashcards = fullContent.flashcards || fullContent.tarjetas || [];
+              expandedContent = `<div class="mini-flashcards">${flashcards.slice(0, 3).map(card => 
+                `<div class="mini-flashcard"><strong>P:</strong> ${card.pregunta || card.front || 'Pregunta'}</div>`
+              ).join('')}${flashcards.length > 3 ? `<div class="more-indicator">+${flashcards.length - 3} tarjetas más...</div>` : ''}</div>`;
+              break;
+            case 'multiple_choice':
+            case 'verdadero_falso':
+              const preguntas = fullContent.preguntas || fullContent.questions || [];
+              expandedContent = `<div class="mini-questions">${preguntas.slice(0, 2).map(q => 
+                `<div class="mini-question"><strong>P:</strong> ${q.pregunta || q.question || 'Pregunta'}</div>`
+              ).join('')}${preguntas.length > 2 ? `<div class="more-indicator">+${preguntas.length - 2} preguntas más...</div>` : ''}</div>`;
+              break;
+            default:
+              expandedContent = typeof fullContent === 'string' ? fullContent : 'Contenido estructurado disponible';
+          }
+          
+          previewElement.innerHTML = expandedContent + '<button class="expand-btn contracted" title="Ver menos"><i class="fas fa-chevron-up"></i></button>';
+          // Re-agregar event listener
+          const newExpandBtn = previewElement.querySelector('.expand-btn');
+          if (newExpandBtn) {
+            newExpandBtn.addEventListener('click', arguments.callee);
+          }
+        } catch (error) {
+          console.error('Error al expandir contenido:', error);
+          previewElement.innerHTML = 'Error al expandir contenido <button class="expand-btn contracted" title="Ver menos"><i class="fas fa-chevron-up"></i></button>';
+          const newExpandBtn = previewElement.querySelector('.expand-btn');
+          if (newExpandBtn) {
+            newExpandBtn.addEventListener('click', arguments.callee);
+          }
+        }
+      }
     });
   }
 
@@ -640,17 +894,118 @@ function createHistorialCard(item) {
   return card;
 }
 
+// Generar vista previa inteligente del contenido
+function generateContentPreview(content, type) {
+  if (!content) {
+    return {
+      preview: '<span class="no-content-preview">📭 Sin contenido disponible</span>',
+      isLong: false,
+      stats: null
+    };
+  }
+
+  try {
+    let parsedContent;
+    let previewText = '';
+    let stats = '';
+    
+    // Intentar parsear el contenido JSON
+    try {
+      parsedContent = typeof content === 'string' ? JSON.parse(content) : content;
+    } catch {
+      // Si no es JSON válido, usar como texto plano
+      parsedContent = content;
+    }
+
+    switch (type) {
+      case 'resumen':
+        const resumen = parsedContent.resumen || parsedContent.summary || parsedContent;
+        if (typeof resumen === 'string') {
+          previewText = resumen;
+          stats = `${Math.ceil(resumen.length / 5)} palabras aprox.`;
+        } else {
+          previewText = 'Resumen estructurado disponible';
+        }
+        break;
+        
+      case 'flashcards':
+        const flashcards = parsedContent.flashcards || parsedContent.tarjetas || [];
+        if (flashcards.length > 0) {
+          const firstCard = flashcards[0];
+          previewText = `<strong>Ejemplo:</strong> ${firstCard.pregunta || firstCard.front || 'Tarjeta de estudio'}`;
+          stats = `${flashcards.length} tarjetas`;
+        } else {
+          previewText = 'Conjunto de tarjetas de estudio';
+        }
+        break;
+        
+      case 'multiple_choice':
+      case 'verdadero_falso':
+        const preguntas = parsedContent.preguntas || parsedContent.questions || [];
+        if (preguntas.length > 0) {
+          const firstQuestion = preguntas[0];
+          previewText = `<strong>Ejemplo:</strong> ${firstQuestion.pregunta || firstQuestion.question || 'Pregunta de evaluación'}`;
+          stats = `${preguntas.length} preguntas`;
+        } else {
+          previewText = 'Conjunto de preguntas de evaluación';
+        }
+        break;
+        
+      case 'mapa_mental':
+        previewText = 'Mapa mental interactivo generado';
+        stats = 'Visualización conceptual';
+        break;
+        
+      case 'chat-qa':
+        previewText = 'Sesión de preguntas y respuestas interactiva';
+        stats = 'Chat educativo';
+        break;
+        
+      default:
+        // Para contenido desconocido, intentar extraer texto
+        const textContent = typeof parsedContent === 'string' ? parsedContent : JSON.stringify(parsedContent);
+        previewText = textContent;
+        break;
+    }
+
+    // Truncar texto si es muy largo
+    const maxLength = 120;
+    const isLong = previewText.length > maxLength;
+    
+    if (isLong) {
+      // Truncar en una palabra completa
+      const truncated = previewText.substring(0, maxLength);
+      const lastSpace = truncated.lastIndexOf(' ');
+      previewText = truncated.substring(0, lastSpace > 0 ? lastSpace : maxLength) + '...';
+    }
+
+    return {
+      preview: previewText,
+      isLong: isLong,
+      stats: stats
+    };
+    
+  } catch (error) {
+    console.error('Error generando vista previa:', error);
+    return {
+      preview: '<span class="error-preview">⚠️ Error al procesar contenido</span>',
+      isLong: false,
+      stats: null
+    };
+  }
+}
+
 // Obtener icono para tipo de contenido
 function getTypeIcon(type) {
   const icons = {
     'resumen': '📄',
     'multiple_choice': '❓',
     'verdadero_falso': '✅',
-    'flashcards': '🗃️',
+    'mapa_mental': '🧠',
+    'chat-qa': '💬',
     'problema': '🧮',
     'recomendacion_texto': '📚',
-    'recomendacion_video': '🎥',
-    'mapa_mental': '🧠'
+    'recomendacion_video': '🎥'
   };
 
   return icons[type] || '📝';
@@ -662,11 +1017,11 @@ function getTypeDisplayName(type) {
     'resumen': 'Resumen',
     'multiple_choice': 'Multiple Choice',
     'verdadero_falso': 'Verdadero/Falso',
-    'flashcards': 'Flashcards',
+    'mapa_mental': 'Mapa Mental',
+    'chat-qa': 'Preguntas y Respuestas',
     'problema': 'Problemas',
     'recomendacion_texto': 'Recomendaciones Texto',
-    'recomendacion_video': 'Recomendaciones Video',
-    'mapa_mental': 'Mapa Mental'
+    'recomendacion_video': 'Recomendaciones Video'
   };
 
   return names[type] || type;
@@ -690,8 +1045,7 @@ function filterContent(filter) {
       'resumen': 'resumen',
       'multiple_choice': 'multiple_choice',
       'verdadero_falso': 'verdadero_falso',
-      'mapa_mental': 'flashcards', // Los mapas mentales se guardan como flashcards con metadata
-      'flashcards': 'flashcards',
+      'mapa_mental': 'mapa_mental',
       'problema': 'problema',
       'recomendacion_texto': 'recomendacion_texto',
       'recomendacion_video': 'recomendacion_video',
@@ -700,24 +1054,7 @@ function filterContent(filter) {
 
     const dbType = filterMap[filter] || filter;
     
-    if (filter === 'mapa_mental') {
-      // Filtro especial para mapas mentales
-      filteredData = historialData.filter(item => {
-        try {
-          // Verificar si es un flashcard de tipo mapa mental
-          return item.type === 'flashcards' && 
-                 item.content && 
-                 (item.content.__type === 'mapa_mental' || 
-                  (typeof item.content === 'string' && 
-                   JSON.parse(item.content).__type === 'mapa_mental'));
-        } catch (e) {
-          console.warn('Error al procesar item para filtro mapa_mental:', e);
-          return false;
-        }
-      });
-    } else {
-      filteredData = historialData.filter(item => item.type === dbType);
-    }
+    filteredData = historialData.filter(item => item.type === dbType);
   }
 
   console.log(`✅ Filtrado completado: ${filteredData.length} elementos`);
@@ -822,35 +1159,58 @@ function renderPreviewContent(content, type) {
     case 'resumen':
       return `
         <div class="preview-resumen">
-          <h4>Resumen General</h4>
-          <div class="preview-content">${content.resumen_general || 'No disponible'}</div>
-          <h4>Conceptos Clave</h4>
-          <ul class="preview-list">
-            ${(content.conceptos_clave || []).map(concepto => `<li>${concepto}</li>`).join('')}
-          </ul>
-          <h4>Aplicaciones Prácticas</h4>
-          <ul class="preview-list">
-            ${(content.aplicaciones_practicas || []).map(app => `<li>${app}</li>`).join('')}
-          </ul>
+          <div class="preview-header">
+            <h4>📄 Resumen del Documento</h4>
+          </div>
+          <div class="resumen-section">
+            <h5 class="section-title">📋 Resumen General</h5>
+            <div class="preview-content">${content.resumen_general || 'No disponible'}</div>
+          </div>
+          ${(content.conceptos_clave && content.conceptos_clave.length > 0) ? `
+            <div class="resumen-section">
+              <h5 class="section-title">🔑 Conceptos Clave</h5>
+              <ul class="preview-list conceptos">
+                ${content.conceptos_clave.map(concepto => `<li><span class="bullet">•</span>${concepto}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+          ${(content.aplicaciones_practicas && content.aplicaciones_practicas.length > 0) ? `
+            <div class="resumen-section">
+              <h5 class="section-title">⚡ Aplicaciones Prácticas</h5>
+              <ul class="preview-list aplicaciones">
+                ${content.aplicaciones_practicas.map(app => `<li><span class="bullet">•</span>${app}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
         </div>
       `;
 
     case 'multiple_choice':
-      const preguntas = content.preguntas || [];
+      const preguntasMultiple = content.preguntas || [];
       return `
         <div class="preview-multiple-choice">
-          <h4>Preguntas (${preguntas.length} total)</h4>
-          ${preguntas.slice(0, 3).map((pregunta, index) => `
-            <div class="pregunta-preview">
-              <h5>${index + 1}. ${pregunta.enunciado}</h5>
-              <ul>
-                ${(pregunta.opciones || []).map((opcion, i) => `
-                  <li class="${i === pregunta.respuesta ? 'correcta' : ''}">${String.fromCharCode(65 + i)}. ${opcion}</li>
-                `).join('')}
-              </ul>
-            </div>
-          `).join('')}
-          ${preguntas.length > 3 ? `<p class="more-content"><em>... y ${preguntas.length - 3} preguntas más</em></p>` : ''}
+          <div class="preview-header">
+            <h4>📝 Preguntas de Opción Múltiple</h4>
+            <span class="question-count">${preguntasMultiple.length} preguntas</span>
+          </div>
+          <div class="preview-questions">
+            ${preguntasMultiple.slice(0, 3).map((pregunta, index) => `
+              <div class="pregunta-preview">
+                <div class="question-number">Pregunta ${index + 1}</div>
+                <h5 class="question-text">${pregunta.enunciado}</h5>
+                <ul class="options-list">
+                  ${(pregunta.opciones || []).map((opcion, i) => `
+                    <li class="option ${i === pregunta.respuesta ? 'correcta' : ''}">
+                      <span class="option-letter">${String.fromCharCode(65 + i)}</span>
+                      <span class="option-text">${opcion}</span>
+                      ${i === pregunta.respuesta ? '<span class="correct-indicator">✓</span>' : ''}
+                    </li>
+                  `).join('')}
+                </ul>
+              </div>
+            `).join('')}
+          </div>
+          ${preguntasMultiple.length > 3 ? `<div class="more-content">📋 <em>Ver ${preguntasMultiple.length - 3} preguntas adicionales en vista completa</em></div>` : ''}
         </div>
       `;
 
@@ -858,98 +1218,346 @@ function renderPreviewContent(content, type) {
       const preguntasVF = content.preguntas || [];
       return `
         <div class="preview-verdadero-falso">
-          <h4>Preguntas V/F (${preguntasVF.length} total)</h4>
-          ${preguntasVF.slice(0, 5).map((pregunta, index) => `
-            <div class="pregunta-vf-preview">
-              <p><strong>${index + 1}.</strong> ${pregunta.enunciado}</p>
-              <p class="respuesta-${pregunta.respuesta}">${pregunta.respuesta?.toUpperCase()}</p>
-            </div>
-          `).join('')}
-          ${preguntasVF.length > 5 ? `<p class="more-content"><em>... y ${preguntasVF.length - 5} preguntas más</em></p>` : ''}
+          <div class="preview-header">
+            <h4>✅ Preguntas Verdadero/Falso</h4>
+            <span class="question-count">${preguntasVF.length} preguntas</span>
+          </div>
+          <div class="vf-questions">
+            ${preguntasVF.slice(0, 5).map((pregunta, index) => `
+              <div class="pregunta-vf-preview">
+                <div class="question-number">Pregunta ${index + 1}</div>
+                <p class="vf-statement">${pregunta.enunciado}</p>
+                <div class="vf-answer ${pregunta.respuesta}">
+                  <span class="answer-indicator">${pregunta.respuesta === 'verdadero' ? '✓' : '✗'}</span>
+                  <span class="answer-text">${pregunta.respuesta?.toUpperCase()}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          ${preguntasVF.length > 5 ? `<div class="more-content">📝 <em>Ver ${preguntasVF.length - 5} preguntas adicionales en vista completa</em></div>` : ''}
         </div>
       `;
 
-    case 'flashcards':
-      // Verificar si es realmente un resumen (que se guardó incorrectamente como flashcard)
-      if (content.resumen_general || content.conceptos_clave || content.aplicaciones_practicas) {
-        return `
-          <div class="preview-resumen">
-            <h4>Resumen General</h4>
-            <div class="preview-content">${content.resumen_general || 'No disponible'}</div>
-            ${content.conceptos_clave ? `
-              <h4>Conceptos Clave</h4>
-              <ul class="preview-list">
-                ${(content.conceptos_clave || []).map(concepto => `<li>${concepto}</li>`).join('')}
-              </ul>
-            ` : ''}
-            ${content.aplicaciones_practicas ? `
-              <h4>Aplicaciones Prácticas</h4>
-              <ul class="preview-list">
-                ${(content.aplicaciones_practicas || []).map(app => `<li>${app}</li>`).join('')}
-              </ul>
-            ` : ''}
+    case 'mapa_mental':
+      return `
+        <div class="preview-mapa-mental">
+          <div class="preview-header">
+            <h4>🧠 ${content.titulo || 'Mapa Mental'}</h4>
           </div>
-        `;
-      } else if (content.__type === 'mapa_mental') {
-        return `
-          <div class="preview-mapa-mental">
-            <h4>${content.titulo || 'Mapa Mental'}</h4>
-            <div class="mapa-preview-container">
+          <div class="mapa-preview-container">
+            <div class="markmap-preview-wrapper">
               <pre class="markmap-preview">${content.markmap || 'No disponible'}</pre>
-              <p class="preview-action">Haz clic para ver el mapa completo</p>
+              <div class="preview-overlay">
+                <div class="preview-action">
+                  <span class="action-icon">🔍</span>
+                  <span>Haz clic en "Abrir Completo" para ver el mapa interactivo</span>
+                </div>
+              </div>
             </div>
-            ${content.notas && content.notas.length > 0 ? `
-              <h5>Notas:</h5>
-              <ul class="preview-list">
-                ${content.notas.map(nota => `<li>${nota}</li>`).join('')}
-              </ul>
-            ` : ''}
           </div>
-        `;
-      }
-      return '<p>Contenido de flashcards no disponible en vista previa</p>';
+          ${content.notas && content.notas.length > 0 ? `
+            <div class="resumen-section">
+              <h5 class="section-title">📝 Notas Adicionales</h5>
+              <ul class="preview-list notas">
+                ${content.notas.map(nota => `<li><span class="bullet">•</span>${nota}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+    case 'chat-qa':
+      const preguntasChat = content.preguntas || content.conversacion || [];
+      return `
+        <div class="preview-chat-qa">
+          <div class="preview-header">
+            <h4>💬 Preguntas y Respuestas</h4>
+            <span class="question-count">${preguntasChat.length} intercambios</span>
+          </div>
+          <div class="chat-preview">
+            ${preguntasChat.slice(0, 3).map((item, index) => `
+              <div class="qa-preview">
+                <div class="question">
+                  <div class="q-indicator">P${index + 1}</div>
+                  <div class="q-text">${item.pregunta || item.question || 'Pregunta no disponible'}</div>
+                </div>
+                <div class="answer">
+                  <div class="a-indicator">R</div>
+                  <div class="a-text">${(item.respuesta || item.answer || 'Respuesta no disponible').substring(0, 200)}${(item.respuesta || item.answer || '').length > 200 ? '...' : ''}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          ${preguntasChat.length > 3 ? `<div class="more-content">💭 <em>Ver ${preguntasChat.length - 3} intercambios adicionales en vista completa</em></div>` : ''}
+        </div>
+       `;
+
+    case 'flashcards':
+      const flashcards = content.flashcards || content.tarjetas || [];
+      return `
+        <div class="preview-flashcards">
+          <div class="preview-header">
+            <h4>🎴 Flashcards</h4>
+            <span class="question-count">${flashcards.length} tarjetas</span>
+          </div>
+          <div class="flashcards-preview">
+            ${flashcards.slice(0, 3).map((card, index) => `
+              <div class="flashcard-preview">
+                <div class="card-number">Tarjeta ${index + 1}</div>
+                <div class="card-front">
+                  <div class="card-label">Pregunta:</div>
+                  <div class="card-content">${card.pregunta || card.front || 'No disponible'}</div>
+                </div>
+                <div class="card-back">
+                  <div class="card-label">Respuesta:</div>
+                  <div class="card-content">${card.respuesta || card.back || 'No disponible'}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          ${flashcards.length > 3 ? `<div class="more-content">🎴 <em>Ver ${flashcards.length - 3} tarjetas adicionales en vista completa</em></div>` : ''}
+        </div>
+      `;
 
     default:
-      return `<pre class="json-preview">${JSON.stringify(content, null, 2)}</pre>`;
+      return `
+        <div class="preview-default">
+          <div class="preview-header">
+            <h4>📄 Contenido Original</h4>
+          </div>
+          <div class="json-preview-wrapper">
+            <pre class="json-preview">${JSON.stringify(content, null, 2)}</pre>
+          </div>
+        </div>
+      `;
   }
 }
 
 // Abrir contenido completo
-function openContent(item) {
+async function openContent(item) {
+  console.log('Abriendo contenido:', item);
+  
   // Determinar qué página abrir según el tipo
   const pageMap = {
     'resumen': 'resumen.html',
     'multiple_choice': 'multiple-choice.html',
     'verdadero_falso': 'verdadero-falso.html',
-    'flashcards': content => {
-      if (content.__type === 'mapa_mental') {
-        return 'mapa-mental.html';
-      }
-      return null; // No hay página específica para flashcards normales
-    }
+    'mapa_mental': 'mapa-mental.html',
+    'chat-qa': 'chat-qa.html',
+    'flashcards': 'flashcards.html'
   };
 
-  let page = pageMap[item.type];
-  if (typeof page === 'function') {
-    // Para casos especiales como mapas mentales
-    page = page(item.content);
-  }
+  const page = pageMap[item.type];
 
   if (page) {
-    // Limpiar recursos antes de navegar
-    cleanupHistorial();
+    // Mostrar indicador de carga
+    showLoading('🔄 Obteniendo contenido completo...');
     
-    // Guardar datos para la siguiente página
-    sessionStorage.setItem('currentContent', JSON.stringify({
-      outputId: item.id,
-      pdfId: item.pdf_id,
-      pdfTitle: item.pdf_title,
-      type: item.type
-    }));
+    try {
+      // Obtener el contenido completo de la base de datos
+      const response = await apiCall(`/api/ai/content/${item.id}`, {
+        method: 'GET'
+      });
 
-    window.location.href = `/${page}`;
+      if (!response || !response.ok) {
+        throw new Error(`Error obteniendo contenido: ${response?.status || 'Sin respuesta'}`);
+      }
+
+      const data = await response.json();
+      const fullContent = data.output?.content;
+      
+      if (!fullContent) {
+        throw new Error('El contenido está vacío o tiene un formato inválido');
+      }
+      
+      // Limpiar recursos antes de navegar
+      cleanupHistorial();
+      
+      // Guardar datos completos para la siguiente página
+      const contentData = {
+        outputId: item.id,
+        pdfId: item.pdf_id,
+        pdfTitle: item.pdf_title,
+        type: item.type,
+        content: fullContent, // Usar el contenido completo de la API
+        createdAt: item.created_at,
+        pages: item.pages || [],
+        originalContent: fullContent
+      };
+      
+      sessionStorage.setItem('currentContent', JSON.stringify(contentData));
+      
+      // Verificar que los datos se guardaron correctamente
+      const savedData = sessionStorage.getItem('currentContent');
+      if (!savedData) {
+        throw new Error('No se pudieron guardar los datos del contenido');
+      }
+      
+      console.log('Datos completos guardados para navegación:', contentData);
+      
+      // Navegar a la página específica
+      window.location.href = `/${page}`;
+      
+    } catch (error) {
+      console.error('Error obteniendo contenido completo:', error);
+      hideLoading();
+      showNotification('error', `Error al cargar el contenido: ${error.message}`, '❌');
+      
+      // Como fallback, mostrar vista previa mejorada
+      showEnhancedPreview(item);
+    }
   } else {
-    showPreview(item);
+    console.log('No hay página específica para el tipo:', item.type);
+    // Si no hay página específica, mostrar vista previa mejorada
+    showEnhancedPreview(item);
+  }
+}
+
+// Vista previa mejorada para contenidos sin página específica
+function showEnhancedPreview(item) {
+  console.log('Mostrando vista previa mejorada para:', item);
+  
+  // Crear modal de vista completa
+  const fullViewModal = document.createElement('div');
+  fullViewModal.className = 'full-view-modal';
+  fullViewModal.innerHTML = `
+    <div class="full-view-content">
+      <div class="full-view-header">
+        <h2>${getTypeIcon(item.type)} ${getTypeDisplayName(item.type)}</h2>
+        <div class="full-view-meta">
+          <span class="pdf-title">📄 ${item.pdf_title}</span>
+          <span class="creation-date">📅 ${new Date(item.created_at).toLocaleDateString('es-ES')}</span>
+        </div>
+        <button class="close-full-view" onclick="closeFullView()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="full-view-body">
+        ${renderFullContent(item.content, item.type)}
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(fullViewModal);
+  
+  // Función global para cerrar
+  window.closeFullView = function() {
+    if (fullViewModal && fullViewModal.parentNode) {
+      fullViewModal.parentNode.removeChild(fullViewModal);
+    }
+    delete window.closeFullView;
+  };
+  
+  // Cerrar con ESC
+  const handleEsc = (e) => {
+    if (e.key === 'Escape') {
+      window.closeFullView();
+      document.removeEventListener('keydown', handleEsc);
+    }
+  };
+  document.addEventListener('keydown', handleEsc);
+}
+
+// Renderizar contenido completo
+function renderFullContent(content, type) {
+  if (!content) {
+    return '<div class="no-content">📭 No hay contenido disponible</div>';
+  }
+  
+  try {
+    const parsedContent = typeof content === 'string' ? JSON.parse(content) : content;
+    
+    switch (type) {
+      case 'flashcards':
+        const flashcards = parsedContent.flashcards || parsedContent.tarjetas || [];
+        return `
+          <div class="full-flashcards">
+            <div class="flashcards-grid">
+              ${flashcards.map((card, index) => `
+                <div class="flashcard-full">
+                  <div class="flashcard-number">Tarjeta ${index + 1}</div>
+                  <div class="flashcard-sides">
+                    <div class="flashcard-side front">
+                      <div class="side-label">Pregunta</div>
+                      <div class="side-content">${card.pregunta || card.front || 'No disponible'}</div>
+                    </div>
+                    <div class="flashcard-side back">
+                      <div class="side-label">Respuesta</div>
+                      <div class="side-content">${card.respuesta || card.back || 'No disponible'}</div>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        
+      case 'resumen':
+        const resumen = parsedContent.resumen || parsedContent.summary || parsedContent;
+        return `
+          <div class="full-resumen">
+            <div class="resumen-content">
+              ${typeof resumen === 'string' ? `<p>${resumen}</p>` : `<pre>${JSON.stringify(resumen, null, 2)}</pre>`}
+            </div>
+          </div>
+        `;
+        
+      case 'multiple_choice':
+      case 'verdadero_falso':
+        const preguntas = parsedContent.preguntas || parsedContent.questions || [];
+        return `
+          <div class="full-preguntas">
+            <div class="preguntas-list">
+              ${preguntas.map((pregunta, index) => `
+                <div class="pregunta-full">
+                  <div class="pregunta-number">Pregunta ${index + 1}</div>
+                  <div class="pregunta-text">${pregunta.pregunta || pregunta.question || 'No disponible'}</div>
+                  ${pregunta.opciones ? `
+                    <div class="opciones-list">
+                      ${pregunta.opciones.map((opcion, i) => `
+                        <div class="opcion ${pregunta.respuesta_correcta === String.fromCharCode(97 + i) ? 'correcta' : ''}">
+                          <span class="opcion-letra">${String.fromCharCode(97 + i)})</span>
+                          <span class="opcion-texto">${opcion}</span>
+                        </div>
+                      `).join('')}
+                    </div>
+                  ` : ''}
+                  ${pregunta.respuesta_correcta ? `
+                    <div class="respuesta-correcta">
+                      <strong>Respuesta correcta:</strong> ${pregunta.respuesta_correcta}
+                    </div>
+                  ` : ''}
+                  ${pregunta.explicacion ? `
+                    <div class="explicacion">
+                      <strong>Explicación:</strong> ${pregunta.explicacion}
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        
+      default:
+        return `
+          <div class="full-content-json">
+            <pre class="json-display">${JSON.stringify(parsedContent, null, 2)}</pre>
+          </div>
+        `;
+    }
+  } catch (error) {
+    console.error('Error renderizando contenido completo:', error);
+    return `
+      <div class="content-error">
+        <p>❌ Error al mostrar el contenido</p>
+        <details>
+          <summary>Contenido original</summary>
+          <pre>${typeof content === 'string' ? content : JSON.stringify(content, null, 2)}</pre>
+        </details>
+      </div>
+    `;
   }
 }
 
@@ -1008,73 +1616,161 @@ function confirmDeleteItem(outputId) {
 // Eliminar item
 async function deleteItem(outputId) {
   try {
-    showLoading();
+    showLoading('🗑️ Eliminando contenido...');
+
+    // Validar que el outputId existe
+    if (!outputId) {
+      throw new Error('ID de contenido no válido');
+    }
+
+    console.log('Eliminando contenido con ID:', outputId);
 
     const response = await apiCall(`/api/ai/content/${outputId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
     });
 
     if (!response || !response.ok) {
-      throw new Error('No se pudo eliminar el contenido');
+      const errorData = await response.text();
+      console.error('Error del servidor:', errorData);
+      throw new Error(`Error del servidor: ${response.status}`);
     }
 
+    console.log('Contenido eliminado exitosamente del servidor');
+
     // Actualizar datos locales
+    const originalLength = historialData.length;
     historialData = historialData.filter(item => item.id !== outputId);
+    
+    if (historialData.length === originalLength) {
+      console.warn('El item no se encontró en los datos locales');
+    }
+
+    // Actualizar filtros y estadísticas
     filterContent(currentFilter);
     updateStats();
-    renderContent(); // Volver a renderizar el contenido
+    renderContent();
+
+    console.log('Datos locales actualizados correctamente');
 
     // Mostrar notificación de éxito
-    const notification = document.createElement('div');
-    notification.className = 'notification success';
-    notification.innerHTML = `
-      <div class="notification-content">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-        </svg>
-        <span>Contenido eliminado correctamente</span>
-      </div>
-    `;
-    document.body.appendChild(notification);
-    
-    // Eliminar la notificación después de 3 segundos
-    setTimeout(() => {
-      notification.classList.add('fade-out');
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.parentNode.removeChild(notification);
-        }
-      }, 300);
-    }, 3000);
+    showNotification('success', 'Contenido eliminado correctamente', '✅');
 
   } catch (error) {
     console.error('Error eliminando contenido:', error);
     
-    // Mostrar notificación de error
-    const notification = document.createElement('div');
-    notification.className = 'notification error';
-    notification.innerHTML = `
-      <div class="notification-content">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-        </svg>
-        <span>Error al eliminar el contenido</span>
-      </div>
-    `;
-    document.body.appendChild(notification);
+    // Mostrar notificación de error específica
+    let errorMessage = 'Error al eliminar el contenido';
+    if (error.message.includes('404')) {
+      errorMessage = 'El contenido ya no existe';
+    } else if (error.message.includes('403')) {
+      errorMessage = 'No tienes permisos para eliminar este contenido';
+    } else if (error.message.includes('500')) {
+      errorMessage = 'Error interno del servidor';
+    }
     
-    // Eliminar la notificación después de 3 segundos
+    showNotification('error', errorMessage, '❌');
+  } finally {
+    hideLoading();
+  }
+}
+
+// Función auxiliar para mostrar notificaciones usando el sistema existente
+function showNotification(type, message, icon) {
+  // Usar el sistema de notificaciones existente del proyecto
+  if (window.app && window.app.uiModule) {
+    window.app.uiModule.showNotification(message, type);
+    return;
+  }
+  
+  // Fallback: usar el sistema de notificaciones de home.js si está disponible
+  if (typeof window.showNotification === 'function') {
+    window.showNotification(message, type);
+    return;
+  }
+  
+  // Fallback final: crear notificación simple
+  const notification = document.createElement('div');
+  notification.className = `notification notification-${type}`;
+  
+  const colors = {
+    success: '#4CAF50',
+    error: '#f44336',
+    warning: '#ff9800',
+    info: '#2196F3'
+  };
+
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${colors[type] || colors.info};
+    color: white;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    z-index: 10000;
+    max-width: 300px;
+  `;
+
+  notification.innerHTML = `
+    <span>${message}</span>
+    <button style="
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    ">&times;</button>
+  `;
+
+  document.body.appendChild(notification);
+  
+  // Animar entrada
+  setTimeout(() => {
+    notification.style.transform = 'translateX(0)';
+    notification.style.opacity = '1';
+  }, 10);
+
+  // Click para cerrar
+  notification.addEventListener('click', () => {
+    notification.style.transform = 'translateX(100%)';
+    notification.style.opacity = '0';
     setTimeout(() => {
-      notification.classList.add('fade-out');
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 300);
+  });
+
+  // Auto-remove después de 5 segundos
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.style.transform = 'translateX(100%)';
+      notification.style.opacity = '0';
       setTimeout(() => {
         if (notification.parentNode) {
           notification.parentNode.removeChild(notification);
         }
       }, 300);
-    }, 3000);
-  } finally {
-    hideLoading();
-  }
+    }
+  }, 5000);
 }
 
 // Mostrar modal de confirmación
@@ -1129,16 +1825,57 @@ async function confirmClearHistory() {
 }
 
 // Mostrar loading usando módulo UI global
-function showLoading() {
+function showLoading(message = 'Cargando historial...') {
+  // Usar módulo UI global si está disponible
   if (window.app && window.app.uiModule) {
-    window.app.uiModule.showLoading('Cargando historial...');
+    window.app.uiModule.showLoading(message);
+  }
+  
+  // Mostrar indicador de carga mejorado en el área de contenidos
+  if (contentGrid) {
+    contentGrid.classList.add('loading');
+    contentGrid.innerHTML = `
+      <div class="historial-loading">
+        <div class="historial-loading-content">
+          <div class="loading-spinner-modern">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+          </div>
+          <div class="historial-loading-text">
+            <h3 class="loading-title">${message}</h3>
+            <p class="loading-subtitle">Por favor espera mientras procesamos tu información</p>
+            <div class="loading-progress">
+              <div class="progress-bar"></div>
+            </div>
+            <div class="historial-loading-dots">
+              <div class="historial-loading-dot"></div>
+              <div class="historial-loading-dot"></div>
+              <div class="historial-loading-dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  // Ocultar estado vacío mientras carga
+  if (emptyState) {
+    emptyState.style.display = 'none';
   }
 }
 
 // Ocultar loading usando módulo UI global
 function hideLoading() {
+  // Ocultar módulo UI global si está disponible
   if (window.app && window.app.uiModule) {
     window.app.uiModule.hideLoading();
+  }
+  
+  // Remover animación del área de contenidos
+  if (contentGrid) {
+    contentGrid.classList.remove('loading');
+    // El contenido se mostrará cuando se llame a renderContent()
   }
 }
 
@@ -1150,7 +1887,7 @@ function showError(message) {
       <div class="error-state">
         <h3>Error</h3>
         <p>${message}</p>
-        <button onclick="refreshHistorial()" class="btn-primary">
+        <button onclick="window.refreshHistorial()" class="btn-primary">
           <i class="fas fa-sync-alt"></i> Reintentar
         </button>
       </div>
@@ -1167,4 +1904,523 @@ function showError(message) {
   }
 }
 
-console.log('Historial JavaScript cargado');
+// Sistema de búsqueda y filtrado avanzado
+class AdvancedSearchSystem {
+    constructor() {
+        this.searchInput = null;
+        this.sortSelect = null;
+        this.dateFromInput = null;
+        this.dateToInput = null;
+        this.searchTimeout = null;
+        this.currentFilters = {
+            search: '',
+            type: 'all',
+            dateFrom: null,
+            dateTo: null,
+            sortBy: 'date-desc'
+        };
+        this.originalData = [];
+        this.filteredData = [];
+    }
+
+    init() {
+        this.createSearchInterface();
+        this.bindEvents();
+    }
+
+    createSearchInterface() {
+        const headerActions = document.querySelector('.header-actions');
+        if (!headerActions) return;
+
+        // Crear contenedor de búsqueda avanzada
+        const searchContainer = document.createElement('div');
+        searchContainer.className = 'advanced-search-container';
+        searchContainer.innerHTML = `
+            <div class="search-row">
+                <div class="search-input-container">
+                    <input type="text" id="search-input" placeholder="Buscar en el historial..." class="search-input">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </div>
+                <button class="advanced-filters-toggle" id="filters-toggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46"></polygon>
+                    </svg>
+                    Filtros
+                </button>
+            </div>
+            <div class="advanced-filters" id="advanced-filters" style="display: none;">
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label for="sort-select">Ordenar por:</label>
+                        <select id="sort-select" class="filter-select">
+                            <option value="date-desc">Más reciente</option>
+                            <option value="date-asc">Más antiguo</option>
+                            <option value="title-asc">Título A-Z</option>
+                            <option value="title-desc">Título Z-A</option>
+                            <option value="type">Tipo de contenido</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="date-from">Desde:</label>
+                        <input type="date" id="date-from" class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                        <label for="date-to">Hasta:</label>
+                        <input type="date" id="date-to" class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                        <button class="clear-filters-btn" id="clear-filters">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                            Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        headerActions.insertBefore(searchContainer, headerActions.firstChild);
+        this.bindSearchElements();
+    }
+
+    bindSearchElements() {
+        this.searchInput = document.getElementById('search-input');
+        this.sortSelect = document.getElementById('sort-select');
+        this.dateFromInput = document.getElementById('date-from');
+        this.dateToInput = document.getElementById('date-to');
+        this.filtersToggle = document.getElementById('filters-toggle');
+        this.advancedFilters = document.getElementById('advanced-filters');
+        this.clearFiltersBtn = document.getElementById('clear-filters');
+    }
+
+    bindEvents() {
+        if (!this.searchInput) return;
+
+        // Búsqueda en tiempo real
+        this.searchInput.addEventListener('input', (e) => {
+            clearTimeout(this.searchTimeout);
+            this.searchTimeout = setTimeout(() => {
+                this.currentFilters.search = e.target.value.toLowerCase();
+                this.applyFilters();
+            }, 300);
+        });
+
+        // Toggle filtros avanzados
+        this.filtersToggle?.addEventListener('click', () => {
+            const isVisible = this.advancedFilters.style.display !== 'none';
+            this.advancedFilters.style.display = isVisible ? 'none' : 'block';
+            this.filtersToggle.classList.toggle('active', !isVisible);
+        });
+
+        // Ordenamiento
+        this.sortSelect?.addEventListener('change', (e) => {
+            this.currentFilters.sortBy = e.target.value;
+            this.applyFilters();
+        });
+
+        // Filtros de fecha
+        this.dateFromInput?.addEventListener('change', (e) => {
+            this.currentFilters.dateFrom = e.target.value ? new Date(e.target.value) : null;
+            this.applyFilters();
+        });
+
+        this.dateToInput?.addEventListener('change', (e) => {
+            this.currentFilters.dateTo = e.target.value ? new Date(e.target.value) : null;
+            this.applyFilters();
+        });
+
+        // Limpiar filtros
+        this.clearFiltersBtn?.addEventListener('click', () => {
+            this.clearAllFilters();
+        });
+
+        // Mejorar filtros existentes
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const type = e.target.dataset.type || 'all';
+                this.currentFilters.type = type;
+                this.applyFilters();
+            });
+        });
+    }
+
+    setData(data) {
+        this.originalData = [...data];
+        this.filteredData = [...data];
+    }
+
+    applyFilters() {
+        let filtered = [...this.originalData];
+
+        // Filtro de búsqueda por texto
+        if (this.currentFilters.search) {
+            filtered = filtered.filter(item => {
+                const searchText = this.currentFilters.search;
+                return (
+                    item.title?.toLowerCase().includes(searchText) ||
+                    item.content?.toLowerCase().includes(searchText) ||
+                    item.type?.toLowerCase().includes(searchText) ||
+                    item.source?.toLowerCase().includes(searchText)
+                );
+            });
+        }
+
+        // Filtro por tipo
+        if (this.currentFilters.type && this.currentFilters.type !== 'all') {
+            filtered = filtered.filter(item => item.type === this.currentFilters.type);
+        }
+
+        // Filtro por fecha
+        if (this.currentFilters.dateFrom) {
+            filtered = filtered.filter(item => {
+                const itemDate = new Date(item.created_at);
+                return itemDate >= this.currentFilters.dateFrom;
+            });
+        }
+
+        if (this.currentFilters.dateTo) {
+            filtered = filtered.filter(item => {
+                const itemDate = new Date(item.created_at);
+                const toDate = new Date(this.currentFilters.dateTo);
+                toDate.setHours(23, 59, 59, 999); // Incluir todo el día
+                return itemDate <= toDate;
+            });
+        }
+
+        // Aplicar ordenamiento
+        filtered = this.sortData(filtered, this.currentFilters.sortBy);
+
+        this.filteredData = filtered;
+        this.renderFilteredResults();
+        this.updateResultsCount();
+    }
+
+    sortData(data, sortBy) {
+        const sorted = [...data];
+        
+        switch (sortBy) {
+            case 'date-desc':
+                return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            case 'date-asc':
+                return sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            case 'title-asc':
+                return sorted.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+            case 'title-desc':
+                return sorted.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+            case 'type':
+                return sorted.sort((a, b) => (a.type || '').localeCompare(b.type || ''));
+            default:
+                return sorted;
+        }
+    }
+
+    renderFilteredResults() {
+        const contentGrid = document.querySelector('.content-grid');
+        if (!contentGrid) return;
+
+        if (this.filteredData.length === 0) {
+            this.showNoResults();
+            return;
+        }
+
+        // Usar el sistema de renderizado existente pero con datos filtrados
+        if (window.renderContentDirect) {
+            window.renderContentDirect(this.filteredData);
+        } else {
+            // Fallback al renderizado básico
+            contentGrid.innerHTML = '';
+            this.filteredData.forEach(item => {
+                const card = createHistorialCard(item);
+                contentGrid.appendChild(card);
+            });
+        }
+    }
+
+    showNoResults() {
+        const contentGrid = document.querySelector('.content-grid');
+        if (!contentGrid) return;
+
+        contentGrid.innerHTML = `
+            <div class="no-results-state">
+                <div class="no-results-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                        <line x1="11" y1="8" x2="11" y2="12"></line>
+                        <line x1="11" y1="16" x2="11.01" y2="16"></line>
+                    </svg>
+                </div>
+                <h3>No se encontraron resultados</h3>
+                <p>Intenta ajustar los filtros de búsqueda o usar términos diferentes.</p>
+                <button class="clear-search-btn" onclick="advancedSearch.clearAllFilters()">
+                    Limpiar búsqueda
+                </button>
+            </div>
+        `;
+    }
+
+    updateResultsCount() {
+        const totalCount = this.originalData.length;
+        const filteredCount = this.filteredData.length;
+        
+        // Actualizar contador en la interfaz
+        let resultsCounter = document.querySelector('.results-counter');
+        if (!resultsCounter) {
+            resultsCounter = document.createElement('div');
+            resultsCounter.className = 'results-counter';
+            const searchContainer = document.querySelector('.advanced-search-container');
+            if (searchContainer) {
+                searchContainer.appendChild(resultsCounter);
+            }
+        }
+
+        if (filteredCount !== totalCount) {
+            resultsCounter.innerHTML = `
+                <span class="results-text">
+                    Mostrando ${filteredCount} de ${totalCount} elementos
+                </span>
+            `;
+            resultsCounter.style.display = 'block';
+        } else {
+            resultsCounter.style.display = 'none';
+        }
+    }
+
+    clearAllFilters() {
+        // Resetear filtros
+        this.currentFilters = {
+            search: '',
+            type: 'all',
+            dateFrom: null,
+            dateTo: null,
+            sortBy: 'date-desc'
+        };
+
+        // Limpiar inputs
+        if (this.searchInput) this.searchInput.value = '';
+        if (this.sortSelect) this.sortSelect.value = 'date-desc';
+        if (this.dateFromInput) this.dateFromInput.value = '';
+        if (this.dateToInput) this.dateToInput.value = '';
+
+        // Resetear botones de filtro
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector('.filter-btn[data-type="all"]')?.classList.add('active');
+
+        // Aplicar filtros (mostrar todo)
+        this.applyFilters();
+    }
+
+    // Método para búsqueda por voz (funcionalidad futura)
+    initVoiceSearch() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'es-ES';
+            
+            // Agregar botón de voz al input de búsqueda
+            const voiceBtn = document.createElement('button');
+            voiceBtn.className = 'voice-search-btn';
+            voiceBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+            `;
+            
+            const searchContainer = document.querySelector('.search-input-container');
+            if (searchContainer) {
+                searchContainer.appendChild(voiceBtn);
+                
+                voiceBtn.addEventListener('click', () => {
+                    recognition.start();
+                    voiceBtn.classList.add('listening');
+                });
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    if (this.searchInput) {
+                        this.searchInput.value = transcript;
+                        this.currentFilters.search = transcript.toLowerCase();
+                        this.applyFilters();
+                    }
+                };
+                
+                recognition.onend = () => {
+                    voiceBtn.classList.remove('listening');
+                };
+            }
+        }
+    }
+}
+
+// Instancia global del sistema de búsqueda
+let advancedSearch;
+
+// Funciones de optimización de performance
+function createProgressIndicator() {
+  const indicator = document.createElement('div');
+  indicator.className = 'progress-indicator';
+  indicator.innerHTML = `
+    <div class="progress-bar-container">
+      <div class="progress-bar"></div>
+      <span class="progress-text">Cargando contenido...</span>
+    </div>
+  `;
+  return indicator;
+}
+
+function updateProgress(indicator, current, total) {
+  const progressBar = indicator.querySelector('.progress-bar');
+  const progressText = indicator.querySelector('.progress-text');
+  
+  if (progressBar && progressText) {
+    const percentage = Math.round((current / total) * 100);
+    progressBar.style.width = `${percentage}%`;
+    progressText.textContent = `Cargando ${current} de ${total} elementos...`;
+  }
+}
+
+// Renderizado virtualizado para listas muy grandes
+function renderContentVirtualized() {
+  console.log('🚀 Iniciando renderizado virtualizado para lista grande');
+  
+  const itemHeight = 200; // Altura estimada de cada tarjeta
+  const containerHeight = contentGrid.clientHeight || 600;
+  const visibleItems = Math.ceil(containerHeight / itemHeight) + 2; // Buffer de 2 items
+  
+  let scrollTop = 0;
+  let startIndex = 0;
+  let endIndex = Math.min(visibleItems, filteredData.length);
+  
+  // Crear contenedor virtual
+  const virtualContainer = document.createElement('div');
+  virtualContainer.className = 'virtual-container';
+  virtualContainer.style.height = `${filteredData.length * itemHeight}px`;
+  virtualContainer.style.position = 'relative';
+  
+  const visibleContainer = document.createElement('div');
+  visibleContainer.className = 'visible-container';
+  visibleContainer.style.position = 'absolute';
+  visibleContainer.style.top = '0';
+  visibleContainer.style.width = '100%';
+  
+  virtualContainer.appendChild(visibleContainer);
+  contentGrid.innerHTML = '';
+  contentGrid.appendChild(virtualContainer);
+  
+  function renderVisibleItems() {
+    const fragment = document.createDocumentFragment();
+    
+    for (let i = startIndex; i < endIndex; i++) {
+      if (filteredData[i]) {
+        const card = createHistorialCard(filteredData[i], i);
+        if (card) {
+          card.style.position = 'absolute';
+          card.style.top = `${i * itemHeight}px`;
+          card.style.width = '100%';
+          fragment.appendChild(card);
+        }
+      }
+    }
+    
+    visibleContainer.innerHTML = '';
+    visibleContainer.appendChild(fragment);
+  }
+  
+  function handleScroll() {
+    scrollTop = contentGrid.scrollTop;
+    const newStartIndex = Math.floor(scrollTop / itemHeight);
+    const newEndIndex = Math.min(newStartIndex + visibleItems, filteredData.length);
+    
+    if (newStartIndex !== startIndex || newEndIndex !== endIndex) {
+      startIndex = newStartIndex;
+      endIndex = newEndIndex;
+      renderVisibleItems();
+    }
+  }
+  
+  // Throttle scroll events
+  let scrollTimeout;
+  contentGrid.addEventListener('scroll', () => {
+    if (scrollTimeout) {
+      clearTimeout(scrollTimeout);
+    }
+    scrollTimeout = setTimeout(handleScroll, 16); // ~60fps
+  });
+  
+  // Renderizado inicial
+  renderVisibleItems();
+  
+  console.log(`✅ Renderizado virtualizado completado: mostrando ${endIndex - startIndex} de ${filteredData.length} elementos`);
+}
+
+// Animaciones de entrada para las tarjetas
+function animateCardsEntrance() {
+  const cards = contentGrid.querySelectorAll('.historial-card');
+  
+  cards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    
+    setTimeout(() => {
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, index * 50); // Delay progresivo
+  });
+}
+
+// Optimización de memoria - limpiar referencias
+function cleanupMemory() {
+  // Limpiar event listeners antiguos
+  const oldCards = document.querySelectorAll('.historial-card');
+  oldCards.forEach(card => {
+    const clonedCard = card.cloneNode(true);
+    card.parentNode?.replaceChild(clonedCard, card);
+  });
+  
+  // Forzar garbage collection si está disponible
+  if (window.gc) {
+    window.gc();
+  }
+}
+
+// Debounce mejorado para búsquedas
+function createDebouncedSearch(callback, delay = 300) {
+  let timeoutId;
+  return function(...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => callback.apply(this, args), delay);
+  };
+}
+
+// Cache inteligente para contenido
+const contentCache = new Map();
+const CACHE_SIZE_LIMIT = 100;
+
+function getCachedContent(id) {
+  return contentCache.get(id);
+}
+
+function setCachedContent(id, content) {
+  if (contentCache.size >= CACHE_SIZE_LIMIT) {
+    // Eliminar el elemento más antiguo
+    const firstKey = contentCache.keys().next().value;
+    contentCache.delete(firstKey);
+  }
+  contentCache.set(id, content);
+}
+
+// Historial JavaScript cargado y optimizado
