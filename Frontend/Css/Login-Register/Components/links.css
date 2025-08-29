@@ -1,0 +1,57 @@
+@import url(/Css/Login-Register/General/variables.css);
+
+.register-link {
+    text-align: center;
+    margin-top: auto;
+}
+
+.register-link p {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.register-link a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.register-link a:hover {
+    color: #8f47e8;
+    text-decoration: underline;
+}
+
+.terms-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.terms-link:hover {
+    color: #8f47e8;
+    text-decoration: underline;
+}
+
+.login-link {
+    text-align: center;
+    margin-top: auto;
+}
+
+.login-link p {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.login-link a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.login-link a:hover {
+    color: #8f47e8;
+    text-decoration: underline;
+}

@@ -1,0 +1,23 @@
+@import url(/Frontend/Css/Login-Register/General/variables.css);
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--bg-light) 0%, var(--accent-color) 100%);
+    padding: 2rem 1rem;
+}
+
+.container {
+    max-width: 800px;
+    width: 100%;
+    align-items: center;
+}
