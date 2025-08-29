@@ -1,5 +1,5 @@
 const express = require("express");
-const router = express.Router();
+const router = express.Router(); // 🔹 definir router al inicio
 const supabase = require("../config/supabase");
 const { supabaseAuth } = require("../middleware/auth");
 const OpenAI = require("openai");
@@ -71,6 +71,8 @@ const isStudent = (req, res, next) => {
 /* ======================
    RUTAS DE DOCENTES
    ====================== */
+
+// Crear classroom
 router.post("/create", supabaseAuth, attachProfile, isTeacher, async (req, res) => {
   try {
     const { name, description, subject, grade_level } = req.body;
@@ -105,7 +107,7 @@ router.post("/create", supabaseAuth, attachProfile, isTeacher, async (req, res) 
   }
 });
 
-// ⚡ ejemplo: ya no repetimos lógica, solo añadimos attachProfile + isTeacher
+// Obtener classrooms del docente
 router.get("/teacher/classrooms", supabaseAuth, attachProfile, isTeacher, async (req, res) => {
   try {
     const { data: classrooms, error } = await supabase
@@ -130,7 +132,8 @@ router.get("/teacher/classrooms", supabaseAuth, attachProfile, isTeacher, async 
 /* ======================
    RUTAS DE ESTUDIANTES
    ====================== */
-// ejemplo: join con attachProfile + isStudent
+
+// Unirse a un classroom
 router.post("/join", supabaseAuth, attachProfile, isStudent, async (req, res) => {
   try {
     const { join_code } = req.body;
@@ -149,7 +152,7 @@ router.post("/join", supabaseAuth, attachProfile, isStudent, async (req, res) =>
         .json({ error: "Código inválido o classroom inactivo" });
     }
 
-    // ya inscrito?
+    // ¿ya inscrito?
     const { data: existingEnrollment } = await supabase
       .from("classroom_enrollments")
       .select("id")
@@ -178,5 +181,34 @@ router.post("/join", supabaseAuth, attachProfile, isStudent, async (req, res) =>
     res.status(500).json({ error: "Error interno del servidor" });
   }
 });
+
+// ⚡ obtener classrooms del estudiante
+router.get("/student/classrooms", supabaseAuth, attachProfile, isStudent, async (req, res) => {
+  try {
+    const { data: classrooms, error } = await supabase
+      .from("classroom_enrollments")
+      .select(`
+        id,
+        classroom:classrooms (
+          id,
+          name,
+          description,
+          subject,
+          grade_level,
+          teacher:profiles ( id, name, role, education_level )
+        )
+      `)
+      .eq("student_id", req.profile.id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    res.json({ classrooms });
+  } catch (error) {
+    console.error("Error en obtener classrooms del estudiante:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
 
 module.exports = router;

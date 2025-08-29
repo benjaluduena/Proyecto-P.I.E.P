@@ -160,3 +160,4 @@ app.listen(PORT, () => {
   console.log(`📚 Plataforma Inteligente de Estudio Personalizado`);
   console.log(`🌐 http://localhost:${PORT}`);
 }); 
+

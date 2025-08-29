@@ -411,58 +411,67 @@
             }
         }
 
-        function displayClassrooms(classrooms) {
-            const container = document.getElementById('classroomsContent');
-            
-            if (!classrooms || classrooms.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No estás inscrito en ningún classroom</h3>
-                        <p>Únete a un classroom usando el código que te proporcionó tu docente.</p>
-                        <button class="btn-primary" onclick="openJoinClassroomModal()">
-                            Unirse a mi primer Classroom
-                        </button>
+function displayClassrooms(classrooms) {
+    const container = document.getElementById('classroomsContent');
+
+    if (!classrooms || classrooms.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>No estás inscrito en ningún classroom</h3>
+                <p>Únete a un classroom usando el código que te proporcionó tu docente.</p>
+                <button class="btn-primary" onclick="openJoinClassroomModal()">
+                    Unirse a mi primer Classroom
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="classrooms-grid">
+            ${classrooms.map(enrollment => {
+                const classroom = enrollment.classroom || {};
+                const teacherName = classroom.teacher?.name || 'Sin docente';
+                const classroomName = classroom.name || 'Sin nombre';
+                const subject = classroom.subject ? `<div class="classroom-subject">📚 ${classroom.subject}</div>` : '';
+                const description = classroom.description ? `<div class="classroom-description">${classroom.description}</div>` : '';
+                // Si quieres contar materiales, depende de si lo envías en la API
+                const materialsCount = classroom.classroom_materials?.[0]?.count || 0;
+                const status = enrollment.status || 'Sin estado';
+
+                return `
+                    <div class="classroom-card">
+                        <div class="classroom-header">
+                            <div>
+                                <h3 class="classroom-title">${classroomName}</h3>
+                                <div class="teacher-name">👨‍🏫 ${teacherName}</div>
+                            </div>
+                        </div>
+                        <div class="classroom-info">
+                            ${subject}
+                            ${description}
+                        </div>
+                        <div class="classroom-stats">
+                            <div class="stat-item">
+                                <div class="stat-number">${materialsCount}</div>
+                                <div class="stat-label">Materiales</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">${status}</div>
+                                <div class="stat-label">Estado</div>
+                            </div>
+                        </div>
+                        <div class="classroom-actions">
+                            <button class="btn-secondary" onclick="viewMaterials(${classroom.id || 0})">Ver Materiales</button>
+                            <button class="btn-secondary" onclick="viewClassroomDetails(${classroom.id || 0})">Detalles</button>
+                        </div>
                     </div>
                 `;
-                return;
-            }
+            }).join('')}
+        </div>
+    `;
+}
 
-            container.innerHTML = `
-                <div class="classrooms-grid">
-                    ${classrooms.map(enrollment => {
-                        const classroom = enrollment.classrooms;
-                        return `
-                            <div class="classroom-card">
-                                <div class="classroom-header">
-                                    <div>
-                                        <h3 class="classroom-title">${classroom.name}</h3>
-                                        <div class="teacher-name">👨‍🏫 ${classroom.profiles.name}</div>
-                                    </div>
-                                </div>
-                                <div class="classroom-info">
-                                    ${classroom.subject ? `<div class="classroom-subject">📚 ${classroom.subject}</div>` : ''}
-                                    ${classroom.description ? `<div class="classroom-description">${classroom.description}</div>` : ''}
-                                </div>
-                                <div class="classroom-stats">
-                                    <div class="stat-item">
-                                        <div class="stat-number">${classroom.classroom_materials[0]?.count || 0}</div>
-                                        <div class="stat-label">Materiales</div>
-                                    </div>
-                                    <div class="stat-item">
-                                        <div class="stat-number">${enrollment.status}</div>
-                                        <div class="stat-label">Estado</div>
-                                    </div>
-                                </div>
-                                <div class="classroom-actions">
-                                    <button class="btn-secondary" onclick="viewMaterials(${classroom.id})">Ver Materiales</button>
-                                    <button class="btn-secondary" onclick="viewClassroomDetails(${classroom.id})">Detalles</button>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
-        }
 
                 function openJoinClassroomModal() {
           document.getElementById('joinClassroomModal').style.display = 'block';
