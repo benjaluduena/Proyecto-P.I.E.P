@@ -368,7 +368,7 @@ class App {
       // Limpiar otras variables que puedan interferir
       window.contentGrid = undefined;
       window.emptyState = undefined;
-      window.historialLoadingOverlay = undefined;
+      // historialLoadingOverlay removido - usando módulo UI global
       window.filterButtons = undefined;
       window.confirmModal = undefined;
       window.previewModal = undefined;

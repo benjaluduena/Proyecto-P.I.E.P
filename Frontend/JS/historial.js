@@ -5,7 +5,7 @@ let filteredData = [];
 let currentFilter = 'all';
 
 // Variables para elementos DOM (se obtendrán dinámicamente)
-let contentGrid, emptyState, historialLoadingOverlay, filterButtons, confirmModal, previewModal;
+let contentGrid, emptyState, filterButtons, confirmModal, previewModal;
 let totalItems, totalPdfs, favType;
 
 // Función local para hacer llamadas a la API con autenticación
@@ -60,7 +60,7 @@ async function apiCall(url, options = {}) {
 function getHistorialElements() {
   contentGrid = document.getElementById('contentGrid');
   emptyState = document.getElementById('emptyState');
-  historialLoadingOverlay = document.getElementById('loadingOverlay');
+  // historialLoadingOverlay removido - usando módulo UI global
   filterButtons = document.querySelectorAll('.filter-btn');
   confirmModal = document.getElementById('confirmModal');
   previewModal = document.getElementById('previewModal');
@@ -73,7 +73,7 @@ function getHistorialElements() {
   console.log('📱 Elementos DOM obtenidos:', {
     contentGrid: !!contentGrid,
     emptyState: !!emptyState,
-    loadingOverlay: !!historialLoadingOverlay,
+    loadingOverlay: true, // Usando módulo UI global
     filterButtons: filterButtons.length,
     totalItems: !!totalItems
   });
@@ -189,7 +189,7 @@ function cleanupHistorial() {
   // Limpiar referencias a elementos DOM
   contentGrid = null;
   emptyState = null;
-  historialLoadingOverlay = null;
+  // historialLoadingOverlay removido - usando módulo UI global
   filterButtons = null;
   confirmModal = null;
   previewModal = null;
@@ -1128,17 +1128,17 @@ async function confirmClearHistory() {
   }
 }
 
-// Mostrar loading
+// Mostrar loading usando módulo UI global
 function showLoading() {
-  if (historialLoadingOverlay) {
-    historialLoadingOverlay.style.display = 'flex';
+  if (window.app && window.app.uiModule) {
+    window.app.uiModule.showLoading('Cargando historial...');
   }
 }
 
-// Ocultar loading
+// Ocultar loading usando módulo UI global
 function hideLoading() {
-  if (historialLoadingOverlay) {
-    historialLoadingOverlay.style.display = 'none';
+  if (window.app && window.app.uiModule) {
+    window.app.uiModule.hideLoading();
   }
 }
 

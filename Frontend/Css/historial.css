@@ -527,46 +527,7 @@
   box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.05);
 }
 
-/* Loading overlay */
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-}
 
-.loading-spinner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
-
-.spinner {
-  width: 3rem;
-  height: 3rem;
-  border: 0.25rem solid #e5e7eb;
-  border-top: 0.25rem solid #3b82f6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.loading-spinner p {
-  margin: 0;
-  color: #64748b;
-  font-weight: 500;
-}
 
 /* Estado de error */
 .error-state {
