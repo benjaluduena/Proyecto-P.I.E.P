@@ -6,13 +6,13 @@ let isQuestionAnswered = false;
 let pdfId, outputId, fileName;
 
 // ===== ELEMENTOS DEL DOM =====
-const vfOptions = document.querySelectorAll('.vf-option');
-const vfFeedback = document.getElementById('vfFeedback');
-const feedbackText = document.getElementById('feedbackText');
-const explanationLink = document.getElementById('explanationLink');
-const vfExplanation = document.getElementById('vfExplanation');
-const continueContainer = document.getElementById('continueContainer');
-const continueBtn = document.getElementById('continueBtn');
+let vfOptions = document.querySelectorAll('.vf-option');
+let vfFeedback = document.getElementById('vfFeedback');
+let feedbackText = document.getElementById('feedbackText');
+let explanationLink = document.getElementById('explanationLink');
+let vfExplanation = document.getElementById('vfExplanation');
+let continueContainer = document.getElementById('continueContainer');
+let continueBtn = document.getElementById('continueBtn');
 const closeBtn = document.getElementById('closeBtn');
 const quizTitle = document.getElementById('quizTitle');
 const printBtn = document.getElementById('printBtn');
@@ -160,7 +160,14 @@ function setupEventListeners() {
     explanationLink.addEventListener('click', toggleExplanation);
 
     // Event listener para el botón continuar
-    continueBtn.addEventListener('click', goToNextQuestion);
+    continueBtn.addEventListener('click', function() {
+        // Verificar si estamos en modo de revisión de preguntas contestadas
+        if (userAnswers.length > 0 && userAnswers.length === questions.length) {
+            goToNextQuestion();
+        } else {
+            goToNextQuestion();
+        }
+    });
 
     // Event listeners para botones de navegación
     closeBtn.addEventListener('click', handleClose);
@@ -169,6 +176,15 @@ function setupEventListeners() {
     shareBtn.addEventListener('click', handleShare);
     prevBtn.addEventListener('click', goToPreviousQuestion);
     nextBtn.addEventListener('click', goToNextQuestion);
+    
+    // Event listener para volver a resultados
+    const backToResultsBtn = document.getElementById('backToResultsBtn');
+    if (backToResultsBtn) {
+        backToResultsBtn.addEventListener('click', function() {
+            console.log('Botón volver a resultados clickeado');
+            showResults();
+        });
+    }
 
     // Deshabilitar botones de navegación inicialmente
     updateNavigationButtons();
@@ -218,6 +234,12 @@ function handleOptionClick(event) {
     // Mostrar botón de continuar
     if (continueContainer) {
         continueContainer.style.display = 'flex';
+    }
+    
+    // Mostrar botón de volver a resultados
+    const backToResultsContainer = document.getElementById('backToResultsContainer');
+    if (backToResultsContainer) {
+        backToResultsContainer.style.display = 'flex';
     }
     
     // Deshabilitar todas las opciones
@@ -393,7 +415,14 @@ function updateProgressBar() {
 function goToNextQuestion() {
     if (currentQuestionIndex < questions.length - 1) {
         currentQuestionIndex++;
-        setupCurrentQuestion();
+        
+        // Verificar si estamos en modo de revisión de preguntas contestadas
+        if (userAnswers.length > 0 && userAnswers.length === questions.length) {
+            setupAnsweredQuestion();
+        } else {
+            setupCurrentQuestion();
+        }
+        
         updateNavigationButtons();
     } else {
         // Última pregunta - mostrar resultados
@@ -405,7 +434,14 @@ function goToNextQuestion() {
 function goToPreviousQuestion() {
     if (currentQuestionIndex > 0) {
         currentQuestionIndex--;
-        setupCurrentQuestion();
+        
+        // Verificar si estamos en modo de revisión de preguntas contestadas
+        if (userAnswers.length > 0 && userAnswers.length === questions.length) {
+            setupAnsweredQuestion();
+        } else {
+            setupCurrentQuestion();
+        }
+        
         updateNavigationButtons();
     }
 }
@@ -720,7 +756,7 @@ function showResults() {
             <p class="vf-message" style="color: ${color}">${message}</p>
             <div class="vf-results-actions">
                 <button class="btn btn-primary" onclick="restartQuiz()">Reiniciar Quiz</button>
-                <button class="btn" onclick="goToFirstQuestion()">Ver Primera Pregunta</button>
+                <button class="btn" onclick="goToFirstQuestion()">Revisar Respuestas</button>
                 <button class="btn" onclick="window.location.href='/'">Nuevo PDF</button>
             </div>
         </div>
@@ -738,9 +774,305 @@ function restartQuiz() {
 
 // ===== IR A LA PRIMERA PREGUNTA =====
 function goToFirstQuestion() {
+    console.log('=== INICIANDO REVISIÓN DE RESPUESTAS ===');
+    console.log('Preguntas totales:', questions.length);
+    console.log('Respuestas del usuario:', userAnswers);
+    
+    if (!questions || questions.length === 0) {
+        console.error('No hay preguntas disponibles');
+        return;
+    }
+    
+    if (!userAnswers || userAnswers.length === 0) {
+        console.error('No hay respuestas del usuario');
+        return;
+    }
+    
     currentQuestionIndex = 0;
-    setupCurrentQuestion();
+    showAnsweredQuestions();
+}
+
+// ===== MOSTRAR PREGUNTAS YA CONTESTADAS =====
+function showAnsweredQuestions() {
+    console.log('=== MOSTRANDO PREGUNTAS CONTESTADAS ===');
+    
+    // Ocultar los resultados
+    const resultsElement = document.querySelector('.vf-results');
+    if (resultsElement) {
+        console.log('Ocultando resultados...');
+        resultsElement.style.display = 'none';
+    }
+    
+    // Mostrar la interfaz de preguntas
+    const questionCard = document.querySelector('.vf-question-card');
+    if (questionCard) {
+        console.log('Restaurando estructura de pregunta...');
+        
+        // Crear la estructura de la pregunta
+        const questionHTML = `
+            <div class="vf-question-header">
+                <h2 class="vf-question-title"></h2>
+                <div class="vf-question-number"></div>
+            </div>
+            
+            <div class="vf-options">
+                <div class="vf-option" data-option="true">
+                    <div class="vf-option-text">Verdadero</div>
+                </div>
+                <div class="vf-option" data-option="false">
+                    <div class="vf-option-text">Falso</div>
+                </div>
+            </div>
+            
+            <div id="vfFeedback" class="vf-feedback" style="display: none;">
+                <p id="feedbackText" class="vf-feedback-text"></p>
+            </div>
+            
+            <div id="explanationLink" class="vf-explanation-link" style="display: none;">
+                Ver explicación <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </div>
+            
+            <div id="vfExplanation" class="vf-explanation">
+                <h4>Explicación:</h4>
+                <p></p>
+            </div>
+            
+            <div id="continueContainer" class="vf-continue-container" style="display: none;">
+                <button id="continueBtn" class="btn btn-primary">Continuar</button>
+            </div>
+            
+            <div id="backToResultsContainer" class="vf-back-to-results" style="display: none;">
+                <button id="backToResultsBtn" class="btn">Volver a Resultados</button>
+            </div>
+        `;
+        
+        // Insertar el HTML en la tarjeta
+        questionCard.innerHTML = questionHTML;
+        
+        // Reconfigurar los elementos del DOM
+        setupDOMElements();
+        
+        // Configurar la primera pregunta con las respuestas del usuario
+        setupAnsweredQuestion();
+        
+        // Configurar eventos después de un pequeño delay para asegurar que el DOM esté listo
+        setTimeout(() => {
+            console.log('Configurando eventos...');
+            setupEventListeners();
+            console.log('=== ESTRUCTURA RESTAURADA COMPLETAMENTE ===');
+        }, 100);
+    } else {
+        console.error('No se encontró la tarjeta de pregunta');
+    }
+}
+
+// ===== CONFIGURAR ELEMENTOS DEL DOM =====
+function setupDOMElements() {
+    console.log('=== CONFIGURANDO ELEMENTOS DEL DOM ===');
+    
+    // Reasignar referencias a los elementos del DOM
+    const newVfOptions = document.querySelectorAll('.vf-option');
+    const newVfFeedback = document.getElementById('vfFeedback');
+    const newFeedbackText = document.getElementById('feedbackText');
+    const newExplanationLink = document.getElementById('explanationLink');
+    const newVfExplanation = document.getElementById('vfExplanation');
+    const newContinueContainer = document.getElementById('continueContainer');
+    const newContinueBtn = document.getElementById('continueBtn');
+    
+    console.log('Elementos encontrados:', {
+        options: newVfOptions.length,
+        feedback: !!newVfFeedback,
+        feedbackText: !!newFeedbackText,
+        explanationLink: !!newExplanationLink,
+        explanation: !!newVfExplanation,
+        continueContainer: !!newContinueContainer,
+        continueBtn: !!newContinueBtn
+    });
+    
+    // Actualizar las variables globales
+    vfOptions = newVfOptions;
+    vfFeedback = newVfFeedback;
+    feedbackText = newFeedbackText;
+    explanationLink = newExplanationLink;
+    vfExplanation = newVfExplanation;
+    continueContainer = newContinueContainer;
+    continueBtn = newContinueBtn;
+    
+    console.log('Variables globales actualizadas');
+    console.log('=== ELEMENTOS DEL DOM CONFIGURADOS ===');
+}
+
+// ===== CONFIGURAR PREGUNTA YA CONTESTADA =====
+function setupAnsweredQuestion() {
+    console.log('=== CONFIGURANDO PREGUNTA CONTESTADA ===');
+    console.log('Índice actual:', currentQuestionIndex);
+    console.log('Preguntas disponibles:', questions.length);
+    
+    if (currentQuestionIndex >= questions.length) {
+        currentQuestionIndex = 0;
+    }
+    
+    const currentQuestion = questions[currentQuestionIndex];
+    console.log('Pregunta actual:', currentQuestion);
+    
+    // Buscar la respuesta del usuario para esta pregunta específica
+    const userAnswer = userAnswers.find(answer => answer.questionId === currentQuestion.id);
+    console.log('Respuesta del usuario encontrada:', userAnswer);
+    
+    if (!userAnswer) {
+        console.error(`No se encontró respuesta para la pregunta ${currentQuestion.id}`);
+        return;
+    }
+    
+    // Actualizar el título de la pregunta
+    const questionTitle = document.querySelector('.vf-question-title');
+    if (questionTitle) {
+        questionTitle.textContent = currentQuestion.question;
+        console.log('Título actualizado:', currentQuestion.question);
+    }
+    
+    // Actualizar el número de pregunta
+    const questionNumber = document.querySelector('.vf-question-number');
+    if (questionNumber) {
+        questionNumber.textContent = currentQuestion.id;
+        console.log('Número de pregunta actualizado:', currentQuestion.id);
+    }
+    
+    // Configurar las opciones con las respuestas del usuario
+    setupAnsweredOptions(currentQuestion, userAnswer);
+    
+    // Actualizar la explicación
+    const explanationText = document.querySelector('#vfExplanation p');
+    if (explanationText) {
+        explanationText.textContent = currentQuestion.explanation;
+        console.log('Explicación actualizada:', currentQuestion.explanation);
+    }
+    
+    // Actualizar barra de progreso
+    updateProgressBar();
+    
+    // Actualizar botones de navegación
     updateNavigationButtons();
+    
+    // Actualizar título del quiz con el nombre del archivo
+    if (quizTitle && fileName) {
+        quizTitle.textContent = `Quiz: ${fileName}`;
+    }
+    
+    console.log('=== PREGUNTA CONFIGURADA COMPLETAMENTE ===');
+}
+
+// ===== CONFIGURAR OPCIONES YA CONTESTADAS =====
+function setupAnsweredOptions(currentQuestion, userAnswer) {
+    console.log('=== CONFIGURANDO OPCIONES CONTESTADAS ===');
+    console.log('Pregunta:', currentQuestion);
+    console.log('Respuesta del usuario:', userAnswer);
+    
+    if (!userAnswer) {
+        console.error('No hay respuesta del usuario para esta pregunta');
+        return;
+    }
+    
+    if (!vfOptions || vfOptions.length === 0) {
+        console.error('No se encontraron las opciones del DOM');
+        return;
+    }
+    
+    console.log('Opciones encontradas:', vfOptions.length);
+    
+    vfOptions.forEach((option, index) => {
+        const isCorrect = index === 0 ? currentQuestion.correctAnswer : !currentQuestion.correctAnswer;
+        const isUserAnswer = index === 0 ? userAnswer.userAnswer : !userAnswer.userAnswer;
+        
+        console.log(`Opción ${index}:`, {
+            isCorrect: isCorrect,
+            isUserAnswer: isUserAnswer,
+            userAnswerValue: userAnswer.userAnswer,
+            userAnswerCorrect: userAnswer.isCorrect
+        });
+        
+        // Limpiar clases anteriores
+        option.classList.remove('correct', 'incorrect', 'answered');
+        
+        // Configurar el dataset
+        option.dataset.correct = isCorrect.toString();
+        option.dataset.option = index === 0 ? 'true' : 'false';
+        
+        // Actualizar el texto de la opción
+        const optionText = option.querySelector('.vf-option-text');
+        if (optionText) {
+            optionText.textContent = index === 0 ? 'Verdadero' : 'Falso';
+        }
+        
+        // Aplicar estilos según la respuesta del usuario
+        if (isUserAnswer) {
+            // Opción seleccionada por el usuario
+            if (userAnswer.isCorrect) {
+                option.classList.add('correct');
+                console.log(`Opción ${index} marcada como correcta (usuario acertó)`);
+            } else {
+                option.classList.add('incorrect');
+                console.log(`Opción ${index} marcada como incorrecta (usuario se equivocó)`);
+            }
+        } else if (isCorrect) {
+            // Mostrar la respuesta correcta si el usuario se equivocó
+            option.classList.add('correct');
+            console.log(`Opción ${index} marcada como correcta (respuesta correcta)`);
+        }
+        
+        // Marcar como contestada
+        option.classList.add('answered');
+        option.style.cursor = 'default';
+        option.disabled = true;
+        
+        // Remover event listeners para evitar respuestas adicionales
+        option.onclick = null;
+        
+        console.log(`Opción ${index} configurada:`, {
+            classes: Array.from(option.classList),
+            text: optionText?.textContent,
+            disabled: option.disabled
+        });
+    });
+    
+    // Mostrar feedback
+    showAnsweredFeedback(userAnswer.isCorrect);
+    
+    // Mostrar enlace de explicación
+    if (explanationLink) {
+        explanationLink.style.display = 'inline-flex';
+        console.log('Enlace de explicación mostrado');
+    }
+    
+    // Mostrar botón de continuar
+    if (continueContainer) {
+        continueContainer.style.display = 'flex';
+        console.log('Botón continuar mostrado');
+    }
+    
+    // Mostrar botón de volver a resultados
+    const backToResultsContainer = document.getElementById('backToResultsContainer');
+    if (backToResultsContainer) {
+        backToResultsContainer.style.display = 'flex';
+        console.log('Botón volver a resultados mostrado');
+    }
+    
+    console.log('=== OPCIONES CONFIGURADAS COMPLETAMENTE ===');
+}
+
+// ===== MOSTRAR FEEDBACK DE PREGUNTA YA CONTESTADA =====
+function showAnsweredFeedback(isCorrect) {
+    if (vfFeedback) {
+        vfFeedback.style.display = 'block';
+        
+        if (isCorrect) {
+            feedbackText.textContent = '¡Correcto!';
+            feedbackText.className = 'vf-feedback-text';
+        } else {
+            feedbackText.textContent = '¡Incorrecto!';
+            feedbackText.className = 'vf-feedback-text incorrect';
+        }
+    }
 }
 
 // ===== FUNCIONES DE UTILIDAD =====

@@ -139,6 +139,7 @@
 /* ===== VARIABLES CSS ===== */
 :root {
   --primary-color: #a259fa;
+  --primary-color-hover: #8a4fd8;
   --secondary-color: #f18531;
   --accent-color: #f2edfe;
   --text-dark: #333;
@@ -291,6 +292,7 @@ body {
 .close-btn {
   color: black;
   background-color: var(--white);
+  box-shadow: var(--shadow-light);
 }
 
 .quiz-title {
@@ -746,4 +748,28 @@ body {
     flex-direction: column;
     gap: 0.5rem;
   }
+}
+
+/* ===== BOTÓN VOLVER A RESULTADOS ===== */
+.vf-back-to-results {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.vf-back-to-results .btn {
+  background: var(--primary-color);
+  color: var(--white);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius-small);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.vf-back-to-results .btn:hover {
+  background: var(--primary-color-hover);
 }
