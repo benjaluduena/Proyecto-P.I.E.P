@@ -97,26 +97,56 @@ export class UIModule {
   // Mostrar loading
   showLoading(message = 'Cargando...') {
     if (this.loadingOverlay) {
-      const messageEl = this.loadingOverlay.querySelector('.loading-message');
-      if (messageEl) {
-        messageEl.textContent = message;
+      // Limpiar mensaje anterior
+      const existingMessage = this.loadingOverlay.querySelector('.loading-message');
+      if (existingMessage) {
+        existingMessage.remove();
+      }
+      
+      // Crear nuevo mensaje
+      const spinner = this.loadingOverlay.querySelector('.loading-spinner');
+      const messageDiv = document.createElement('p');
+      messageDiv.className = 'loading-message';
+      messageDiv.textContent = message;
+      messageDiv.style.cssText = 'color: white; margin-top: 20px; text-align: center;';
+      
+      if (spinner && spinner.parentNode) {
+        spinner.parentNode.appendChild(messageDiv);
       } else {
-        const spinner = this.loadingOverlay.querySelector('.loading-spinner');
-        const messageDiv = document.createElement('p');
-        messageDiv.className = 'loading-message';
-        messageDiv.textContent = message;
-        messageDiv.style.cssText = 'color: white; margin-top: 20px; text-align: center;';
         this.loadingOverlay.appendChild(messageDiv);
       }
+      
       this.loadingOverlay.style.display = 'flex';
     }
   }
 
-  // Ocultar loading
+  // Ocultar loading de forma forzada
   hideLoading() {
     if (this.loadingOverlay) {
       this.loadingOverlay.style.display = 'none';
+      // Limpiar mensaje para evitar persistencia
+      const messageEl = this.loadingOverlay.querySelector('.loading-message');
+      if (messageEl) {
+        messageEl.remove();
+      }
     }
+    
+    // Buscar y ocultar cualquier otro overlay de loading que pueda existir
+    const allLoadingOverlays = document.querySelectorAll('#loadingOverlay, .loading-overlay');
+    allLoadingOverlays.forEach(overlay => {
+      overlay.style.display = 'none';
+      // Limpiar mensajes de todos los overlays
+      const messages = overlay.querySelectorAll('.loading-message');
+      messages.forEach(msg => msg.remove());
+    });
+    
+    // Limpiar elementos de loading específicos del historial
+    const historialLoadings = document.querySelectorAll('.historial-loading');
+    historialLoadings.forEach(loading => {
+      if (loading.parentNode) {
+        loading.parentNode.removeChild(loading);
+      }
+    });
   }
 
   // Mostrar notificación toast

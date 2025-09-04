@@ -92,10 +92,16 @@ class App {
     if (success) {
       this.authModule = authModule;
       
+      // Exponer funciones de autenticación globalmente para compatibilidad
+      window.getAuthHeaders = () => this.authModule.getAuthHeaders();
+      window.getAccessToken = () => this.authModule.getAccessToken();
+      
       // Configurar callback de cambios de estado
       this.authModule.onAuthStateChanged = (event, session) => {
         this.handleAuthStateChange(event, session);
       };
+      
+      console.log('✅ Auth module y funciones globales inicializados');
     } else {
       throw new Error('Error inicializando autenticación');
     }
@@ -105,6 +111,13 @@ class App {
   initializeApi() {
     this.apiModule = createApiModule(this.authModule);
     window.apiModule = this.apiModule; // Compatibilidad global
+    
+    // Exponer función apiCall global para compatibilidad con código legacy
+    window.apiCall = (url, options = {}) => {
+      return this.apiModule.call(url, options);
+    };
+    
+    console.log('✅ API module y apiCall global inicializados');
   }
 
   // Inicializar módulos específicos
@@ -218,6 +231,8 @@ class App {
   // Cargar sección
   async loadSection(sectionName) {
     try {
+      // Limpiar completamente antes de cargar nueva sección
+      this.forceCleanupLoading();
       this.uiModule.showLoading('Cargando sección...');
       
       // Guardar la sección anterior para limpieza
@@ -244,6 +259,9 @@ class App {
         // Cargar script específico de la sección
         await this.loadSectionScript(sectionName);
         
+        // Inicializaciones específicas por sección
+        await this.initializeSection(sectionName);
+        
         // Actualizar menú activo
         this.updateActiveMenu(sectionName);
       }
@@ -265,7 +283,11 @@ class App {
         `;
       }
     } finally {
-      this.uiModule.hideLoading();
+      // Asegurar que el loading se oculte siempre con múltiples intentos
+      this.forceCleanupLoading();
+      setTimeout(() => {
+        this.forceCleanupLoading();
+      }, 200);
     }
   }
 
@@ -295,7 +317,9 @@ class App {
       }
       
       const script = document.createElement('script');
-      script.src = `/JS/${sectionName}.js?t=${new Date().getTime()}`; // Añadir timestamp para evitar caché
+      // Usar versión simplificada para historial
+      const scriptPath = sectionName === 'historial' ? 'historial-simple' : sectionName;
+      script.src = `/JS/${scriptPath}.js?t=${new Date().getTime()}`; // Añadir timestamp para evitar caché
       script.type = 'text/javascript';
       script.defer = true;
       script.id = `section-script-${sectionName}`;
@@ -330,8 +354,105 @@ class App {
     }
   }
   
+  // Inicializar sección específica
+  async initializeSection(sectionName) {
+    console.log(`Inicializando sección: ${sectionName}`);
+    
+    try {
+      switch (sectionName) {
+        case 'home':
+          if (window.initializeHomeIfNeeded) {
+            console.log('Llamando a initializeHomeIfNeeded...');
+            window.initializeHomeIfNeeded();
+          } else {
+            console.warn('initializeHomeIfNeeded no está disponible');
+            // Esperar un poco más y volver a intentar
+            setTimeout(() => {
+              if (window.initializeHomeIfNeeded) {
+                console.log('initializeHomeIfNeeded disponible en segundo intento');
+                window.initializeHomeIfNeeded();
+              } else {
+                console.error('initializeHomeIfNeeded no disponible después del segundo intento');
+              }
+            }, 500);
+          }
+          break;
+          
+        case 'historial':
+          if (window.initializeHistorial) {
+            setTimeout(() => window.initializeHistorial(), 200);
+          }
+          break;
+          
+        case 'cambiar-plan':
+          if (window.initializeCambiarPlan) {
+            setTimeout(() => window.initializeCambiarPlan(), 200);
+          }
+          break;
+          
+        default:
+          console.log(`No hay inicialización específica para: ${sectionName}`);
+      }
+    } catch (error) {
+      console.error(`Error inicializando sección ${sectionName}:`, error);
+    }
+  }
+  
+  // Forzar limpieza completa de todos los elementos de loading
+  forceCleanupLoading() {
+    // Usar el módulo UI
+    this.uiModule.hideLoading();
+    
+    // Buscar y eliminar todos los overlays de loading
+    const allLoadingOverlays = document.querySelectorAll('#loadingOverlay, .loading-overlay');
+    allLoadingOverlays.forEach(overlay => {
+      overlay.style.display = 'none';
+    });
+    
+    // Buscar y eliminar todos los elementos de loading del historial
+    const historialLoadings = document.querySelectorAll('.historial-loading, .historial-loading-content');
+    historialLoadings.forEach(loading => {
+      if (loading.parentNode) {
+        loading.parentNode.removeChild(loading);
+      }
+    });
+    
+    // Remover clases de loading de todos los elementos
+    const elementsWithLoading = document.querySelectorAll('.loading');
+    elementsWithLoading.forEach(el => {
+      el.classList.remove('loading');
+    });
+    
+    // Limpiar específicamente el contentGrid si existe
+    const contentGrid = document.getElementById('contentGrid') || document.querySelector('.content-grid');
+    if (contentGrid) {
+      contentGrid.classList.remove('loading');
+      // Solo limpiar el contenido si parece ser de loading
+      if (contentGrid.innerHTML.includes('historial-loading') || contentGrid.innerHTML.includes('Procesando')) {
+        contentGrid.innerHTML = '';
+      }
+    }
+  }
+  
   // Limpiar variables y funciones de la sección anterior
   cleanupPreviousSection() {
+    // Primero ocultar cualquier loading que pueda estar activo
+    this.uiModule.hideLoading();
+    
+    // Limpiar cualquier elemento de loading específico que pueda quedar en el DOM
+    const loadingElements = document.querySelectorAll('.historial-loading, .loading-spinner-modern, .loading');
+    loadingElements.forEach(el => {
+      if (el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
+    
+    // Remover clases de loading de elementos que puedan tenerlas
+    const elementsWithLoadingClass = document.querySelectorAll('.loading');
+    elementsWithLoadingClass.forEach(el => {
+      el.classList.remove('loading');
+    });
+    
     // Eliminar scripts anteriores por ID
     if (window.activeScript) {
       const oldScriptId = `section-script-${window.activeScript}`;
@@ -355,14 +476,36 @@ class App {
       });
     }
     
+    // Limpiar variables globales específicas según la sección anterior
+    if (window.activeScript === 'home') {
+      // Limpiar instancia del carousel si existe
+      if (window.carouselInstance && typeof window.carouselInstance.destroy === 'function') {
+        window.carouselInstance.destroy();
+        window.carouselInstance = null;
+      }
+      
+      // NO limpiar las variables DOM del home - se necesitan para re-inicialización
+      // Las variables se volverán a asignar en getHomeElements()
+      window.homeInitialized = false; // Permitir re-inicialización
+      
+      console.log('🧹 Limpieza del carousel del home realizada');
+    }
+    
     // Limpiar variables globales específicas de historial
     if (window.activeScript === 'historial') {
+      // Primero limpiar cualquier loading específico del historial que pueda estar activo
+      const contentGrid = document.getElementById('contentGrid') || document.querySelector('.content-grid');
+      if (contentGrid) {
+        contentGrid.classList.remove('loading');
+        contentGrid.innerHTML = '';
+      }
+      
       // Limpiar variables globales del historial
+      // NOTA: No eliminamos initializeHistorial para mantener compatibilidad con historial-simple.js
       window.historialData = undefined;
       window.filteredData = undefined;
       window.currentFilter = undefined;
       window.refreshHistorial = undefined;
-      window.initializeHistorial = undefined;
       window.historialInitialized = undefined;
       
       // Limpiar otras variables que puedan interferir
@@ -630,7 +773,7 @@ class App {
 
   // Mostrar historial
   showHistory() {
-    this.uiModule.showNotification('Funcionalidad de historial próximamente', 'info');
+    this.loadSection('historial');
   }
 
   // Mostrar ayuda

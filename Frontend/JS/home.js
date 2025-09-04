@@ -1,8 +1,10 @@
 // Variables globales - se reasignarán cuando se recargue la página
 let uploadBox, uploadText, fileInput, loadingOverlay, cardActionBtns, cards, uploadedFilesContainer;
+let carouselInstance = null; // Variable para almacenar la instancia del carousel
 
 // Función para obtener referencias a los elementos DOM
 function getHomeElements() {
+  console.log('Obteniendo referencias DOM...');
   uploadBox = document.querySelector('.upload-box');
   uploadText = document.querySelector('.upload-text');
   fileInput = document.querySelector('.file-input');
@@ -10,6 +12,16 @@ function getHomeElements() {
   cardActionBtns = document.querySelectorAll('.card-action-btn');
   cards = document.querySelectorAll('.card');
   uploadedFilesContainer = document.getElementById('uploadedFilesContainer');
+  
+  console.log('Referencias DOM obtenidas:', {
+    uploadBox: !!uploadBox,
+    uploadText: !!uploadText,
+    fileInput: !!fileInput,
+    loadingOverlay: !!loadingOverlay,
+    cardActionBtns: cardActionBtns.length,
+    cards: cards.length,
+    uploadedFilesContainer: !!uploadedFilesContainer
+  });
 }
 
 // Función helper para ocultar el overlay de carga
@@ -30,7 +42,77 @@ function showLoadingOverlay() {
 
 // Función para configurar todos los event listeners
 function setupEventListeners() {
-  if (!uploadBox || !fileInput || !cardActionBtns) return;
+  console.log('Configurando event listeners...');
+  
+  // Obtener referencias frescas antes de configurar listeners
+  getHomeElements();
+  
+  if (!uploadBox || !fileInput) {
+    console.error('Error: Elementos críticos no encontrados para event listeners');
+    return;
+  }
+
+  console.log('Configurando drag & drop...');
+  // Event listeners para drag & drop
+  uploadBox.addEventListener('dragover', handleDragOver);
+  uploadBox.addEventListener('dragleave', handleDragLeave);
+  uploadBox.addEventListener('drop', handleDrop);
+
+  console.log('Configurando file input...');
+  // Event listener para selección de archivo
+  fileInput.addEventListener('change', handleFileChange);
+
+  console.log('Configurando cards y botones de acción...');
+  // Event listeners para cards completas y botones de acción
+  if (cards && cards.length > 0) {
+    cards.forEach(card => {
+      // Remover event listeners previos para evitar duplicados
+      card.removeEventListener('click', handleCardClick);
+      card.addEventListener('click', handleCardClick);
+    });
+  }
+  
+  if (cardActionBtns && cardActionBtns.length > 0) {
+    cardActionBtns.forEach(btn => {
+      // Remover event listeners previos para evitar duplicados
+      btn.removeEventListener('click', handleCardAction);
+      btn.addEventListener('click', handleCardAction);
+    });
+  }
+  
+  console.log('Event listeners configurados correctamente');
+}
+
+// Función para limpiar event listeners existentes
+function cleanupEventListeners() {
+  if (uploadBox) {
+    // Clonar elemento para remover todos los event listeners
+    const newUploadBox = uploadBox.cloneNode(true);
+    uploadBox.parentNode.replaceChild(newUploadBox, uploadBox);
+    uploadBox = newUploadBox;
+  }
+  
+  if (fileInput) {
+    // Para file input, simplemente remover el event listener específico
+    fileInput.removeEventListener('change', handleFileChange);
+  }
+}
+
+// Función simplificada para configurar event listeners (usar cuando ya tienes referencias)
+function setupEventListenersSimple() {
+  console.log('Configurando event listeners simples...');
+  
+  if (!uploadBox || !fileInput) {
+    console.error('Error: Elementos críticos no encontrados para event listeners');
+    return;
+  }
+
+  // Limpiar listeners existentes primero
+  cleanupEventListeners();
+  
+  // Volver a obtener referencias después de la limpieza
+  uploadBox = document.querySelector('.upload-box');
+  fileInput = document.querySelector('.file-input');
 
   // Event listeners para drag & drop
   uploadBox.addEventListener('dragover', handleDragOver);
@@ -40,27 +122,46 @@ function setupEventListeners() {
   // Event listener para selección de archivo
   fileInput.addEventListener('change', handleFileChange);
 
-  // Event listeners para botones de acción
-  cardActionBtns.forEach(btn => {
-    // Remover event listeners previos para evitar duplicados
-    btn.removeEventListener('click', handleCardAction);
-    btn.addEventListener('click', handleCardAction);
-  });
+  // Event listeners para cards y botones de acción
+  if (cards && cards.length > 0) {
+    cards.forEach(card => {
+      // Remover event listeners previos para evitar duplicados
+      card.removeEventListener('click', handleCardClick);
+      card.addEventListener('click', handleCardClick);
+    });
+  }
+  
+  if (cardActionBtns && cardActionBtns.length > 0) {
+    cardActionBtns.forEach(btn => {
+      // Remover event listeners previos para evitar duplicados
+      btn.removeEventListener('click', handleCardAction);
+      btn.addEventListener('click', handleCardAction);
+    });
+  }
+  
+  console.log('Event listeners simples configurados correctamente');
 }
 
 // Función de inicialización de la página home
 function initializeHome() {
   console.log('Inicializando página home...');
   
-  // Obtener referencias a elementos DOM
+  // Obtener referencias a elementos DOM (solo una vez aquí)
   getHomeElements();
+  
+  // Verificar que los elementos críticos existen
+  if (!uploadBox || !fileInput) {
+    console.error('Error: Elementos críticos del home no encontrados');
+    return;
+  }
   
   // Asegurar que el overlay esté oculto
   hideLoadingOverlay();
   
   // Deshabilitar tarjetas hasta que se cargue un archivo
-  if (cards) {
+  if (cards && cards.length > 0) {
     cards.forEach(card => card.classList.add('disabled'));
+    console.log(`Deshabilitadas ${cards.length} cards`);
   }
   
   // Limpiar estado de archivo
@@ -74,10 +175,58 @@ function initializeHome() {
     uploadText.textContent = "Ningún archivo seleccionado";
   }
   
-  // Configurar event listeners
-  setupEventListeners();
+  // Configurar event listeners (sin volver a obtener referencias)
+  setupEventListenersSimple();
+  
+  // Inicializar carousel solo si no existe una instancia activa
+  initializeCarousel();
   
   console.log('Home inicializado correctamente');
+}
+
+// Función para inicializar el carousel una sola vez
+function initializeCarousel() {
+  console.log('🎠 Inicializando carousel...');
+  
+  // Verificar elementos necesarios
+  const track = document.getElementById('carouselTrack');
+  const slides = document.querySelectorAll('.carousel-slide');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  
+  console.log('Elementos del carousel:', {
+    track: !!track,
+    slides: slides.length,
+    prevBtn: !!prevBtn,
+    nextBtn: !!nextBtn
+  });
+  
+  if (!track || slides.length === 0) {
+    console.error('❌ Elementos del carousel no encontrados');
+    return;
+  }
+  
+  // Limpiar instancia anterior si existe
+  if (carouselInstance) {
+    console.log('🧹 Limpiando instancia anterior del carousel...');
+    try {
+      carouselInstance.destroy();
+    } catch (error) {
+      console.warn('Error al destruir carousel anterior:', error);
+    }
+    carouselInstance = null;
+    window.carouselInstance = null;
+  }
+  
+  // Crear nueva instancia
+  try {
+    console.log('✨ Creando nueva instancia del carousel...');
+    carouselInstance = new Carousel();
+    window.carouselInstance = carouselInstance;
+    console.log('✅ Carousel inicializado correctamente');
+  } catch (error) {
+    console.error('❌ Error al crear instancia del carousel:', error);
+  }
 }
 
 // Funciones handler para eventos
@@ -157,15 +306,49 @@ function runInitialization() {
       // Intentar nuevamente después de un breve retraso
       setTimeout(runInitialization, 200);
     }
+  } else {
+    console.log('Home ya está inicializado, omitiendo inicialización');
   }
 }
 
+// Función robusta de re-inicialización
+function forceReinitializeHome() {
+  console.log('🔄 Forzando re-inicialización del home...');
+  
+  // Resetear estado
+  homeInitialized = false;
+  
+  // Limpiar instancia del carousel si existe
+  if (carouselInstance) {
+    try {
+      carouselInstance.destroy();
+      carouselInstance = null;
+      window.carouselInstance = null;
+    } catch (error) {
+      console.warn('Error al destruir carousel:', error);
+    }
+  }
+  
+  // Esperar un poco para que el DOM se estabilice
+  setTimeout(() => {
+    console.log('🔍 Verificando elementos DOM...');
+    const uploadBox = document.querySelector('.upload-box');
+    const cards = document.querySelectorAll('.card');
+    
+    if (uploadBox && cards.length > 0) {
+      console.log(`✅ DOM listo - uploadBox: ${!!uploadBox}, cards: ${cards.length}`);
+      runInitialization();
+    } else {
+      console.warn('⚠️ DOM no listo, reintentando...');
+      setTimeout(() => {
+        runInitialization();
+      }, 300);
+    }
+  }, 150);
+}
+
 // Hacer la función de inicialización disponible globalmente para cuando se carguen las páginas dinámicamente
-window.initializeHomeIfNeeded = function() {
-  console.log('initializeHomeIfNeeded llamado');
-  homeInitialized = false; // Permitir re-inicialización
-  runInitialization();
-};
+window.initializeHomeIfNeeded = forceReinitializeHome;
 
 // Ejecutar inicialización
 if (document.readyState === 'loading') {
@@ -281,7 +464,49 @@ async function generateAIContent(pdfId, contentType) {
   // Respuesta exitosa
   console.log('Contenido generado exitosamente');
   const { output } = responseData;
+  
+  // Registrar progreso del usuario para que aparezca en el historial
+  try {
+    await apiCall('/api/study/progress', {
+      method: 'POST',
+      body: JSON.stringify({
+        output_id: output.id,
+        interaction_type: 'leido' // Registrar como "leído" cuando se genera
+      })
+    });
+    console.log('Progreso registrado exitosamente');
+  } catch (progressError) {
+    console.warn('Error al registrar progreso:', progressError);
+    // No fallar si no se puede registrar el progreso
+  }
+  
   return output;
+}
+
+// Función handler para los clics en las cards completas
+function handleCardClick(e) {
+  // Verificar si la card está deshabilitada
+  const card = e.currentTarget;
+  if (card.classList.contains('disabled')) {
+    showInfoMessage("Primero debes subir un archivo PDF para usar esta función.");
+    return;
+  }
+  
+  // Si se hace clic en el botón de acción, no hacer nada (el botón maneja su propio clic)
+  if (e.target.closest('.card-action-btn')) {
+    return;
+  }
+  
+  // Prevenir el clic si es en el overlay (para evitar doble activación)
+  if (e.target.closest('.card-overlay')) {
+    return;
+  }
+  
+  // Activar el botón de acción de la card
+  const actionBtn = card.querySelector('.card-action-btn');
+  if (actionBtn) {
+    actionBtn.click();
+  }
 }
 
 // Función handler para los clics en botones de acción de tarjetas
@@ -310,9 +535,18 @@ async function handleCardAction(e) {
       // Generar resumen con IA
       const output = await generateAIContent(pdfId, 'resumen');
       
-      // Notificar al historial que se generó nuevo contenido
+      // Notificar al historial que se generó nuevo contenido (con delay para asegurar que se procese)
       if (window.refreshHistorial) {
-        window.refreshHistorial();
+        try {
+          await window.refreshHistorial();
+          // Pequeño delay para asegurar que la actualización se complete
+          await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (error) {
+          console.warn('Error al actualizar historial:', error);
+        }
+      } else {
+        // Si la función no existe, marcar que hay contenido nuevo para cuando se cargue el historial
+        sessionStorage.setItem('newContentGenerated', 'true');
       }
       
       // Redirigir a la página de resumen con los datos
@@ -330,9 +564,18 @@ async function handleCardAction(e) {
       // Generar verdadero/falso con IA
       const output = await generateAIContent(pdfId, 'verdadero_falso');
       
-      // Notificar al historial que se generó nuevo contenido
+      // Notificar al historial que se generó nuevo contenido (con delay para asegurar que se procese)
       if (window.refreshHistorial) {
-        window.refreshHistorial();
+        try {
+          await window.refreshHistorial();
+          // Pequeño delay para asegurar que la actualización se complete
+          await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (error) {
+          console.warn('Error al actualizar historial:', error);
+        }
+      } else {
+        // Si la función no existe, marcar que hay contenido nuevo para cuando se cargue el historial
+        sessionStorage.setItem('newContentGenerated', 'true');
       }
       
       // Redirigir a la vista de verdadero/falso
@@ -349,9 +592,18 @@ async function handleCardAction(e) {
       // Generar multiple choice con IA
       const output = await generateAIContent(pdfId, 'multiple_choice');
       
-      // Notificar al historial que se generó nuevo contenido
+      // Notificar al historial que se generó nuevo contenido (con delay para asegurar que se procese)
       if (window.refreshHistorial) {
-        window.refreshHistorial();
+        try {
+          await window.refreshHistorial();
+          // Pequeño delay para asegurar que la actualización se complete
+          await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (error) {
+          console.warn('Error al actualizar historial:', error);
+        }
+      } else {
+        // Si la función no existe, marcar que hay contenido nuevo para cuando se cargue el historial
+        sessionStorage.setItem('newContentGenerated', 'true');
       }
       
       const params = new URLSearchParams({
@@ -367,9 +619,18 @@ async function handleCardAction(e) {
       // Generar mapa mental con IA
       const output = await generateAIContent(pdfId, 'mapa_mental');
       
-      // Notificar al historial que se generó nuevo contenido
+      // Notificar al historial que se generó nuevo contenido (con delay para asegurar que se procese)
       if (window.refreshHistorial) {
-        window.refreshHistorial();
+        try {
+          await window.refreshHistorial();
+          // Pequeño delay para asegurar que la actualización se complete
+          await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (error) {
+          console.warn('Error al actualizar historial:', error);
+        }
+      } else {
+        // Si la función no existe, marcar que hay contenido nuevo para cuando se cargue el historial
+        sessionStorage.setItem('newContentGenerated', 'true');
       }
       
       const params = new URLSearchParams({
@@ -378,6 +639,33 @@ async function handleCardAction(e) {
         fileName: fileName
       });
       window.location.href = `/mapa-mental.html?${params.toString()}`;
+      return;
+    }
+
+    if (type === "flashcards") {
+      // Generar flashcards con IA
+      const output = await generateAIContent(pdfId, 'flashcards');
+      
+      // Notificar al historial que se generó nuevo contenido (con delay para asegurar que se procese)
+      if (window.refreshHistorial) {
+        try {
+          await window.refreshHistorial();
+          // Pequeño delay para asegurar que la actualización se complete
+          await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (error) {
+          console.warn('Error al actualizar historial:', error);
+        }
+      } else {
+        // Si la función no existe, marcar que hay contenido nuevo para cuando se cargue el historial
+        sessionStorage.setItem('newContentGenerated', 'true');
+      }
+      
+      const params = new URLSearchParams({
+        pdfId: String(pdfId),
+        id: String(output.id),
+        fileName: fileName
+      });
+      window.location.href = `/flashcards.html?${params.toString()}`;
       return;
     }
 
@@ -415,6 +703,7 @@ function showSuccessMessage(type) {
     "verdadero-falso": "¡Preguntas de Verdadero/Falso generadas exitosamente!",
     resumen: "¡Resumen creado exitosamente!",
     "multiple-choice": "¡Examen de opción múltiple generado exitosamente!",
+    "flashcards": "¡Tarjetas de estudio generadas exitosamente!",
   };
 
   showNotification(messages[type] || "¡Proceso exitoso!", "success");
@@ -480,6 +769,9 @@ function showNotification(message, type = "success") {
 // Funcionalidad del Carrusel
 class Carousel {
   constructor() {
+    console.log('📱 Inicializando constructor del Carousel...');
+    
+    // Obtener referencias DOM
     this.currentSlide = 0;
     this.track = document.getElementById('carouselTrack');
     this.slides = document.querySelectorAll('.carousel-slide');
@@ -488,12 +780,33 @@ class Carousel {
     this.nextBtn = document.getElementById('nextBtn');
     this.indicators = document.querySelectorAll('.indicator');
     
+    console.log('Referencias DOM obtenidas:', {
+      track: !!this.track,
+      slides: this.totalSlides,
+      prevBtn: !!this.prevBtn,
+      nextBtn: !!this.nextBtn,
+      indicators: this.indicators.length
+    });
+    
+    if (!this.track || this.totalSlides === 0) {
+      console.error('❌ Error: Elementos críticos del carousel no encontrados');
+      return;
+    }
+    
     // Configuración responsiva
     this.slidesPerView = this.getSlidesPerView();
     this.maxSlides = Math.max(0, this.totalSlides - this.slidesPerView);
     
+    console.log('Configuración:', {
+      slidesPerView: this.slidesPerView,
+      maxSlides: this.maxSlides
+    });
+    
+    // Inicializar
     this.init();
     this.handleResize();
+    
+    console.log('✅ Constructor del Carousel completado');
   }
   
   getSlidesPerView() {
@@ -501,28 +814,57 @@ class Carousel {
   }
   
   init() {
-    if (!this.track || this.totalSlides === 0) return;
+    console.log('⚙️ Inicializando carousel...');
     
+    if (!this.track || this.totalSlides === 0) {
+      console.error('❌ No se puede inicializar: faltan elementos');
+      return;
+    }
+    
+    console.log('🔘 Configurando event listeners para botones...');
     // Event listeners para botones
-    this.prevBtn?.addEventListener('click', () => this.prevSlide());
-    this.nextBtn?.addEventListener('click', () => this.nextSlide());
+    if (this.prevBtn) {
+      this.prevBtn.addEventListener('click', () => {
+        console.log('⬅️ Prev button clicked');
+        this.prevSlide();
+      });
+      console.log('✅ Prev button configurado');
+    }
     
+    if (this.nextBtn) {
+      this.nextBtn.addEventListener('click', () => {
+        console.log('➡️ Next button clicked');
+        this.nextSlide();
+      });
+      console.log('✅ Next button configurado');
+    }
+    
+    console.log('🔘 Configurando event listeners para indicadores...');
     // Event listeners para indicadores
     this.indicators.forEach((indicator, index) => {
-      indicator.addEventListener('click', () => this.goToSlide(index));
+      indicator.addEventListener('click', () => {
+        console.log(`🎯 Indicator ${index} clicked`);
+        this.goToSlide(index);
+      });
     });
+    console.log(`✅ ${this.indicators.length} indicadores configurados`);
     
     // Soporte para touch/swipe mejorado
+    console.log('👆 Agregando soporte touch...');
     this.addTouchSupport();
     
     // Event listener para resize
+    console.log('📱 Configurando resize handler...');
     window.addEventListener('resize', () => this.handleResize());
     
     // Autoplay opcional (comentado por defecto)
     // this.startAutoplay();
     
     // Actualizar estado inicial
+    console.log('🔄 Actualizando estado inicial...');
     this.updateCarousel();
+    
+    console.log('✅ Carousel init() completado');
   }
   
   handleResize() {
@@ -541,22 +883,30 @@ class Carousel {
   }
   
   prevSlide() {
+    console.log(`⬅️ prevSlide() - currentSlide: ${this.currentSlide}, maxSlides: ${this.maxSlides}`);
+    
     if (this.currentSlide > 0) {
       this.currentSlide--;
     } else {
       // Navegación infinita - ir al final
       this.currentSlide = this.maxSlides;
     }
+    
+    console.log(`⬅️ Nuevo currentSlide: ${this.currentSlide}`);
     this.updateCarousel();
   }
   
   nextSlide() {
+    console.log(`➡️ nextSlide() - currentSlide: ${this.currentSlide}, maxSlides: ${this.maxSlides}`);
+    
     if (this.currentSlide < this.maxSlides) {
       this.currentSlide++;
     } else {
       // Navegación infinita - volver al inicio
       this.currentSlide = 0;
     }
+    
+    console.log(`➡️ Nuevo currentSlide: ${this.currentSlide}`);
     this.updateCarousel();
   }
   
@@ -568,10 +918,20 @@ class Carousel {
   }
   
   updateCarousel() {
+    console.log(`🔄 updateCarousel() - currentSlide: ${this.currentSlide}, slidesPerView: ${this.slidesPerView}`);
+    
     // Calcular el desplazamiento basado en slides por vista
     const slideWidth = 100 / this.slidesPerView;
     const translateX = -this.currentSlide * slideWidth;
-    this.track.style.transform = `translateX(${translateX}%)`;
+    
+    console.log(`📏 slideWidth: ${slideWidth}%, translateX: ${translateX}%`);
+    
+    if (this.track) {
+      this.track.style.transform = `translateX(${translateX}%)`;
+      console.log(`✅ Transform aplicado: ${this.track.style.transform}`);
+    } else {
+      console.error('❌ No hay track para aplicar transform');
+    }
     
     // Actualizar indicadores
     this.updateIndicators();
@@ -739,18 +1099,49 @@ class Carousel {
       clearInterval(this.autoplayInterval);
     }
   }
-}
-
-// Inicializar el carrusel cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', () => {
-  new Carousel();
-});
-
-// También inicializar si el script se carga después del DOM
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    new Carousel();
-  });
-} else {
-  new Carousel();
+  
+  // Método para destruir la instancia del carousel
+  destroy() {
+    try {
+      // Remover event listeners de botones
+      if (this.prevBtn) {
+        const newPrevBtn = this.prevBtn.cloneNode(true);
+        this.prevBtn.parentNode.replaceChild(newPrevBtn, this.prevBtn);
+      }
+      
+      if (this.nextBtn) {
+        const newNextBtn = this.nextBtn.cloneNode(true);
+        this.nextBtn.parentNode.replaceChild(newNextBtn, this.nextBtn);
+      }
+      
+      // Remover event listeners de indicadores
+      this.indicators.forEach(indicator => {
+        const newIndicator = indicator.cloneNode(true);
+        indicator.parentNode.replaceChild(newIndicator, indicator);
+      });
+      
+      // Remover event listeners del track
+      if (this.track) {
+        const newTrack = this.track.cloneNode(true);
+        this.track.parentNode.replaceChild(newTrack, this.track);
+      }
+      
+      // Limpiar autoplay si existe
+      if (this.autoplayInterval) {
+        clearInterval(this.autoplayInterval);
+      }
+      
+      // Resetear propiedades
+      this.currentSlide = 0;
+      this.track = null;
+      this.slides = null;
+      this.prevBtn = null;
+      this.nextBtn = null;
+      this.indicators = null;
+      
+      console.log('Carousel destruido correctamente');
+    } catch (error) {
+      console.error('Error al destruir carousel:', error);
+    }
+  }
 }

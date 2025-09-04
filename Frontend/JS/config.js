@@ -1,5 +1,6 @@
 // Configuración centralizada de rutas y constantes
-const CONFIG = {
+if (typeof CONFIG === 'undefined') {
+  window.CONFIG = {
   // Rutas de la aplicación
   ROUTES: {
     LOGIN: '/login.html',
@@ -24,6 +25,7 @@ const CONFIG = {
     ACCESS_TOKEN: 'access_token'
   }
 };
+}
 
 // Configuración de Supabase - obtenida del servidor
 let SUPABASE_CONFIG = {

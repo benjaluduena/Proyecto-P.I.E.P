@@ -20,8 +20,6 @@ Este backend proporciona una API REST completa para gestionar:
 - **OpenAI** - Generación de contenido educativo
 - **JWT** - Autenticación
 - **Multer** - Manejo de archivos
-- **Nodemailer** - Envío de emails
-- **Twilio** - Notificaciones WhatsApp
 - **Mercado Pago** - Suscripciones mensuales
 
 ## 📦 Instalación

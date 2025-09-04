@@ -1,10 +1,36 @@
 let isDropdownOpen = false;
-// Carga inicial
+// Función de carga de sección que delega al sistema modular
 function cargarSeccion(nombre) {
+  console.log(`cargarSeccion llamado con: ${nombre}`);
+  
+  // Si el sistema modular está disponible, usarlo
+  if (window.app && window.app.loadSection) {
+    console.log('Usando sistema modular para cargar sección');
+    window.app.loadSection(nombre);
+    return;
+  }
+  
+  // Fallback al sistema legacy si el modular no está disponible
+  console.log('Usando sistema legacy para cargar sección');
+  loadSectionLegacy(nombre);
+}
+
+// Sistema legacy de carga (backup)
+function loadSectionLegacy(nombre) {
+  // Ocultar cualquier loading activo antes de comenzar
+  if (window.app && window.app.uiModule) {
+    window.app.uiModule.hideLoading();
+  }
+  
   // Limpiar recursos de la sección anterior
   if (window.cleanupHistorial && document.getElementById('historialContainer')) {
     console.log('Limpiando recursos de historial antes de cargar nueva sección');
     window.cleanupHistorial();
+  }
+  
+  if (window.cleanupCambiarPlan && document.querySelector('.cambiar-plan-container')) {
+    console.log('Limpiando recursos de cambiar plan antes de cargar nueva sección');
+    window.cleanupCambiarPlan();
   }
   
   // Eliminar scripts anteriores para evitar duplicados
@@ -23,12 +49,11 @@ function cargarSeccion(nombre) {
 
       // Carga el script después de insertar el HTML
       const script = document.createElement('script');
-      script.src = `/JS/${nombre}.js`; // Corregida la ruta
+      script.src = `/JS/${nombre}.js`;
       script.type = 'text/javascript';
       script.defer = true;
-      script.setAttribute('data-section', nombre); // Marcar el script con la sección
+      script.setAttribute('data-section', nombre);
       
-      // Agregar evento para verificar que el script se cargó correctamente
       script.onload = function() {
         console.log(`Script ${nombre}.js cargado correctamente`);
       };
@@ -41,7 +66,7 @@ function cargarSeccion(nombre) {
       // Reasignar logout por si la sección cambia el DOM
       asignarLogout();
       
-      // Si se está cargando la sección home, re-inicializarla
+      // Inicializaciones específicas por sección
       if (nombre === 'home' && window.initializeHomeIfNeeded) {
         console.log('Inicializando home después de cargar HTML...');
         setTimeout(() => {
@@ -54,9 +79,12 @@ function cargarSeccion(nombre) {
         }, 300);
       }
       
-      // Si se está cargando la sección historial, inicializarla
       if (nombre === 'historial' && window.initializeHistorial) {
         setTimeout(() => window.initializeHistorial(), 200);
+      }
+      
+      if (nombre === 'cambiar-plan' && window.initializeCambiarPlan) {
+        setTimeout(() => window.initializeCambiarPlan(), 200);
       }
     })
     .catch(err => {
@@ -206,6 +234,14 @@ function openSettings() {
 
 // Asignar logout al botón 'Salir' de forma robusta
 function asignarLogout() {
+  // Buscar botón "Cambiar plan"
+  const btnCambiarPlan = document.getElementById('btnCambiarPlan');
+  if (btnCambiarPlan) {
+    btnCambiarPlan.removeEventListener('click', handleCambiarPlan);
+    btnCambiarPlan.addEventListener('click', handleCambiarPlan);
+    console.log('Botón Cambiar plan listo');
+  }
+  
   // Busca el botón por el icono de logout
   const botones = document.querySelectorAll('.sidebar-footer .menu-item');
   for (let btn of botones) {
@@ -217,6 +253,13 @@ function asignarLogout() {
       break;
     }
   }
+}
+
+// Función para manejar clic en "Cambiar plan"
+function handleCambiarPlan(e) {
+  e.preventDefault();
+  console.log('Cargando sección cambiar-plan...');
+  cargarSeccion('cambiar-plan');
 }
 
 // Ejecutar al cargar el DOM y tras cargar secciones

@@ -94,6 +94,20 @@ function devAuth(req, res, next) {
     };
     return next();
   }
+
+  // Manejar token demo para testing
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.includes('demo-token-for-testing-only')) {
+    console.warn('⚠️ Usando token demo - SOLO para testing en localhost');
+    req.user = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      name: 'Usuario Demo',
+      email: 'demo@test.com',
+      role: 'estudiante',
+      education_level: 'universitario'
+    };
+    return next();
+  }
   
   // Si hay token de autorización, usar la autenticación de Supabase
   return supabaseAuth(req, res, next);

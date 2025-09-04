@@ -132,20 +132,36 @@ function getHistorialElements() {
 // Función de inicialización global
 window.initializeHistorial = async function() {
   console.log('🚀 Inicializando historial...');
-  // Evitar inicialización múltiple
-  if (historialInitialized) {
-    console.log('📋 El historial ya está inicializado, refrescando...');
-    await window.refreshHistorial();
-    return;
-  }
-  
-  // Limpiar cualquier inicialización previa
-  cleanupHistorial();
   
   try {
     // Obtener elementos DOM
     getHistorialElements();
-    showLoading('🔄 Inicializando historial...');
+    
+    if (!contentGrid) {
+      console.error('❌ No se encontró el elemento contentGrid');
+      return;
+    }
+    
+    // Verificar si hay contenido nuevo generado desde otra página
+    const newContentGenerated = sessionStorage.getItem('newContentGenerated');
+    if (newContentGenerated === 'true') {
+      console.log('🔄 Detectado contenido nuevo, forzando recarga del historial...');
+      sessionStorage.removeItem('newContentGenerated');
+    }
+    
+    // Cargar datos del historial
+    await loadHistorialData();
+    
+    // Configurar event listeners
+    setupEventListeners();
+    
+    console.log('✅ Historial inicializado correctamente');
+  } catch (error) {
+    console.error('❌ Error inicializando historial:', error);
+    showError('Error al cargar el historial');
+  }
+};
+
     
     // Simular un pequeño delay para mostrar el loader
     await new Promise(resolve => setTimeout(resolve, 800));
@@ -157,24 +173,82 @@ window.initializeHistorial = async function() {
     if (advancedSearch && historialData) {
       advancedSearch.setData(historialData);
     }
-    
-    updateStats();
-    renderContent();
-    
-    // Configurar event listeners
-    setupEventListeners();
-    
-    // Marcar como inicializado
-    historialInitialized = true;
-    
-    console.log('✅ Historial inicializado correctamente');
-  } catch (error) {
-    console.error('Error al inicializar el historial:', error);
-    showError('No se pudo cargar el historial. Por favor, intenta de nuevo.');
-  } finally {
-    hideLoading();
+// Función para aplicar filtros
+function applyFilter(filter) {
+  currentFilter = filter;
+  
+  if (filter === 'all') {
+    filteredData = [...historialData];
+  } else {
+    filteredData = historialData.filter(item => item.type === filter);
   }
-};
+  
+  renderContent();
+  updateFilterButtons();
+}
+
+// Actualizar botones de filtro
+function updateFilterButtons() {
+  filterButtons = document.querySelectorAll('.filter-btn');
+  filterButtons.forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.filter === currentFilter) {
+      btn.classList.add('active');
+    }
+  });
+}
+
+// Renderizar contenido del historial
+
+// Crear tarjeta de historial
+function createHistorialCard(item) {
+  const card = document.createElement('div');
+  card.className = 'historial-card';
+  
+  const typeIcon = getTypeIcon(item.type);
+  const typeName = getTypeName(item.type);
+  
+  card.innerHTML = `
+    <div class="historial-card-header">
+      <div class="historial-card-icon">${typeIcon}</div>
+      <div class="historial-card-type">${typeName}</div>
+    </div>
+    <div class="historial-card-content">
+      <h3 class="historial-card-title">PDF: ${item.pdf_title || 'Sin título'}</h3>
+      <p class="historial-card-date">${utils.formatDate(item.created_at)}</p>
+      <div class="historial-card-actions">
+        <button class="btn-preview" onclick="previewItem(${item.id})">Ver</button>
+        <button class="btn-delete" onclick="deleteItem(${item.id})">Eliminar</button>
+      </div>
+    </div>
+  `;
+  
+  return card;
+}
+
+// Obtener icono por tipo
+function getTypeIcon(type) {
+  const icons = {
+    'resumen': '📄',
+    'verdadero_falso': '✅',
+    'multiple_choice': '🔘',
+    'mapa_mental': '🗺️',
+    'chat-qa': '💬'
+  };
+  return icons[type] || '📋';
+}
+
+// Obtener nombre por tipo
+function getTypeName(type) {
+  const names = {
+    'resumen': 'Resumen',
+    'verdadero_falso': 'Verdadero o Falso',
+    'multiple_choice': 'Multiple Choice',
+    'mapa_mental': 'Mapa Mental',
+    'chat-qa': 'Preguntas y Respuestas'
+  };
+  return names[type] || 'Contenido';
+}
 
 // Función para limpiar recursos del historial
 function cleanupHistorial() {
@@ -335,48 +409,187 @@ if (document.readyState === 'loading') {
 function setupEventListeners() {
   console.log('⚙️ Configurando event listeners del historial...');
   
-  // Obtener elementos DOM actualizados
+  // Event listeners para filtros
   const currentFilterButtons = document.querySelectorAll('.filter-btn');
-  console.log(`🔘 Filter buttons encontrados: ${currentFilterButtons.length}`);
-  
-  // Filtros con tooltips y retroalimentación mejorada
   currentFilterButtons.forEach(btn => {
-    // Añadir tooltips informativos
-    const filterType = btn.dataset.filter;
-    const tooltipTexts = {
-      'all': 'Mostrar todos los elementos',
-      'resumen': 'Mostrar solo resúmenes',
-      'flashcards': 'Mostrar solo flashcards',
-      'multiple-choice': 'Mostrar solo preguntas de opción múltiple',
-      'mapa-mental': 'Mostrar solo mapas mentales',
-      'preguntas-respuestas': 'Mostrar solo preguntas y respuestas'
-    };
-    btn.setAttribute('data-tooltip', tooltipTexts[filterType] || 'Filtrar contenido');
-    
     btn.addEventListener('click', (e) => {
-      // Añadir efecto de carga temporal
-      btn.style.transform = 'scale(0.95)';
-      setTimeout(() => {
-        btn.style.transform = '';
-      }, 150);
-      
       const filter = e.target.dataset.filter;
-      
-      // Integrar con el sistema de búsqueda avanzada
-      if (advancedSearch) {
-        advancedSearch.currentFilters.type = filter === 'all' ? 'all' : filter;
-        advancedSearch.applyFilters();
-      } else {
-        // Fallback al sistema anterior
-        setActiveFilter(filter);
-      }
-      filterContent(filter);
+      applyFilter(filter);
     });
   });
+// Funciones auxiliares
+function showEmptyState(show) {
+  if (emptyState) {
+    emptyState.style.display = show ? 'block' : 'none';
+  }
+}
 
-  // Botón limpiar historial con tooltip y retroalimentación
-  const btnLimpiarHistorial = document.getElementById('btnLimpiarHistorial');
-  if (btnLimpiarHistorial) {
+
+function showError(message) {
+  console.error(message);
+  // Implementar mostrar error en UI si es necesario
+}
+
+// Funciones globales para ventana
+window.previewItem = async function(id) {
+  try {
+    const response = await apiCall(`/api/study/outputs/${id}`);
+    if (response && response.ok) {
+      const item = await response.json();
+      showPreviewModal(item);
+    } else {
+      showError('Error al cargar el elemento');
+    }
+  } catch (error) {
+    console.error('Error al previsualizar:', error);
+    showError('Error al cargar el elemento');
+  }
+};
+
+window.deleteItem = async function(id) {
+  if (confirm('¿Estás seguro de eliminar este elemento? Esta acción no se puede deshacer.')) {
+    try {
+      const response = await apiCall(`/api/study/outputs/${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (response && response.ok) {
+        // Remover el item del historial local
+        historialData = historialData.filter(item => item.id !== id);
+        applyFilter(currentFilter);
+        updateStats();
+        showSuccess('Elemento eliminado correctamente');
+      } else {
+        showError('Error al eliminar el elemento');
+      }
+    } catch (error) {
+      console.error('Error al eliminar:', error);
+      showError('Error al eliminar el elemento');
+    }
+  }
+};
+
+// Función para mostrar el modal de previsualización
+function showPreviewModal(item) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3>${getTypeName(item.type)} - ${item.pdf_title}</h3>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="preview-content">
+          ${formatContent(item.content, item.type)}
+        </div>
+        <div class="preview-meta">
+          <small>Creado: ${utils.formatDate(item.created_at)}</small>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cerrar</button>
+        <button class="btn-primary" onclick="openFullView('${item.type}', ${item.id})">Ver Completo</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Cerrar con click fuera del modal
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.remove();
+    }
+  });
+}
+
+// Función para formatear contenido según el tipo
+function formatContent(content, type) {
+  if (!content) return '<p>Sin contenido disponible</p>';
+  
+  try {
+    const parsedContent = typeof content === 'string' ? JSON.parse(content) : content;
+    
+    switch (type) {
+      case 'resumen':
+        return `<div class="summary-preview">${parsedContent.summary || parsedContent}</div>`;
+      
+      case 'multiple_choice':
+        if (Array.isArray(parsedContent)) {
+          const previewQuestions = parsedContent.slice(0, 2);
+          return `
+            <div class="questions-preview">
+              ${previewQuestions.map((q, i) => `
+                <div class="question-item">
+                  <strong>${i + 1}. ${q.question}</strong>
+                  <ul style="margin-left: 20px; margin-top: 8px;">
+                    ${q.options.map(opt => `<li>${opt}</li>`).join('')}
+                  </ul>
+                </div>
+              `).join('')}
+              ${parsedContent.length > 2 ? `<p><em>... y ${parsedContent.length - 2} preguntas más</em></p>` : ''}
+            </div>
+          `;
+        }
+        break;
+      
+      case 'verdadero_falso':
+        if (Array.isArray(parsedContent)) {
+          return `
+            <div class="tf-preview">
+              ${parsedContent.slice(0, 3).map((q, i) => `
+                <div class="tf-item">
+                  <strong>${i + 1}. ${q.statement}</strong>
+                  <span style="color: #666; margin-left: 10px;">(${q.answer ? 'Verdadero' : 'Falso'})</span>
+                </div>
+              `).join('')}
+              ${parsedContent.length > 3 ? `<p><em>... y ${parsedContent.length - 3} más</em></p>` : ''}
+            </div>
+          `;
+        }
+        break;
+      
+      case 'mapa_mental':
+        return `<div class="mindmap-preview"><pre style="max-height: 200px; overflow-y: auto;">${parsedContent}</pre></div>`;
+      
+      default:
+        return `<div class="content-preview">${JSON.stringify(parsedContent, null, 2)}</div>`;
+    }
+  } catch (error) {
+    return `<div class="content-preview">${content}</div>`;
+  }
+}
+
+// Función para abrir vista completa
+function openFullView(type, id) {
+  const urls = {
+    'resumen': '/resumen.html',
+    'multiple_choice': '/multiple-choice.html',
+    'verdadero_falso': '/verdadero-falso.html',
+    'mapa_mental': '/mapa-mental.html',
+    'chat-qa': '/chat-qa.html'
+  };
+  
+  const url = urls[type];
+  if (url) {
+    window.open(`${url}?output_id=${id}`, '_blank');
+  }
+}
+
+// Función para mostrar mensajes de éxito
+function showSuccess(message) {
+  console.log('✅', message);
+  // Implementar toast notification si se desea
+};
+
+// Botón limpiar historial
+const btnLimpiarHistorial = document.getElementById('btnLimpiarHistorial');
+if (btnLimpiarHistorial) {
     btnLimpiarHistorial.setAttribute('data-tooltip', 'Eliminar todo el historial');
     btnLimpiarHistorial.addEventListener('click', (e) => {
       // Añadir efecto visual
@@ -426,79 +639,63 @@ function setupEventListeners() {
 async function loadHistorialData() {
   try {
     console.log('🔄 Cargando datos del historial...');
+    
+    // Verificar que apiCall esté disponible
+    if (typeof apiCall !== 'function') {
+      console.error('❌ apiCall no está disponible. Esperando inicialización...');
+      
+      // Esperar hasta que apiCall esté disponible
+      let retries = 0;
+      while (typeof apiCall !== 'function' && retries < 10) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        retries++;
+      }
+      
+      if (typeof apiCall !== 'function') {
+        throw new Error('Sistema de API no inicializado correctamente');
+      }
+      
+      console.log('✅ apiCall disponible después de', retries, 'reintentos');
+    }
+    
     showLoading('📚 Cargando tu historial de contenido...');
     
-    // Obtener todos los PDFs del usuario
-    const pdfResponse = await apiCall('/api/pdfs/my-pdfs', {
+    // Obtener datos de study_outputs directamente 
+    const response = await apiCall('/api/study/outputs', {
       method: 'GET'
     });
 
-    console.log('📄 Respuesta PDFs:', pdfResponse?.status);
+    console.log('📊 Respuesta historial:', response?.status);
 
-    if (!pdfResponse) {
+    if (!response) {
       throw new Error('Error de conexión al servidor. Por favor, verifica tu conexión a internet.');
     }
     
-    if (!pdfResponse.ok) {
-      if (pdfResponse.status === 404) {
-        throw new Error('No se encontró la ruta para obtener PDFs. Contacta al administrador.');
-      } else if (pdfResponse.status === 500) {
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+      } else if (response.status === 404) {
+        throw new Error('No se encontró la ruta del historial. Contacta al administrador.');
+      } else if (response.status === 500) {
         throw new Error('Error interno del servidor. Intenta nuevamente más tarde.');
       } else {
-        throw new Error(`Error obteniendo PDFs (${pdfResponse.status}): ${pdfResponse.statusText}`);
+        throw new Error(`Error obteniendo historial (${response.status}): ${response.statusText}`);
       }
     }
 
-    const pdfData = await pdfResponse.json().catch(() => ({ pdfs: [] }));
-    const pdfs = pdfData.pdfs || [];
-    console.log(`📚 PDFs encontrados: ${pdfs.length}`, pdfs);
+    const historialArray = await response.json().catch(() => []);
+    console.log(`📚 Elementos de historial encontrados: ${historialArray.length}`, historialArray);
 
-    if (pdfs.length === 0) {
-      console.log('⚠️ No se encontraron PDFs para este usuario');
-      return []; // Retornar array vacío en lugar de lanzar error
+    if (historialArray.length === 0) {
+      console.log('⚠️ No se encontró historial para este usuario');
+      historialData = [];
+      showEmptyState(true);
+      return [];
     }
 
-    // Para cada PDF, obtener su contenido generado
-    historialData = [];
-    let errorCount = 0;
+    // Asignar datos al historial
+    historialData = historialArray;
     
-    showLoading('📄 Procesando documentos PDF...');
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    for (const pdf of pdfs) {
-      try {
-        console.log(`🔍 Obteniendo contenido para PDF ${pdf.id}...`);
-        
-        const contentResponse = await apiCall(`/api/ai/pdf/${pdf.id}`, {
-          method: 'GET'
-        });
-
-        console.log(`📊 Respuesta contenido PDF ${pdf.id}:`, contentResponse?.status);
-
-        if (contentResponse && contentResponse.ok) {
-          const contentData = await contentResponse.json().catch(() => ({ outputs: [] }));
-          const outputs = contentData.outputs || [];
-          
-          console.log(`✅ Outputs encontrados para PDF ${pdf.id}: ${outputs.length}`, outputs);
-
-          // Agregar cada output al historial con información del PDF
-          outputs.forEach(output => {
-            historialData.push({
-              ...output,
-              pdf_title: pdf.title || 'Documento sin título',
-              pdf_id: pdf.id,
-              pdf_file_name: pdf.file_name || 'archivo.pdf'
-            });
-          });
-        } else {
-          console.log(`⚠️ Sin contenido para PDF ${pdf.id}`);
-        }
-      } catch (error) {
-        console.error(`❌ Error obteniendo contenido para PDF ${pdf.id}:`, error);
-        errorCount++;
-      }
-    }
-
     console.log(`🎯 Total items en historial: ${historialData.length}`, historialData);
 
     // Mostrar progreso de procesamiento
@@ -762,11 +959,6 @@ function createHistorialCard(item) {
             <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
           </svg>
         </button>
-        <button class="action-btn delete-btn" title="Eliminar" data-id="${item.id}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-          </svg>
-        </button>
       </div>
     </div>
     <div class="card-content">
@@ -787,6 +979,20 @@ function createHistorialCard(item) {
           <i class="fas fa-file-pdf"></i>
           PDF
         </span>
+      </div>
+      <div class="card-delete-actions">
+        <button class="action-btn delete-btn" title="Eliminar este contenido" data-id="${item.id}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+          </svg>
+          <span>Eliminar contenido</span>
+        </button>
+        <button class="action-btn delete-pdf-btn" title="Eliminar PDF completo y todo su contenido" data-pdf-id="${item.pdf_id}" data-pdf-title="${safeTitle}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z"/>
+          </svg>
+          <span>Eliminar PDF completo</span>
+        </button>
       </div>
     </div>
   `;
@@ -819,6 +1025,23 @@ function createHistorialCard(item) {
       setTimeout(() => {
         confirmDeleteItem(item.id);
         deleteBtn.classList.remove('loading');
+      }, 200);
+    });
+  }
+
+  // Event listener para el botón de borrar PDF completo
+  const deletePdfBtn = card.querySelector('.delete-pdf-btn');
+  if (deletePdfBtn) {
+    deletePdfBtn.setAttribute('data-tooltip', 'Eliminar PDF completo');
+    deletePdfBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Añadir estado de carga
+      deletePdfBtn.classList.add('loading');
+      const pdfId = deletePdfBtn.dataset.pdfId;
+      const pdfTitle = deletePdfBtn.dataset.pdfTitle;
+      setTimeout(() => {
+        confirmDeletePdf(pdfId, pdfTitle);
+        deletePdfBtn.classList.remove('loading');
       }, 200);
     });
   }
@@ -2421,6 +2644,128 @@ function setCachedContent(id, content) {
     contentCache.delete(firstKey);
   }
   contentCache.set(id, content);
+}
+
+// Función para confirmar eliminación de PDF completo
+function confirmDeletePdf(pdfId, pdfTitle) {
+  if (!pdfId) {
+    console.error('ID de PDF no válido');
+    return;
+  }
+
+  // Crear diálogo de confirmación personalizado
+  const confirmDialog = document.createElement('div');
+  confirmDialog.className = 'modal-overlay confirm-dialog';
+  confirmDialog.innerHTML = `
+    <div class="modal-content confirm-content">
+      <div class="confirm-header">
+        <h3>⚠️ Confirmar Eliminación de PDF</h3>
+      </div>
+      <div class="confirm-body">
+        <p><strong>¿Estás seguro de que deseas eliminar el PDF completo?</strong></p>
+        <p class="pdf-title">"${pdfTitle}"</p>
+        <div class="warning-box">
+          <div class="warning-icon">🚨</div>
+          <div class="warning-text">
+            <p><strong>Esta acción eliminará:</strong></p>
+            <ul>
+              <li>El archivo PDF original</li>
+              <li>Todos los resúmenes generados</li>
+              <li>Todas las preguntas y respuestas</li>
+              <li>Todos los mapas mentales</li>
+              <li>Todas las flashcards</li>
+              <li>Todo el contenido IA relacionado</li>
+            </ul>
+          </div>
+        </div>
+        <p class="warning-final"><strong>Esta acción no se puede deshacer.</strong></p>
+      </div>
+      <div class="confirm-actions">
+        <button class="btn-secondary cancel-btn">Cancelar</button>
+        <button class="btn-danger confirm-btn">Sí, Eliminar Todo</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(confirmDialog);
+
+  // Event listeners para los botones
+  const cancelBtn = confirmDialog.querySelector('.cancel-btn');
+  const confirmBtn = confirmDialog.querySelector('.confirm-btn');
+
+  cancelBtn.addEventListener('click', () => {
+    document.body.removeChild(confirmDialog);
+  });
+
+  confirmBtn.addEventListener('click', () => {
+    document.body.removeChild(confirmDialog);
+    deletePdf(pdfId, pdfTitle);
+  });
+  
+  // Cerrar al hacer clic fuera del diálogo
+  confirmDialog.addEventListener('click', (e) => {
+    if (e.target === confirmDialog) {
+      document.body.removeChild(confirmDialog);
+    }
+  });
+}
+
+// Función para eliminar PDF completo
+async function deletePdf(pdfId, pdfTitle) {
+  try {
+    showLoading('🗑️ Eliminando PDF y todo su contenido...');
+
+    // Validar que el pdfId existe
+    if (!pdfId) {
+      throw new Error('ID de PDF no válido');
+    }
+
+    console.log('Eliminando PDF completo con ID:', pdfId);
+
+    const response = await apiCall(`/api/pdfs/${pdfId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response || !response.ok) {
+      const errorData = await response.text();
+      console.error('Error del servidor:', errorData);
+      throw new Error(`Error del servidor: ${response.status}`);
+    }
+
+    console.log('PDF eliminado exitosamente del servidor');
+
+    // Actualizar datos locales - eliminar todos los elementos relacionados con este PDF
+    const originalLength = historialData.length;
+    historialData = historialData.filter(item => item.pdf_id != pdfId);
+    
+    const deletedCount = originalLength - historialData.length;
+    
+    if (deletedCount === 0) {
+      console.warn('No se encontraron elementos del PDF en los datos locales');
+    } else {
+      console.log(`Se eliminaron ${deletedCount} elementos del PDF`);
+    }
+
+    // Actualizar filtros y estadísticas
+    filterContent(currentFilter);
+    updateStats();
+    
+    hideLoading();
+    showSuccess(`✅ PDF "${pdfTitle}" y todo su contenido (${deletedCount} elementos) eliminados correctamente`);
+
+    // Si no quedan elementos, mostrar estado vacío
+    if (historialData.length === 0) {
+      showEmptyState();
+    }
+
+  } catch (error) {
+    console.error('❌ Error eliminando PDF:', error);
+    hideLoading();
+    showError(`Error al eliminar el PDF: ${error.message}`);
+  }
 }
 
 // Historial JavaScript cargado y optimizado

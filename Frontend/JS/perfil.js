@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', function () {
   
   // Cargar información de suscripción
   loadSubscriptionInfo();
+  
+  // Cargar estadísticas del usuario
+  loadUserStatistics();
 
   document.getElementById('btnBack').addEventListener('click', function () {
     window.location.href = 'index.html';
@@ -385,4 +388,178 @@ function showDiagnosticModal(diagnostic) {
   `;
   
   document.body.appendChild(modal);
+}
+
+// Función para hacer llamadas a la API con autenticación
+async function apiCall(url, options = {}) {
+  const getAuthHeaders = () => {
+    const session = localStorage.getItem('session');
+    if (session) {
+      const sessionData = JSON.parse(session);
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': sessionData.access_token ? `Bearer ${sessionData.access_token}` : ''
+      };
+    }
+    return { 'Content-Type': 'application/json' };
+  };
+
+  const headers = getAuthHeaders();
+  let finalHeaders = { ...headers, ...options.headers };
+  
+  if (options.body instanceof FormData) {
+    delete finalHeaders['Content-Type'];
+  }
+
+  const config = {
+    ...options,
+    headers: finalHeaders
+  };
+
+  try {
+    const baseUrl = window.location.origin;
+    const response = await fetch(baseUrl + url, config);
+    
+    if (response.status === 401) {
+      localStorage.removeItem('session');
+      localStorage.removeItem('user');
+      localStorage.removeItem('access_token');
+      window.location.replace('/login.html');
+      return null;
+    }
+    
+    return response;
+  } catch (error) {
+    console.error('Error en API call:', error);
+    throw error;
+  }
+}
+
+// Cargar estadísticas del usuario
+async function loadUserStatistics() {
+  try {
+    console.log('📊 Cargando estadísticas del usuario...');
+    
+    // Cargar estadísticas del historial
+    const historialResponse = await apiCall('/api/ai/content/history');
+    let totalStudies = 0;
+    let totalPdfs = 0;
+    
+    if (historialResponse && historialResponse.ok) {
+      const historialData = await historialResponse.json();
+      if (historialData.success && historialData.data) {
+        totalStudies = historialData.data.length;
+        
+        // Contar PDFs únicos
+        const uniquePdfs = new Set();
+        historialData.data.forEach(item => {
+          if (item.pdf_id) {
+            uniquePdfs.add(item.pdf_id);
+          }
+        });
+        totalPdfs = uniquePdfs.size;
+      }
+    }
+    
+    // Cargar datos del perfil del usuario
+    const profileResponse = await apiCall('/api/user/profile');
+    let registrationDate = 'No disponible';
+    let studyDays = 0;
+    
+    if (profileResponse && profileResponse.ok) {
+      const profileData = await profileResponse.json();
+      if (profileData.success && profileData.user) {
+        // Calcular días desde el registro
+        if (profileData.user.created_at) {
+          const createdDate = new Date(profileData.user.created_at);
+          const now = new Date();
+          studyDays = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+          
+          // Formatear fecha de registro
+          registrationDate = createdDate.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
+        }
+        
+        // Actualizar información del perfil
+        if (profileData.user.name) {
+          document.getElementById('displayName').textContent = profileData.user.name;
+          document.getElementById('userName').textContent = profileData.user.name;
+        }
+        
+        if (profileData.user.email) {
+          document.getElementById('displayEmail').textContent = profileData.user.email;
+          document.getElementById('userEmail').textContent = profileData.user.email;
+        }
+        
+        if (profileData.user.role) {
+          const role = profileData.user.role.charAt(0).toUpperCase() + profileData.user.role.slice(1);
+          document.getElementById('displayRole').textContent = role;
+          document.getElementById('userRole').textContent = role;
+        }
+        
+        if (profileData.user.education_level) {
+          const education = profileData.user.education_level.charAt(0).toUpperCase() + profileData.user.education_level.slice(1);
+          document.getElementById('displayEducation').textContent = education;
+        }
+      }
+    }
+    
+    // Actualizar estadísticas en la UI
+    document.getElementById('totalStudies').textContent = totalStudies;
+    document.getElementById('totalPdfs').textContent = totalPdfs;
+    document.getElementById('studyTime').textContent = studyDays;
+    document.getElementById('registrationDate').textContent = registrationDate;
+    
+    // Último acceso (usando fecha actual como ejemplo)
+    const now = new Date();
+    const lastAccessText = now.toLocaleDateString('es-ES', {
+      weekday: 'long',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    document.getElementById('lastAccess').textContent = `Hoy, ${now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+    
+    console.log('✅ Estadísticas cargadas:', { totalStudies, totalPdfs, studyDays });
+    
+  } catch (error) {
+    console.error('❌ Error cargando estadísticas:', error);
+    
+    // Mostrar valores por defecto en caso de error
+    document.getElementById('totalStudies').textContent = '0';
+    document.getElementById('totalPdfs').textContent = '0';
+    document.getElementById('studyTime').textContent = '0';
+    document.getElementById('registrationDate').textContent = 'No disponible';
+    document.getElementById('lastAccess').textContent = 'No disponible';
+  }
+}
+
+// Mejorar la función populateProfileFromUser para datos dinámicos
+function populateProfileFromUser() {
+  try {
+    // Intentar cargar datos del localStorage
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      
+      // Poblar campos básicos si están disponibles
+      if (user.name) {
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('displayName').textContent = user.name;
+        
+        // Actualizar iniciales del avatar
+        const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        document.getElementById('avatarInitials').textContent = initials;
+      }
+      
+      if (user.email) {
+        document.getElementById('userEmail').textContent = user.email;
+        document.getElementById('displayEmail').textContent = user.email;
+      }
+    }
+  } catch (error) {
+    console.error('Error poblando perfil desde usuario:', error);
+  }
 }

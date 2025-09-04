@@ -106,7 +106,32 @@
 
 
 
+<!-- Scripts necesarios para el historial -->
+<script src="/lib/supabase.js"></script>
+<script src="/JS/config.js"></script>
+<script src="/JS/auth-demo.js"></script>
+
 <script>
 // El historial se inicializa automáticamente desde historial.js
 console.log('Página del historial cargada');
+
+// Asegurar que tenemos sesión demo para el historial
+document.addEventListener('DOMContentLoaded', () => {
+  // Verificar si hay sesión, si no crear una demo
+  if (typeof checkSession === 'function') {
+    const sessionStatus = checkSession();
+    if (!sessionStatus.hasSession && typeof createDemoSession === 'function') {
+      console.log('🔧 Creando sesión demo para historial...');
+      createDemoSession();
+    }
+  }
+  
+  // Esperar un poco más para que se inicialicen todos los sistemas
+  setTimeout(() => {
+    if (typeof window.initializeHistorial === 'function') {
+      console.log('🔄 Inicializando historial manualmente...');
+      window.initializeHistorial();
+    }
+  }, 1000);
+});
 </script>

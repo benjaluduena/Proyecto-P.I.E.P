@@ -215,9 +215,11 @@ body {
 /* Main */
 main#contenido {
   flex-grow: 1;
-  padding: 20px;
+  padding: 0;
   overflow-y: auto;
   height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Responsive */

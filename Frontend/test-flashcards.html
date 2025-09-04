@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Flashcards</title>
+  <link rel="stylesheet" href="Css/flashcards.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+    }
+    .test-controls {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .test-btn {
+      margin: 5px;
+      padding: 10px 20px;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .debug-info {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 12px;
+      max-width: 300px;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <div class="debug-info" id="debugInfo">
+    <div><strong>Debug Info:</strong></div>
+    <div id="debugContent">Cargando...</div>
+  </div>
+
+  <div class="test-controls">
+    <button class="test-btn" onclick="window.flashcardsApp.testFlashcardDisplay()">Probar Flashcard</button>
+    <button class="test-btn" onclick="manualFlip()">Flip Manual</button>
+    <button class="test-btn" onclick="resetCard()">Reset</button>
+  </div>
+
+  <div class="flashcard-study-area">
+    <div class="flashcard-wrapper">
+      <div class="flashcard" id="flashcard">
+        <div class="flashcard-inner">
+          <div class="flashcard-front">
+            <div class="flashcard-content">
+              <div class="flashcard-type">Pregunta</div>
+              <div class="flashcard-text" id="questionText">
+                Pregunta de prueba
+              </div>
+            </div>
+            <div class="flashcard-flip-hint">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              Clic para voltear
+            </div>
+          </div>
+          <div class="flashcard-back">
+            <div class="flashcard-content">
+              <div class="flashcard-type">Respuesta</div>
+              <div class="flashcard-text" id="answerText">
+                Respuesta de prueba - Esta debería ser visible cuando la tarjeta esté volteada.
+              </div>
+            </div>
+            <div class="flashcard-flip-hint">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              Clic para voltear
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function manualFlip() {
+      const flashcard = document.getElementById('flashcard');
+      flashcard.classList.toggle('flipped');
+      updateDebugInfo();
+    }
+
+    function resetCard() {
+      const flashcard = document.getElementById('flashcard');
+      flashcard.classList.remove('flipped');
+      updateDebugInfo();
+    }
+
+    function updateDebugInfo() {
+      const flashcard = document.getElementById('flashcard');
+      const answerText = document.getElementById('answerText');
+      const questionText = document.getElementById('questionText');
+      const flashcardBack = document.querySelector('.flashcard-back');
+      
+      const info = {
+        isFlipped: flashcard.classList.contains('flipped'),
+        answerContent: answerText.textContent.substring(0, 50) + '...',
+        questionContent: questionText.textContent.substring(0, 50) + '...',
+        answerVisible: answerText.offsetParent !== null,
+        backTransform: window.getComputedStyle(flashcardBack).transform
+      };
+
+      document.getElementById('debugContent').innerHTML = Object.entries(info)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join('<br>');
+    }
+
+    // Actualizar debug info cada segundo
+    setInterval(updateDebugInfo, 1000);
+    
+    // Configurar click en flashcard
+    document.getElementById('flashcard').addEventListener('click', manualFlip);
+  </script>
+
+  <script src="JS/flashcards.js"></script>
+</body>
+</html>

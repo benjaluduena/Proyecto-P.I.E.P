@@ -87,6 +87,39 @@ const supabase = {
       }
     },
 
+    signOut: async () => {
+      try {
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('session');
+        localStorage.removeItem('user');
+        return { error: null };
+      } catch (error) {
+        return { error };
+      }
+    },
+
+    getUser: async (token) => {
+      try {
+        const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Token inválido');
+        }
+
+        const userData = await response.json();
+        return { data: { user: userData }, error: null };
+      } catch (error) {
+        return { data: { user: null }, error };
+      }
+    },
+
     getSession: async () => {
       try {
         const session = localStorage.getItem('supabase.auth.token');

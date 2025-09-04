@@ -1,4 +1,5 @@
-class ChatQA {
+if (typeof window.ChatQA === 'undefined') {
+window.ChatQA = class {
     constructor() {
         this.pdfId = new URLSearchParams(window.location.search).get('pdfId');
         this.messages = [];
@@ -165,8 +166,11 @@ class ChatQA {
         errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
     }
 }
+}
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    window.chatQA = new ChatQA();
+    if (!window.chatQA) {
+        window.chatQA = new window.ChatQA();
+    }
 });

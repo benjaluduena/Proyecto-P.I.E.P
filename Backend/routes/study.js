@@ -1,11 +1,14 @@
 const express = require('express');
 const supabase = require('../config/supabase');
-const { supabaseAuth } = require('../middleware/auth');
+const { supabaseAuth, devAuth } = require('../middleware/auth');
+
+// Usar devAuth en desarrollo, authMiddleware en producción
+const authMiddleware = process.env.NODE_ENV === 'development' ? devAuth : supabaseAuth;
 
 const router = express.Router();
 
 // Crear plan de estudio
-router.post('/plans', supabaseAuth, async (req, res) => {
+router.post('/plans', authMiddleware, async (req, res) => {
   try {
     const { title, description, start_date, end_date, notify_by_email, notify_by_whatsapp } = req.body;
 
@@ -47,7 +50,7 @@ router.post('/plans', supabaseAuth, async (req, res) => {
 });
 
 // Listar planes de estudio del usuario
-router.get('/plans', supabaseAuth, async (req, res) => {
+router.get('/plans', authMiddleware, async (req, res) => {
   try {
     const sb = req.supabase || supabase;
     const { data: plans, error } = await sb
@@ -87,7 +90,7 @@ router.get('/plans', supabaseAuth, async (req, res) => {
 });
 
 // Obtener plan específico
-router.get('/plans/:planId', supabaseAuth, async (req, res) => {
+router.get('/plans/:planId', authMiddleware, async (req, res) => {
   try {
     const { planId } = req.params;
 
@@ -134,7 +137,7 @@ router.get('/plans/:planId', supabaseAuth, async (req, res) => {
 });
 
 // Actualizar plan de estudio
-router.put('/plans/:planId', supabaseAuth, async (req, res) => {
+router.put('/plans/:planId', authMiddleware, async (req, res) => {
   try {
     const { planId } = req.params;
     const { title, description, start_date, end_date, notify_by_email, notify_by_whatsapp } = req.body;
@@ -172,7 +175,7 @@ router.put('/plans/:planId', supabaseAuth, async (req, res) => {
 });
 
 // Eliminar plan de estudio
-router.delete('/plans/:planId', supabaseAuth, async (req, res) => {
+router.delete('/plans/:planId', authMiddleware, async (req, res) => {
   try {
     const { planId } = req.params;
 
@@ -197,7 +200,7 @@ router.delete('/plans/:planId', supabaseAuth, async (req, res) => {
 });
 
 // Crear tarea del plan
-router.post('/plans/:planId/tasks', supabaseAuth, async (req, res) => {
+router.post('/plans/:planId/tasks', authMiddleware, async (req, res) => {
   try {
     const { planId } = req.params;
     const { title, description, due_date, related_output_id } = req.body;
@@ -248,7 +251,7 @@ router.post('/plans/:planId/tasks', supabaseAuth, async (req, res) => {
 });
 
 // Actualizar tarea
-router.put('/tasks/:taskId', supabaseAuth, async (req, res) => {
+router.put('/tasks/:taskId', authMiddleware, async (req, res) => {
   try {
     const { taskId } = req.params;
     const { title, description, due_date, completed, related_output_id } = req.body;
@@ -289,7 +292,7 @@ router.put('/tasks/:taskId', supabaseAuth, async (req, res) => {
 });
 
 // Eliminar tarea
-router.delete('/tasks/:taskId', supabaseAuth, async (req, res) => {
+router.delete('/tasks/:taskId', authMiddleware, async (req, res) => {
   try {
     const { taskId } = req.params;
 
@@ -329,7 +332,7 @@ router.delete('/tasks/:taskId', supabaseAuth, async (req, res) => {
 });
 
 // Registrar progreso
-router.post('/progress', supabaseAuth, async (req, res) => {
+router.post('/progress', authMiddleware, async (req, res) => {
   try {
     const { output_id, interaction_type, score } = req.body;
 
@@ -381,7 +384,7 @@ router.post('/progress', supabaseAuth, async (req, res) => {
 });
 
 // Obtener estadísticas de progreso
-router.get('/progress/stats', supabaseAuth, async (req, res) => {
+router.get('/progress/stats', authMiddleware, async (req, res) => {
   try {
     // Estadísticas generales
     const { data: totalInteractions, error: interactionsError } = await supabase
@@ -437,7 +440,7 @@ router.get('/progress/stats', supabaseAuth, async (req, res) => {
 });
 
 // Obtener historial de progreso
-router.get('/progress/history', supabaseAuth, async (req, res) => {
+router.get('/progress/history', authMiddleware, async (req, res) => {
   try {
     const { data: history, error } = await supabase
       .from('progress_tracking')
@@ -466,6 +469,249 @@ router.get('/progress/history', supabaseAuth, async (req, res) => {
 
   } catch (error) {
     console.error('Error al obtener historial:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Obtener todos los outputs de estudio del usuario para el historial
+router.get('/outputs', authMiddleware, async (req, res) => {
+  try {
+    const { type, limit = 50, offset = 0 } = req.query;
+
+    // Use request-scoped client so RLS policies can read auth.uid()
+    const sb = req.supabase || supabase;
+
+    let query = sb
+      .from('study_outputs')
+      .select(`
+        id,
+        type,
+        content,
+        created_at,
+        pdf_uploads!inner (
+          id,
+          user_id,
+          file_name,
+          title
+        )
+      `)
+      .eq('pdf_uploads.user_id', req.user.id)
+      .order('created_at', { ascending: false });
+
+    // Filtrar por tipo si se especifica
+    if (type && type !== 'all') {
+      query = query.eq('type', type);
+    }
+
+    // Aplicar paginación
+    query = query.range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
+
+    const { data: outputs, error } = await query;
+
+    if (error) {
+      console.error('Error al obtener outputs:', error);
+      return res.status(500).json({ error: 'Error al obtener el historial' });
+    }
+
+    // Transformar los datos para el frontend
+    let transformedOutputs = outputs.map(output => ({
+      id: output.id,
+      type: output.type,
+      content: output.content,
+      created_at: output.created_at,
+      pdf_id: output.pdf_uploads.id,
+      pdf_title: output.pdf_uploads.title || output.pdf_uploads.file_name,
+      pdf_name: output.pdf_uploads.file_name
+    }));
+
+    // Si no hay datos y estamos en desarrollo, devolver datos de prueba
+    if (transformedOutputs.length === 0 && process.env.NODE_ENV === 'development') {
+      console.log('🧪 Devolviendo datos de prueba para desarrollo');
+      transformedOutputs = [
+        {
+          id: 1,
+          type: 'resumen',
+          created_at: new Date().toISOString(),
+          pdf_id: 1,
+          pdf_title: 'Documento de Prueba 1',
+          pdf_name: 'test-documento-1.pdf',
+          content: {
+            resumen_general: 'Este es un resumen de prueba generado para mostrar el funcionamiento del historial.',
+            conceptos_clave: ['Concepto 1', 'Concepto 2', 'Concepto 3'],
+            aplicaciones_practicas: ['Aplicación práctica 1', 'Aplicación práctica 2'],
+            conclusiones: 'Conclusiones del documento de prueba.'
+          }
+        },
+        {
+          id: 2,
+          type: 'multiple_choice',
+          created_at: new Date(Date.now() - 60000).toISOString(),
+          pdf_id: 1,
+          pdf_title: 'Documento de Prueba 1',
+          pdf_name: 'test-documento-1.pdf',
+          content: {
+            preguntas: [
+              {
+                enunciado: '¿Cuál es el propósito de este sistema de prueba?',
+                opciones: ['Testing', 'Desarrollo', 'Demo', 'Todas las anteriores'],
+                respuesta: 3,
+                explicacion: 'El sistema tiene múltiples propósitos incluyendo testing, desarrollo y demo.'
+              },
+              {
+                enunciado: '¿Qué tipo de datos maneja el historial?',
+                opciones: ['Solo PDFs', 'Solo contenido IA', 'Ambos', 'Ninguno'],
+                respuesta: 2,
+                explicacion: 'El historial maneja tanto PDFs como contenido generado por IA.'
+              }
+            ]
+          }
+        },
+        {
+          id: 3,
+          type: 'verdadero_falso',
+          created_at: new Date(Date.now() - 120000).toISOString(),
+          pdf_id: 2,
+          pdf_title: 'Manual de Usuario',
+          pdf_name: 'manual-usuario.pdf',
+          content: {
+            preguntas: [
+              {
+                enunciado: 'El historial muestra todos los contenidos generados.',
+                respuesta: 'verdadero',
+                explicacion: 'Efectivamente, el historial es un registro completo de todo el contenido generado.'
+              },
+              {
+                enunciado: 'Solo se puede generar un tipo de contenido por PDF.',
+                respuesta: 'falso',
+                explicacion: 'Se pueden generar múltiples tipos de contenido para cada PDF.'
+              }
+            ]
+          }
+        },
+        {
+          id: 4,
+          type: 'mapa_mental',
+          created_at: new Date(Date.now() - 180000).toISOString(),
+          pdf_id: 2,
+          pdf_title: 'Manual de Usuario',
+          pdf_name: 'manual-usuario.pdf',
+          content: {
+            nodo_central: 'Sistema P.I.E.P',
+            ramas: [
+              {
+                titulo: 'Características Principales',
+                items: ['Generación de contenido IA', 'Análisis de PDFs', 'Historial completo']
+              },
+              {
+                titulo: 'Tipos de Estudio',
+                items: ['Resúmenes', 'Multiple Choice', 'Verdadero/Falso', 'Flashcards']
+              },
+              {
+                titulo: 'Ventajas',
+                items: ['Aprendizaje personalizado', 'Ahorro de tiempo', 'Mejor comprensión']
+              }
+            ]
+          }
+        }
+      ];
+    }
+
+    res.json(transformedOutputs);
+
+  } catch (error) {
+    console.error('Error al obtener historial:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Obtener un output específico por ID
+router.get('/outputs/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Use request-scoped client so RLS policies can read auth.uid()
+    const sb = req.supabase || supabase;
+
+    const { data: output, error } = await sb
+      .from('study_outputs')
+      .select(`
+        id,
+        type,
+        content,
+        created_at,
+        pdf_uploads!inner (
+          id,
+          user_id,
+          file_name,
+          title
+        )
+      `)
+      .eq('id', id)
+      .eq('pdf_uploads.user_id', req.user.id)
+      .single();
+
+    if (error || !output) {
+      return res.status(404).json({ error: 'Contenido no encontrado' });
+    }
+
+    // Transformar los datos para el frontend
+    const transformedOutput = {
+      id: output.id,
+      type: output.type,
+      content: output.content,
+      created_at: output.created_at,
+      pdf_id: output.pdf_uploads.id,
+      pdf_title: output.pdf_uploads.title || output.pdf_uploads.file_name,
+      pdf_name: output.pdf_uploads.file_name
+    };
+
+    res.json(transformedOutput);
+
+  } catch (error) {
+    console.error('Error al obtener output:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Eliminar un output específico
+router.delete('/outputs/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Use request-scoped client so RLS policies can read auth.uid()
+    const sb = req.supabase || supabase;
+
+    // Verificar que el output pertenece al usuario
+    const { data: output } = await sb
+      .from('study_outputs')
+      .select(`
+        id,
+        pdf_uploads!inner (
+          user_id
+        )
+      `)
+      .eq('id', id)
+      .single();
+
+    if (!output || output.pdf_uploads.user_id !== req.user.id) {
+      return res.status(404).json({ error: 'Contenido no encontrado' });
+    }
+
+    // Eliminar el output
+    const { error } = await sb
+      .from('study_outputs')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error al eliminar output:', error);
+      return res.status(500).json({ error: 'Error al eliminar el contenido' });
+    }
+
+    res.json({ message: 'Contenido eliminado exitosamente' });
+
+  } catch (error) {
+    console.error('Error al eliminar output:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

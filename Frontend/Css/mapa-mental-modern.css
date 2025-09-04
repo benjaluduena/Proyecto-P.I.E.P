@@ -1,0 +1,616 @@
+/* Mapa Mental Moderno - Estilos Mejorados */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    color: #1a202c;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Header Mejorado */
+.top-header {
+    background: white;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    padding: 20px 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: 800;
+    color: #2d3748;
+    letter-spacing: -0.5px;
+}
+
+.logo .ai-badge {
+    background: linear-gradient(135deg, #a259fa 0%, #667eea 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-left: 8px;
+    box-shadow: 0 2px 8px rgba(162, 89, 250, 0.3);
+}
+
+.back-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    color: #4a5568;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 12px 20px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    background: #a259fa;
+    color: white;
+    border-color: #a259fa;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(162, 89, 250, 0.3);
+}
+
+/* Main Content */
+.mm-main-content {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 30px 40px;
+    display: grid;
+    gap: 24px;
+}
+
+/* Document Info Moderna */
+.mm-document-info {
+    background: white;
+    border-radius: 20px;
+    padding: 28px 32px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(226, 232, 240, 0.5);
+    transition: all 0.3s ease;
+}
+
+.mm-document-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+}
+
+.mm-document-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.mm-document-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #a259fa 0%, #667eea 100%);
+    color: white;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(162, 89, 250, 0.3);
+    flex-shrink: 0;
+}
+
+.mm-document-details {
+    flex: 1;
+    min-width: 200px;
+}
+
+.mm-document-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 6px;
+    line-height: 1.2;
+}
+
+.mm-document-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.mm-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #718096;
+    font-weight: 500;
+}
+
+.mm-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fef5e7;
+    color: #f6ad55;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.mm-status-dot {
+    width: 8px;
+    height: 8px;
+    background: currentColor;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.mm-status-indicator.complete {
+    background: #f0fff4;
+    color: #48bb78;
+}
+
+.mm-status-indicator.complete .mm-status-dot {
+    animation: none;
+}
+
+/* Progress Container */
+.mm-progress-container {
+    margin-top: 16px;
+}
+
+.mm-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mm-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #a259fa 0%, #667eea 100%);
+    border-radius: 20px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+    box-shadow: 0 0 10px rgba(162, 89, 250, 0.5);
+}
+
+.mm-progress-text {
+    font-size: 13px;
+    color: #718096;
+    font-weight: 500;
+}
+
+/* Mind Map Container */
+.mm-container {
+    background: white;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(226, 232, 240, 0.5);
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header del Mapa Mental */
+.mm-header {
+    background: linear-gradient(135deg, #a259fa 0%, #667eea 100%);
+    color: white;
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.mm-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 250px;
+}
+
+.mm-title-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mm-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.mm-title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 2px;
+    letter-spacing: -0.5px;
+}
+
+.mm-subtitle {
+    font-size: 14px;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+/* Controls */
+.mm-controls {
+    display: flex;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 8px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.mm-control-btn {
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.mm-control-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.mm-control-btn:active {
+    transform: translateY(0);
+}
+
+/* Loading State */
+.mm-loading-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    background: #f8fafc;
+}
+
+.mm-loading-animation {
+    text-align: center;
+    max-width: 400px;
+}
+
+.mm-brain-icon {
+    color: #a259fa;
+    margin-bottom: 24px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.mm-loading-text h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 8px;
+}
+
+.mm-loading-text p {
+    font-size: 16px;
+    color: #718096;
+    line-height: 1.5;
+}
+
+/* Visualization */
+.mm-visualization {
+    flex: 1;
+    position: relative;
+    background: #f8fafc;
+    min-height: 500px;
+}
+
+#markmap {
+    width: 100%;
+    height: 100%;
+    background: #f8fafc;
+}
+
+/* Estilos para nodos del mapa mental */
+:global(.mm-node) {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+:global(.mm-node:hover) {
+    opacity: 0.8;
+}
+
+:global(.mm-node-text) {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+}
+
+:global(.mm-link) {
+    stroke-width: 2px;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+:global(.mm-link:hover) {
+    stroke-width: 3px;
+    opacity: 1;
+}
+
+/* Actions */
+.mm-actions {
+    background: #f8fafc;
+    padding: 24px 32px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.mm-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    font-family: inherit;
+    min-width: 160px;
+    justify-content: center;
+}
+
+.mm-btn-primary {
+    background: linear-gradient(135deg, #a259fa 0%, #667eea 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(162, 89, 250, 0.3);
+}
+
+.mm-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(162, 89, 250, 0.4);
+}
+
+.mm-btn-secondary {
+    background: white;
+    color: #4a5568;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.mm-btn-secondary:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.mm-btn:active {
+    transform: translateY(0);
+}
+
+/* Fullscreen Mode */
+.mm-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    background: white;
+}
+
+.mm-fullscreen .mm-visualization {
+    height: calc(100vh - 140px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .mm-main-content {
+        padding: 20px;
+    }
+    
+    .mm-document-info {
+        padding: 20px;
+    }
+    
+    .mm-document-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    
+    .mm-header {
+        padding: 20px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+    
+    .mm-header-left {
+        min-width: auto;
+        justify-content: center;
+    }
+    
+    .mm-title {
+        font-size: 20px;
+    }
+    
+    .mm-actions {
+        padding: 20px;
+        flex-direction: column;
+    }
+    
+    .mm-btn {
+        width: 100%;
+    }
+    
+    .mm-controls {
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .header-content {
+        padding: 0 20px;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .mm-container {
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    .mm-document-name {
+        font-size: 18px;
+    }
+    
+    .mm-document-meta {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .mm-title {
+        font-size: 18px;
+    }
+    
+    .mm-loading-text h3 {
+        font-size: 20px;
+    }
+    
+    .mm-control-btn {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .mm-btn {
+        min-width: auto;
+        padding: 10px 16px;
+    }
+}
+
+/* Animaciones de entrada */
+.mm-container.loaded {
+    animation: slideInUp 0.8s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Tooltip personalizado para controles */
+.mm-control-btn[title] {
+    position: relative;
+}
+
+.mm-control-btn[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 10;
+    animation: fadeIn 0.2s ease-out;
+}
+
+/* Estados especiales para diferentes tipos de nodos */
+.mm-node-root {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+}
+
+.mm-node-branch {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+.mm-node-leaf {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+
+/* Tema oscuro para el mapa mental */
+.mm-container.dark-theme {
+    background: #1a202c;
+    color: white;
+}
+
+.mm-container.dark-theme .mm-visualization {
+    background: #1a202c;
+}
+
+.mm-container.dark-theme #markmap {
+    background: #1a202c;
+}

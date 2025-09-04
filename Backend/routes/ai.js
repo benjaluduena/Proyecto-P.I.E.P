@@ -1,7 +1,10 @@
 const express = require('express');
 const OpenAI = require('openai');
 const supabase = require('../config/supabase');
-const { supabaseAuth } = require('../middleware/auth');
+const { supabaseAuth, devAuth } = require('../middleware/auth');
+
+// Usar devAuth en desarrollo, authMiddleware en producción
+const authMiddleware = process.env.NODE_ENV === 'development' ? devAuth : supabaseAuth;
 const { validate, aiSchemas, uuidParam, pdfIdParam } = require('../middleware/validation');
 const fs = require('fs');
 const path = require('path');
@@ -280,7 +283,7 @@ const generateEducationalContent = async (pdfText, contentType, educationLevel, 
 };
 
 // Generar contenido educativo
-router.post('/generate/:pdfId', supabaseAuth, validate(pdfIdParam, 'params'), validate(aiSchemas.generateContent), async (req, res) => {
+router.post('/generate/:pdfId', authMiddleware, validate(pdfIdParam, 'params'), validate(aiSchemas.generateContent), async (req, res) => {
   try {
     const { pdfId } = req.params;
     const { type } = req.body;
@@ -432,7 +435,7 @@ router.post('/generate/:pdfId', supabaseAuth, validate(pdfIdParam, 'params'), va
 });
 
 // Obtener contenido generado
-router.get('/content/:outputId', supabaseAuth, async (req, res) => {
+router.get('/content/:outputId', authMiddleware, async (req, res) => {
   try {
     const { outputId } = req.params;
     const s = req.supabase || supabase;
@@ -478,7 +481,7 @@ router.get('/content/:outputId', supabaseAuth, async (req, res) => {
 });
 
 // Listar todo el contenido generado para un PDF
-router.get('/pdf/:pdfId', supabaseAuth, validate(pdfIdParam, 'params'), async (req, res) => {
+router.get('/pdf/:pdfId', authMiddleware, validate(pdfIdParam, 'params'), async (req, res) => {
   try {
     const { pdfId } = req.params;
     const s = req.supabase || supabase;
@@ -515,7 +518,7 @@ router.get('/pdf/:pdfId', supabaseAuth, validate(pdfIdParam, 'params'), async (r
 });
 
 // Regenerar contenido (eliminar y crear nuevo)
-router.post('/regenerate/:outputId', supabaseAuth, async (req, res) => {
+router.post('/regenerate/:outputId', authMiddleware, async (req, res) => {
   try {
     const { outputId } = req.params;
 
@@ -607,7 +610,7 @@ router.post('/regenerate/:outputId', supabaseAuth, async (req, res) => {
 });
 
 // Eliminar contenido generado
-router.delete('/content/:outputId', supabaseAuth, async (req, res) => {
+router.delete('/content/:outputId', authMiddleware, async (req, res) => {
   try {
     const { outputId } = req.params;
 
@@ -648,7 +651,7 @@ router.delete('/content/:outputId', supabaseAuth, async (req, res) => {
 });
 
 // Chat Q&A con PDF
-router.post('/chat/:pdfId', supabaseAuth, validate(pdfIdParam, 'params'), async (req, res) => {
+router.post('/chat/:pdfId', authMiddleware, validate(pdfIdParam, 'params'), async (req, res) => {
   try {
     const { pdfId } = req.params;
     const { question } = req.body;
