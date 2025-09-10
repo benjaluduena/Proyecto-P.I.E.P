@@ -1,0 +1,292 @@
+<div class="study-plans-container">
+    <div class="study-plans-header">
+        <h1>Planes de Estudio</h1>
+        <p>Organiza y gestiona tus planes de estudio de manera eficiente</p>
+        <button class="btn-primary" id="createPlanBtn">
+            <i class="fas fa-plus"></i>
+            Crear Nuevo Plan
+        </button>
+    </div>
+
+    <!-- Controles y filtros -->
+    <div class="controls-section">
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Buscar planes de estudio...">
+            <i class="fas fa-search"></i>
+        </div>
+        
+        <div class="filters">
+            <select id="statusFilter">
+                <option value="">Todos los estados</option>
+                <option value="active">Activo</option>
+                <option value="completed">Completado</option>
+                <option value="paused">Pausado</option>
+            </select>
+            
+            <select id="sortBy">
+                <option value="created_at">Fecha de creación</option>
+                <option value="start_date">Fecha de inicio</option>
+                <option value="end_date">Fecha de fin</option>
+                <option value="title">Nombre</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div class="loading" id="loadingIndicator" style="display: none;">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Cargando planes de estudio...</span>
+    </div>
+
+    <!-- Plans grid -->
+    <div class="study-plans-grid" id="studyPlansGrid">
+        <!-- Los planes se cargarán dinámicamente aquí -->
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState" style="display: none;">
+        <i class="fas fa-book-open"></i>
+        <h3>No hay planes de estudio</h3>
+        <p id="emptyMessage">Crea tu primer plan de estudio para comenzar a organizar tu aprendizaje</p>
+        <button class="create-plan-btn" onclick="document.getElementById('createPlanBtn').click()">
+            <i class="fas fa-plus"></i>
+            Crear Primer Plan
+        </button>
+    </div>
+</div>
+
+<!-- Modal para crear/editar plan -->
+<div class="modal" id="studyPlanModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Crear Plan de Estudio</h2>
+            <button class="close-btn" id="closeModalBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="studyPlanForm" class="modal-body">
+            <div class="form-group">
+                <label for="planTitle">Título del Plan *</label>
+                <input type="text" id="planTitle" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="planDescription">Descripción</label>
+                <textarea id="planDescription" rows="3"></textarea>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="startDate">Fecha de Inicio *</label>
+                    <input type="date" id="startDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="endDate">Fecha de Fin *</label>
+                    <input type="date" id="endDate" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="planStatus">Estado</label>
+                <select id="planStatus">
+                    <option value="active">Activo</option>
+                    <option value="paused">Pausado</option>
+                    <option value="completed">Completado</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Notificaciones</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="notifyEmail">
+                        <span class="checkmark"></span>
+                        Notificar por email
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="notifyWhatsapp">
+                        <span class="checkmark"></span>
+                        Notificar por WhatsApp
+                    </label>
+                </div>
+            </div>
+            
+            <div class="tasks-section">
+                <div class="section-header">
+                    <h3>Tareas del Plan</h3>
+                    <button type="button" class="add-task-btn" id="addTaskBtn">
+                        <i class="fas fa-plus"></i>
+                        Agregar Tarea
+                    </button>
+                </div>
+                
+                <div class="tasks-container" id="tasksContainer">
+                    <!-- Las tareas se agregarán dinámicamente aquí -->
+                </div>
+            </div>
+        </form>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" id="cancelBtn">Cancelar</button>
+            <button type="submit" class="btn-primary" id="saveBtn" form="studyPlanForm">
+                <span class="btn-spinner" style="display: none;">⏳</span>
+                <span id="saveBtnText">Crear Plan</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de detalles del plan -->
+<div class="modal" id="planDetailsModal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2 id="detailsTitle">Detalles del Plan</h2>
+            <button class="close-btn" id="closeDetailsBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="plan-info">
+                <div class="info-item">
+                    <label>Descripción:</label>
+                    <p id="detailsDescription">-</p>
+                </div>
+                
+                <div class="info-item">
+                    <label>Fecha de Inicio:</label>
+                    <p id="detailsStartDate">-</p>
+                </div>
+                
+                <div class="info-item">
+                    <label>Fecha de Fin:</label>
+                    <p id="detailsEndDate">-</p>
+                </div>
+                
+                <div class="info-item">
+                    <label>Progreso:</label>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="detailsProgress"></div>
+                        </div>
+                        <span class="progress-text" id="detailsProgressText">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tasks-section">
+            <h3>Tareas del Plan</h3>
+            <div class="tasks-list" id="detailsTasksList">
+                <!-- Las tareas se cargarán dinámicamente aquí -->
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button class="btn-secondary" id="closeDetailsModal">Cerrar</button>
+            <button class="btn-primary" id="editPlanBtn">
+                <i class="fas fa-edit"></i>
+                Editar Plan
+            </button>
+            <button class="btn-danger" id="deletePlanBtn">
+                <i class="fas fa-trash"></i>
+                Eliminar Plan
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Template para tareas del formulario -->
+<template id="taskFormTemplate">
+    <div class="task-item">
+        <div class="task-form-row">
+            <div class="form-group">
+                <label>Título de la Tarea *</label>
+                <input type="text" class="task-title" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Fecha Límite</label>
+                <input type="date" class="task-due-date">
+            </div>
+            
+            <div class="form-group">
+                <label>Prioridad</label>
+                <select class="task-priority">
+                    <option value="low">Baja</option>
+                    <option value="medium" selected>Media</option>
+                    <option value="high">Alta</option>
+                </select>
+            </div>
+            
+            <button type="button" class="remove-task btn-icon danger" title="Eliminar tarea">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        
+        <div class="form-group">
+            <label>Descripción</label>
+            <textarea class="task-description" rows="2" placeholder="Descripción opcional de la tarea..."></textarea>
+        </div>
+    </div>
+</template>
+
+<!-- Template para detalles de tareas -->
+<template id="taskDetailsTemplate">
+    <div class="task-detail-item">
+        <div class="task-detail-header">
+            <div class="task-checkbox-container">
+                <input type="checkbox" class="task-completed" id="task-checkbox">
+                <label for="task-checkbox" class="task-title"></label>
+            </div>
+            <div class="task-priority-badge"></div>
+        </div>
+        
+        <div class="task-detail-body">
+            <p class="task-description"></p>
+            <div class="task-meta">
+                <span class="task-due-date"></span>
+                <span class="task-status"></span>
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- Template para las tarjetas de planes de estudio -->
+<template id="studyPlanCardTemplate">
+    <div class="study-plan-card">
+        <div class="plan-header">
+            <h3 class="plan-title"></h3>
+            <div class="plan-actions">
+                <button class="btn-icon edit-plan" title="Editar plan">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-icon delete-plan" title="Eliminar plan">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="plan-info">
+            <div class="plan-dates">
+                <span class="start-date"></span>
+                <span class="end-date"></span>
+            </div>
+            <div class="plan-status"></div>
+        </div>
+        
+
+        
+        <div class="plan-description"></div>
+        
+        <div class="plan-footer">
+            <span class="task-count"></span>
+            <button class="btn-secondary view-plan">Ver Detalles</button>
+        </div>
+    </div>
+</template>
+
+<!-- Script específico para planes de estudio -->
+<script src="../JS/planes-estudio.js"></script>

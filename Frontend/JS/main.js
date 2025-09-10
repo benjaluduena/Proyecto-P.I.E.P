@@ -86,6 +86,13 @@ function loadSectionLegacy(nombre) {
       if (nombre === 'cambiar-plan' && window.initializeCambiarPlan) {
         setTimeout(() => window.initializeCambiarPlan(), 200);
       }
+      
+      if (nombre === 'planes-estudio' && window.initializeStudyPlans) {
+        setTimeout(() => {
+          console.log('Inicializando planes de estudio...');
+          window.initializeStudyPlans();
+        }, 300);
+      }
     })
     .catch(err => {
       console.error('Error al cargar sección:', err);

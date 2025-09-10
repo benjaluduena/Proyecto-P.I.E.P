@@ -44,10 +44,12 @@ export class ApiModule {
 
   async post(url, data, options = {}) {
     const body = data instanceof FormData ? data : JSON.stringify(data);
+    const headers = data instanceof FormData ? {} : { 'Content-Type': 'application/json' };
     return this.call(url, { 
       ...options, 
       method: 'POST',
-      body 
+      body,
+      headers: { ...headers, ...options.headers }
     });
   }
 
@@ -55,7 +57,8 @@ export class ApiModule {
     return this.call(url, { 
       ...options, 
       method: 'PUT',
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json', ...options.headers }
     });
   }
 

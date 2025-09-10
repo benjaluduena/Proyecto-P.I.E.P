@@ -10,7 +10,7 @@ if (typeof CONFIG === 'undefined') {
   
   // URLs de la API
   API: {
-    BASE_URL: window.location.origin,
+    BASE_URL: 'http://localhost:5500',
     LOGIN: '/api/auth/login',
     REGISTER: '/api/auth/register',
     LOGOUT: '/api/auth/logout',

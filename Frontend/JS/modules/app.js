@@ -390,6 +390,12 @@ class App {
           }
           break;
           
+        case 'planes-estudio':
+          if (window.initializeStudyPlans) {
+            setTimeout(() => window.initializeStudyPlans(), 200);
+          }
+          break;
+          
         default:
           console.log(`No hay inicialización específica para: ${sectionName}`);
       }

@@ -86,7 +86,7 @@ function devAuth(req, res, next) {
   if (!req.headers.authorization) {
     console.warn('⚠️ Usando usuario de desarrollo - SOLO para localhost en desarrollo');
     req.user = {
-      id: '550e8400-e29b-41d4-a716-446655440000', // UUID válido para desarrollo
+      id: 'c023d6db-dcd1-4778-8c56-f551309c8132', // UUID válido para desarrollo
       name: 'Usuario de Desarrollo',
       email: 'dev@test.com',
       role: 'estudiante',
@@ -100,7 +100,7 @@ function devAuth(req, res, next) {
   if (authHeader && authHeader.includes('demo-token-for-testing-only')) {
     console.warn('⚠️ Usando token demo - SOLO para testing en localhost');
     req.user = {
-      id: '550e8400-e29b-41d4-a716-446655440000',
+      id: 'c023d6db-dcd1-4778-8c56-f551309c8132',
       name: 'Usuario Demo',
       email: 'demo@test.com',
       role: 'estudiante',
@@ -119,4 +119,4 @@ async function simpleAuth(req, res, next) {
   return supabaseAuth(req, res, next);
 }
 
-module.exports = { supabaseAuth, devAuth, simpleAuth }; 
+module.exports = { supabaseAuth, devAuth, simpleAuth };
