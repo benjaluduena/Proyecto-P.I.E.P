@@ -390,6 +390,12 @@ class App {
           }
           break;
           
+        case 'calendario':
+          if (window.initializeCalendar) {
+            setTimeout(() => window.initializeCalendar(), 200);
+          }
+          break;
+          
         default:
           console.log(`No hay inicialización específica para: ${sectionName}`);
       }

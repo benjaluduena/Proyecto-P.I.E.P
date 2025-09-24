@@ -15,6 +15,8 @@ const tasksRoutes = require('./routes/tasks');
 const paymentsRoutes = require('./routes/payments');
 const diagnosticRoutes = require('./routes/diagnostic');
 const configRoutes = require('./routes/config');
+const analyticsRoutes = require('./routes/analytics');
+const goalsRoutes = require('./routes/goals');
 
 const app = express();
 const PORT = process.env.PORT || 5500;
@@ -180,6 +182,8 @@ app.use('/api/tasks', tasksRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/diagnostic', diagnosticRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/goals', goalsRoutes);
 
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../Frontend'), { index: false }));

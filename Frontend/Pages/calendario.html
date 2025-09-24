@@ -1,47 +1,40 @@
 <!-- Calendario - StudyAI -->
 <div class="calendario-container">
-  <!-- Header del calendario -->
-  <div class="calendario-header">
-    <div class="header-left">
-      <h1 class="page-title">
-        <svg class="title-icon">
-          <use href="/Assets/sprite.svg#icon-calendar"></use>
-        </svg>
-        Mi Calendario de Estudio
-      </h1>
-      <p class="page-subtitle">Organiza tus sesiones de estudio y mantén un seguimiento de tu progreso</p>
-    </div>
-    <div class="header-actions">
-      <button class="btn-action btn-primary" id="btnNuevoEvento">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+  <!-- Header simple del calendario -->
+  <div class="calendario-header-simple">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>Mi Calendario de Estudio</h1>
+        <p>Organiza tus sesiones de estudio</p>
+      </div>
+      <button class="btn-nuevo-evento" id="btnNuevoEvento">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
           <path d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6z"/>
         </svg>
         Nuevo Evento
       </button>
-      <button class="btn-action btn-secondary" id="btnHoy">Hoy</button>
     </div>
   </div>
 
-  <!-- Navegación del calendario -->
-  <div class="calendario-nav">
-    <div class="nav-controls">
-      <button class="nav-btn" id="btnAnterior">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-        </svg>
-      </button>
-      <h2 class="current-month" id="currentMonth">Noviembre 2024</h2>
-      <button class="nav-btn" id="btnSiguiente">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-        </svg>
-      </button>
+  <!-- Navegación simple del calendario -->
+  <div class="calendario-nav-simple">
+    <button class="nav-btn" id="btnAnterior">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+      </svg>
+    </button>
+    
+    <div class="month-display">
+      <h2 id="currentMonth">Noviembre 2024</h2>
     </div>
-    <div class="view-toggles">
-      <button class="view-btn active" data-view="month">Mes</button>
-      <button class="view-btn" data-view="week">Semana</button>
-      <button class="view-btn" data-view="day">Día</button>
-    </div>
+    
+    <button class="nav-btn" id="btnSiguiente">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+      </svg>
+    </button>
+    
+    <button class="btn-hoy" id="btnHoy">Hoy</button>
   </div>
 
   <!-- Vista del calendario -->
@@ -63,18 +56,62 @@
     </div>
   </div>
 
-  <!-- Panel lateral de eventos -->
-  <div class="sidebar-eventos" id="sidebarEventos">
-    <div class="sidebar-header">
-      <h3>Eventos del día</h3>
-      <span class="fecha-seleccionada" id="fechaSeleccionada">Selecciona un día</span>
-    </div>
-    <div class="eventos-lista" id="eventosLista">
-      <div class="no-eventos">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
-          <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
-        </svg>
-        <p>No hay eventos programados</p>
+  <!-- Modal de eventos del día -->
+  <div class="modal-overlay" id="modalEventosDia">
+    <div class="modal-eventos-dia">
+      <div class="modal-eventos-header">
+        <div class="fecha-info">
+          <h3 id="fechaSeleccionadaModal">Eventos del día</h3>
+          <span id="fechaDetalle" class="fecha-detalle">Selecciona un día</span>
+        </div>
+        <div class="modal-eventos-actions">
+          <button class="btn-nuevo-evento" id="btnNuevoEventoModal">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6z"/>
+            </svg>
+            Nuevo Evento
+          </button>
+          <button class="btn-close-modal" id="btnCerrarModalDia">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="modal-eventos-content">
+        <div class="eventos-lista-modal" id="eventosListaModal">
+          <div class="no-eventos-modal">
+            <div class="no-eventos-icon">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" opacity="0.2">
+                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+              </svg>
+            </div>
+            <h4>No hay eventos programados</h4>
+            <p>Haz clic en "Nuevo Evento" para agregar tu primer evento de estudio</p>
+            <button class="btn-crear-primer-evento" onclick="document.getElementById('btnNuevoEventoModal').click()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6z"/>
+              </svg>
+              Crear evento
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-eventos-stats">
+        <div class="stat-item">
+          <span class="stat-number" id="totalEventosDia">0</span>
+          <span class="stat-label">Eventos</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="tiempoTotalDia">0h</span>
+          <span class="stat-label">Tiempo total</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="eventosCompletados">0</span>
+          <span class="stat-label">Completados</span>
+        </div>
       </div>
     </div>
   </div>

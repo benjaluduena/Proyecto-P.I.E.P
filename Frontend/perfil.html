@@ -73,6 +73,23 @@
             <span class="stat-label">Días Activo</span>
           </div>
         </div>
+        
+        <!-- Study Streak Section -->
+        <div class="streak-section">
+          <div class="streak-info">
+            <div class="streak-flame">🔥</div>
+            <div class="streak-details">
+              <span class="streak-number" id="studyStreak">0</span>
+              <span class="streak-label">Días consecutivos</span>
+            </div>
+          </div>
+          <div class="streak-progress">
+            <div class="streak-bar">
+              <div class="streak-fill" id="streakProgress"></div>
+            </div>
+            <span class="streak-goal" id="streakGoal">Meta: 7 días</span>
+          </div>
+        </div>
       </div>
 
       <!-- Information Section -->
@@ -107,9 +124,114 @@
       </div>
     </div>
 
+    <!-- Learning Analytics Section -->
+    <div class="analytics-section">
+      <h3 class="section-title">📊 Estadísticas de Aprendizaje</h3>
+      
+      <!-- Detailed Statistics Grid -->
+      <div class="detailed-stats-grid">
+        <div class="detailed-stat-card">
+          <div class="stat-icon">📚</div>
+          <div class="stat-content">
+            <span class="stat-value" id="totalInteractions">0</span>
+            <span class="stat-description">Interacciones Totales</span>
+            <div class="stat-trend" id="interactionsTrend">+0 esta semana</div>
+          </div>
+        </div>
+        
+        <div class="detailed-stat-card">
+          <div class="stat-icon">⭐</div>
+          <div class="stat-content">
+            <span class="stat-value" id="averageScore">0%</span>
+            <span class="stat-description">Promedio de Puntuación</span>
+            <div class="stat-trend" id="scoreTrend">+0% vs mes anterior</div>
+          </div>
+        </div>
+        
+        <div class="detailed-stat-card">
+          <div class="stat-icon">🎯</div>
+          <div class="stat-content">
+            <span class="stat-value" id="completedTasks">0</span>
+            <span class="stat-description">Tareas Completadas</span>
+            <div class="stat-trend" id="tasksTrend">+0 esta semana</div>
+          </div>
+        </div>
+        
+        <div class="detailed-stat-card">
+          <div class="stat-icon">⏱️</div>
+          <div class="stat-content">
+            <span class="stat-value" id="studyHours">0h</span>
+            <span class="stat-description">Horas de Estudio</span>
+            <div class="stat-trend" id="hoursTrend">+0h esta semana</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Activity Chart -->
+      <div class="activity-chart-container">
+        <h4 class="chart-title">Actividad Semanal</h4>
+        <div class="activity-chart" id="activityChart">
+          <div class="chart-day" data-day="L">
+            <div class="chart-bar" data-value="0"></div>
+            <span class="chart-label">L</span>
+          </div>
+          <div class="chart-day" data-day="M">
+            <div class="chart-bar" data-value="0"></div>
+            <span class="chart-label">M</span>
+          </div>
+          <div class="chart-day" data-day="X">
+            <div class="chart-bar" data-value="0"></div>
+            <span class="chart-label">X</span>
+          </div>
+          <div class="chart-day" data-day="J">
+            <div class="chart-bar" data-value="0"></div>
+            <span class="chart-label">J</span>
+          </div>
+          <div class="chart-day" data-day="V">
+            <div class="chart-bar" data-value="0"></div>
+            <span class="chart-label">V</span>
+          </div>
+          <div class="chart-day" data-day="S">
+            <div class="chart-bar" data-value="0"></div>
+            <span class="chart-label">S</span>
+          </div>
+          <div class="chart-day" data-day="D">
+            <div class="chart-bar" data-value="0"></div>
+            <span class="chart-label">D</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Achievements Section -->
+    <div class="achievements-section">
+      <h3 class="section-title">🏆 Logros y Distintivos</h3>
+      <div class="achievements-grid" id="achievementsGrid">
+        <!-- Achievements will be populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Study Goals Section -->
+    <div class="goals-section">
+      <h3 class="section-title">🎯 Metas de Estudio</h3>
+      <div class="goals-container">
+        <div class="current-goals" id="currentGoals">
+          <!-- Goals will be populated by JavaScript -->
+        </div>
+        <button class="btn btn-primary" id="btnAddGoal">
+          <span class="buttons-ico">
+            <svg>
+              <use href="/Assets/sprite.svg#icon-plus"></use>
+            </svg>
+            Agregar Meta
+          </span>
+        </button>
+      </div>
+    </div>
+
     <!-- Subscription Section -->
     <div class="settings-section">
-      <h3 class="section-title">Suscripción</h3>
+      <h3 class="section-title">💎 Suscripción y Uso</h3>
       <div class="settings-grid">
         <div class="setting-item">
           <span class="setting-label">Estado de Suscripción</span>
@@ -119,7 +241,52 @@
           <span class="setting-label">Próximo Pago</span>
           <span class="setting-value" id="nextPaymentValue">--</span>
         </div>
+        <div class="setting-item">
+          <span class="setting-label">Contenidos Generados Este Mes</span>
+          <span class="setting-value" id="monthlyContentUsage">0</span>
+        </div>
+        <div class="setting-item">
+          <span class="setting-label">Límite de Contenidos</span>
+          <span class="setting-value" id="contentLimit">∞</span>
+        </div>
       </div>
+      
+      <!-- Usage Progress Bar -->
+      <div class="usage-progress-container" id="usageProgressContainer" style="display: none;">
+        <h4 class="usage-title">Uso Mensual</h4>
+        <div class="usage-progress">
+          <div class="usage-progress-bar">
+            <div class="usage-progress-fill" id="usageProgressFill"></div>
+          </div>
+          <div class="usage-text">
+            <span id="usageText">0 / ∞ contenidos</span>
+            <span id="usagePercentage">0%</span>
+          </div>
+        </div>
+        <div class="usage-details">
+          <div class="usage-detail-item">
+            <span class="usage-icon">📄</span>
+            <span class="usage-label">Resúmenes:</span>
+            <span class="usage-value" id="summariesCount">0</span>
+          </div>
+          <div class="usage-detail-item">
+            <span class="usage-icon">🃏</span>
+            <span class="usage-label">Flashcards:</span>
+            <span class="usage-value" id="flashcardsCount">0</span>
+          </div>
+          <div class="usage-detail-item">
+            <span class="usage-icon">❓</span>
+            <span class="usage-label">Ejercicios:</span>
+            <span class="usage-value" id="exercisesCount">0</span>
+          </div>
+          <div class="usage-detail-item">
+            <span class="usage-icon">🧠</span>
+            <span class="usage-label">Mapas Mentales:</span>
+            <span class="usage-value" id="mindMapsCount">0</span>
+          </div>
+        </div>
+      </div>
+      
       <div class="subscription-actions">
         <button class="btn btn-primary" id="btnManageSubscriptionFromProfile">Gestionar Suscripción</button>
         <button class="btn btn-secondary" id="btnSyncSubscriptionFromProfile">Sincronizar</button>
@@ -218,6 +385,44 @@
       <div class="action-buttons">
         <button class="btn btn-primary" id="btnSaveProfile">Guardar</button>
         <button class="btn btn-secondary" id="btnCancelEdit">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Goal Modal -->
+  <div id="goalModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="btnCloseGoalModal">&times;</span>
+      <h3 style="margin-bottom: 25px;">Agregar Nueva Meta</h3>
+
+      <div class="form-group">
+        <label for="goalTitle">Título de la Meta</label>
+        <input type="text" id="goalTitle" placeholder="Ej: Completar 5 flashcards diarios">
+      </div>
+
+      <div class="form-group">
+        <label for="goalType">Tipo de Meta</label>
+        <select id="goalType">
+          <option value="daily_content">Contenido Diario</option>
+          <option value="weekly_hours">Horas Semanales</option>
+          <option value="monthly_pdfs">PDFs Mensuales</option>
+          <option value="streak_days">Días Consecutivos</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="goalTarget">Objetivo Numérico</label>
+        <input type="number" id="goalTarget" min="1" placeholder="Ej: 5">
+      </div>
+
+      <div class="form-group">
+        <label for="goalDeadline">Fecha Límite</label>
+        <input type="date" id="goalDeadline">
+      </div>
+
+      <div class="action-buttons">
+        <button class="btn btn-primary" id="btnSaveGoal">Crear Meta</button>
+        <button class="btn btn-secondary" id="btnCancelGoal">Cancelar</button>
       </div>
     </div>
   </div>

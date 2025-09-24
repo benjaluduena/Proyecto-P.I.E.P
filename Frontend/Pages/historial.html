@@ -1,61 +1,280 @@
-<!-- Historial - StudyAI -->
+<!-- Historial Mejorado - StudyAI -->
 <div class="historial-container">
-  <!-- Header del historial -->
+  <!-- Header Renovado -->
   <div class="historial-header">
-    <div class="header-left">
-      <h1 class="page-title">
-        <svg class="title-icon">
-          <use href="/Assets/sprite.svg#icon-history"></use>
-        </svg>
-        Historial de Contenido IA
-      </h1>
-      <p class="page-subtitle">Revisa todo el contenido generado por la IA desde tus documentos PDF</p>
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <div class="title-icon-container">
+            <svg class="title-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13,3A9,9 0 0,0 4,12H1L4.89,15.89L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3Z"/>
+            </svg>
+          </div>
+          <span class="title-text">Mi Historial de Estudio</span>
+        </h1>
+        <p class="page-subtitle">Accede a todo tu contenido generado con IA • Organiza • Estudia • Repasa</p>
+      </div>
+      
+      <!-- Barra de herramientas modernizada -->
+      <div class="toolbar">
+        <div class="view-options">
+          <button id="gridView" class="view-btn active" title="Vista en cuadrícula">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3,11H11V3H3M3,21H11V13H3M13,21H21V13H13M13,3V11H21V3"/>
+            </svg>
+          </button>
+          <button id="listView" class="view-btn" title="Vista en lista">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3,5H21V7H3V5M3,13V11H21V13H3M3,19V17H21V19H3Z"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="sort-options">
+          <select id="sortSelect" class="sort-select">
+            <option value="newest">Más reciente</option>
+            <option value="oldest">Más antiguo</option>
+            <option value="type">Por tipo</option>
+            <option value="pdf">Por PDF</option>
+          </select>
+        </div>
+        
+        <div class="bulk-actions">
+          <button id="exportFavorites" class="action-btn" title="Exportar favoritos" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+            </svg>
+            <span>Exportar</span>
+          </button>
+          <button id="deleteAll" class="action-btn btn-danger" title="Limpiar historial" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+            </svg>
+            <span>Limpiar</span>
+          </button>
+        </div>
+      </div>
     </div>
-    <div class="header-actions">
-      <div class="filter-buttons">
-        <button class="filter-btn active" data-filter="all">Todos</button>
-        <button class="filter-btn" data-filter="resumen">Resumen</button>
-        <button class="filter-btn" data-filter="verdadero_falso">Verdadero o falso</button>
-        <button class="filter-btn" data-filter="multiple_choice">Multiple choice</button>
-        <button class="filter-btn" data-filter="mapa_mental">Mapa mental</button>
-        <button class="filter-btn" data-filter="chat-qa">Preguntas y respuestas</button>
+    
+    <!-- Barra de búsqueda y filtros mejorada -->
+    <div class="search-filter-bar">
+      <div class="search-section">
+        <div class="search-container">
+          <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/>
+            </svg>
+            <input type="text" id="searchInput" placeholder="Buscar por contenido, PDF, fecha..." class="search-input">
+            <button id="clearSearch" class="clear-search" style="display: none;">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+              </svg>
+            </button>
+          </div>
+          <button id="advancedSearch" class="advanced-search-btn" title="Búsqueda avanzada">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M14,12V19.88C14.04,20.18 13.94,20.5 13.71,20.71C13.32,21.1 12.69,21.1 12.3,20.71L10.29,18.7C10.06,18.47 9.96,18.16 10,17.87V12H9.97L4.21,4.62C3.87,4.19 3.95,3.56 4.38,3.22C4.57,3.08 4.78,3 5,3V3H19V3C19.22,3 19.43,3.08 19.62,3.22C20.05,3.56 20.13,4.19 19.79,4.62L14.03,12H14Z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="filter-section">
+        <div class="filter-tabs">
+          <button class="filter-btn active" data-filter="all">
+            <span class="filter-icon">📁</span>
+            <span class="filter-text">Todos</span>
+            <span class="filter-count" id="count-all">0</span>
+          </button>
+          <button class="filter-btn" data-filter="favorites">
+            <span class="filter-icon">❤️</span>
+            <span class="filter-text">Favoritos</span>
+            <span class="filter-count" id="count-favorites">0</span>
+          </button>
+          <button class="filter-btn" data-filter="resumen">
+            <span class="filter-icon">📄</span>
+            <span class="filter-text">Resúmenes</span>
+            <span class="filter-count" id="count-resumen">0</span>
+          </button>
+          <button class="filter-btn" data-filter="verdadero_falso">
+            <span class="filter-icon">✅</span>
+            <span class="filter-text">V/F</span>
+            <span class="filter-count" id="count-verdadero_falso">0</span>
+          </button>
+          <button class="filter-btn" data-filter="multiple_choice">
+            <span class="filter-icon">🎯</span>
+            <span class="filter-text">Multiple</span>
+            <span class="filter-count" id="count-multiple_choice">0</span>
+          </button>
+          <button class="filter-btn" data-filter="mapa_mental">
+            <span class="filter-icon">🧠</span>
+            <span class="filter-text">Mapas</span>
+            <span class="filter-count" id="count-mapa_mental">0</span>
+          </button>
+          <button class="filter-btn" data-filter="flashcards">
+            <span class="filter-icon">🗂️</span>
+            <span class="filter-text">Cards</span>
+            <span class="filter-count" id="count-flashcards">0</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Estadísticas rápidas -->
-  <div class="stats-section" id="statsSection">
-    <div class="stat-card">
-      <div class="stat-icon">📊</div>
-      <div class="stat-content">
-        <div class="stat-number" id="totalItems">0</div>
-        <div class="stat-label">Items Totales</div>
+  <!-- Panel de estadísticas mejorado -->
+  <div class="stats-dashboard" id="statsSection">
+    <div class="stats-grid">
+      <div class="stat-card primary">
+        <div class="stat-header">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M16,11V3H8V9H2V21H22V11H16M10,5H14V9H10V5M4,11H6V19H4V11M8,11H14V19H8V11M16,13H20V19H16V13Z"/>
+            </svg>
+          </div>
+          <div class="stat-trend positive" id="itemsTrend" style="display: none;">+12%</div>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number" id="totalItems">0</div>
+          <div class="stat-label">Elementos Totales</div>
+        </div>
       </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">📚</div>
-      <div class="stat-content">
-        <div class="stat-number" id="totalPdfs">0</div>
-        <div class="stat-label">PDFs Procesados</div>
+      
+      <div class="stat-card secondary">
+        <div class="stat-header">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number" id="totalPdfs">0</div>
+          <div class="stat-label">PDFs Procesados</div>
+        </div>
+      </div>
+      
+      <div class="stat-card accent">
+        <div class="stat-header">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number" id="totalFavorites">0</div>
+          <div class="stat-label">Favoritos</div>
+        </div>
+      </div>
+      
+      <div class="stat-card info">
+        <div class="stat-header">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M7.07,18.28C7.5,17.38 10.12,16.5 12,16.5C13.88,16.5 16.5,17.38 16.93,18.28C15.57,19.36 13.86,20 12,20C10.14,20 8.43,19.36 7.07,18.28M18.36,16.83C16.93,15.09 13.46,14.5 12,14.5C10.54,14.5 7.07,15.09 5.64,16.83C4.62,15.5 4,13.82 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,13.82 19.38,15.5 18.36,16.83M12,6C10.06,6 8.5,7.56 8.5,9.5C8.5,11.44 10.06,13 12,13C13.94,13 15.5,11.44 15.5,9.5C15.5,7.56 13.94,6 12,6M12,11A1.5,1.5 0 0,1 10.5,9.5A1.5,1.5 0 0,1 12,8A1.5,1.5 0 0,1 13.5,9.5A1.5,1.5 0 0,1 12,11Z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number" id="studyTime">--</div>
+          <div class="stat-label">Tiempo de Estudio</div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Lista de contenido del historial -->
-  <div class="historial-content">
-    <div class="content-grid" id="contentGrid">
-      <!-- El contenido se cargará dinámicamente -->
+  <!-- Contenido principal mejorado -->
+  <div class="main-content">
+    <!-- Indicadores de estado -->
+    <div class="status-indicators" id="statusIndicators" style="display: none;">
+      <div class="loading-indicator" id="loadingIndicator">
+        <div class="loading-spinner"></div>
+        <span>Cargando historial...</span>
+      </div>
+      
+      <div class="filter-indicator" id="filterIndicator">
+        <span id="filterText">Mostrando todos los elementos</span>
+        <button id="clearFilters" class="clear-filters-btn" style="display: none;">
+          Limpiar filtros
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
-    <!-- Estado vacío -->
-    <div class="empty-state" id="emptyState" style="display: none;">
-      <div class="empty-icon">
-        <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-        </svg>
+    <!-- Grid/Lista de contenido -->
+    <div class="content-container" id="contentContainer">
+      <div class="content-grid" id="contentGrid">
+        <!-- El contenido se carga dinámicamente -->
       </div>
-      <h3>No hay contenido en tu historial</h3>
-      <p>Comienza subiendo un PDF y generando contenido con IA en la página de inicio</p>
+      
+      <!-- Paginación -->
+      <div class="pagination" id="pagination" style="display: none;">
+        <button id="prevPage" class="page-btn" disabled>
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M15.41,7.41L14,6L8,12L14,18L15.41,16.59L10.83,12L15.41,7.41Z"/>
+          </svg>
+          Anterior
+        </button>
+        <div class="page-info">
+          <span id="pageInfo">Página 1 de 1</span>
+        </div>
+        <button id="nextPage" class="page-btn" disabled>
+          Siguiente
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10,6L8.59,7.41L13.17,12L8.59,16.59L10,18L16,12L10,6Z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Estados especiales -->
+    <div class="empty-states">
+      <!-- Estado vacío inicial -->
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-illustration">
+          <svg viewBox="0 0 200 200" fill="none">
+            <circle cx="100" cy="100" r="80" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="2"/>
+            <path d="M70 85h60M70 100h40M70 115h50" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="85" cy="70" r="8" fill="#3b82f6"/>
+            <circle cx="115" cy="70" r="8" fill="#10b981"/>
+          </svg>
+        </div>
+        <div class="empty-content">
+          <h3>Tu historial está vacío</h3>
+          <p>Comienza subiendo un PDF y generando contenido con IA para ver tu historial de estudio aquí.</p>
+          <button class="start-btn" onclick="window.location.href='/'">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+            </svg>
+            Subir mi primer PDF
+          </button>
+        </div>
+      </div>
+      
+      <!-- Estado sin resultados de búsqueda -->
+      <div class="empty-state" id="noResultsState" style="display: none;">
+        <div class="empty-illustration">
+          <svg viewBox="0 0 200 200" fill="none">
+            <circle cx="85" cy="85" r="30" fill="none" stroke="#cbd5e1" stroke-width="3"/>
+            <line x1="108" y1="108" x2="140" y2="140" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="100" cy="150" r="3" fill="#f59e0b"/>
+            <circle cx="120" cy="160" r="2" fill="#f59e0b"/>
+            <circle cx="80" cy="165" r="2" fill="#f59e0b"/>
+          </svg>
+        </div>
+        <div class="empty-content">
+          <h3>Sin resultados</h3>
+          <p>No encontramos contenido que coincida con tu búsqueda o filtros. Intenta con términos diferentes.</p>
+          <button id="clearSearchBtn" class="start-btn secondary">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+            </svg>
+            Limpiar búsqueda
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -106,32 +325,141 @@
 
 
 
+<!-- Estilos mejorados -->
+<link rel="stylesheet" href="/Css/historial-mejorado.css">
+
 <!-- Scripts necesarios para el historial -->
 <script src="/lib/supabase.js"></script>
 <script src="/JS/config.js"></script>
 <script src="/JS/auth-demo.js"></script>
+<script src="/JS/historial-optimizado.js"></script>
 
 <script>
-// El historial se inicializa automáticamente desde historial.js
-console.log('Página del historial cargada');
+// Configuración y inicialización mejorada
+console.log('🎨 Historial Mejorado v2.0 - Página cargada');
 
-// Asegurar que tenemos sesión demo para el historial
+// Configuración global para el historial
+window.HISTORIAL_CONFIG = {
+  itemsPerPage: 12,
+  enableAnimations: true,
+  enableCache: true,
+  autoRefreshInterval: 5 * 60 * 1000, // 5 minutos
+  features: {
+    advancedSearch: true,
+    bulkActions: true,
+    exportOptions: true,
+    analytics: false
+  }
+};
+
+// Funciones de compatibilidad para botones inline
+window.clearSearchBtn = function() {
+  if (window.historialManager) {
+    window.historialManager.clearSearch();
+  }
+};
+
+// Mejorar la inicialización del historial
 document.addEventListener('DOMContentLoaded', () => {
-  // Verificar si hay sesión, si no crear una demo
+  // Mostrar splash screen si está disponible
+  const showSplash = () => {
+    const splash = document.createElement('div');
+    splash.id = 'loading-splash';
+    splash.innerHTML = `
+      <div style="
+        position: fixed; 
+        top: 0; left: 0; right: 0; bottom: 0; 
+        background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+        display: flex; 
+        flex-direction: column;
+        align-items: center; 
+        justify-content: center; 
+        z-index: 9999;
+        color: white;
+        font-family: system-ui;
+      ">
+        <div style="
+          width: 60px; 
+          height: 60px; 
+          border: 4px solid rgba(255,255,255,0.3); 
+          border-top: 4px solid white; 
+          border-radius: 50%; 
+          animation: spin 1s linear infinite;
+          margin-bottom: 1rem;
+        "></div>
+        <h2 style="margin: 0; font-weight: 700;">Cargando Historial</h2>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.8;">Preparando tu contenido de estudio...</p>
+      </div>
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+    `;
+    document.body.appendChild(splash);
+    
+    // Remover splash después de un tiempo
+    setTimeout(() => {
+      if (splash && splash.parentNode) {
+        splash.style.opacity = '0';
+        splash.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => {
+          splash.remove();
+        }, 500);
+      }
+    }, 2000);
+  };
+  
+  // Mostrar splash solo si no hay datos en cache
+  if (!localStorage.getItem('studyai-historial-cache')) {
+    showSplash();
+  }
+  
+  // Verificar y crear sesión demo si es necesario
   if (typeof checkSession === 'function') {
     const sessionStatus = checkSession();
     if (!sessionStatus.hasSession && typeof createDemoSession === 'function') {
-      console.log('🔧 Creando sesión demo para historial...');
+      console.log('🔧 Creando sesión demo para historial mejorado...');
       createDemoSession();
     }
   }
   
-  // Esperar un poco más para que se inicialicen todos los sistemas
-  setTimeout(() => {
-    if (typeof window.initializeHistorial === 'function') {
-      console.log('🔄 Inicializando historial manualmente...');
-      window.initializeHistorial();
-    }
-  }, 1000);
+  // El historial optimizado se inicializa automáticamente
+  console.log('✅ Sistema de historial mejorado listo');
 });
+
+// Event listeners adicionales para funcionalidades específicas
+document.addEventListener('click', (e) => {
+  // Manejar clicks en botones de limpiar búsqueda desde estados vacíos
+  if (e.target.id === 'clearSearchBtn') {
+    if (window.historialManager) {
+      window.historialManager.clearSearch();
+    }
+  }
+});
+
+// Funciones globales para compatibilidad
+window.initializeHistorial = function() {
+  console.log('🔄 Inicializando historial desde función global...');
+  if (window.historialManager) {
+    window.historialManager.init();
+  }
+};
+
+// Manejo de errores globales
+window.addEventListener('error', (e) => {
+  if (e.error && e.error.message && e.error.message.includes('historial')) {
+    console.warn('⚠️ Error en historial capturado:', e.error);
+    // Mostrar mensaje de error amigable si es necesario
+  }
+});
+
+// Debug mode (solo en desarrollo)
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  window.DEBUG_HISTORIAL = true;
+  console.log('🐛 Modo debug activado para historial');
+}
+
+console.log('🚀 Historial Mejorado v2.0 - Sistema inicializado');
 </script>

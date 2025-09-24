@@ -34,12 +34,21 @@ class CalendarioStudyAI {
     document.getElementById('btnCerrarModal')?.addEventListener('click', () => this.closeModal());
     document.getElementById('btnCancelar')?.addEventListener('click', () => this.closeModal());
     
+    // Modal de eventos del día
+    document.getElementById('btnNuevoEventoModal')?.addEventListener('click', () => this.openModal());
+    document.getElementById('btnCerrarModalDia')?.addEventListener('click', () => this.closeDayEventsModal());
+    
+    
     // Formulario de eventos
     document.getElementById('formEvento')?.addEventListener('submit', (e) => this.handleSubmitEvento(e));
 
-    // Cerrar modal al hacer clic fuera
+    // Cerrar modales al hacer clic fuera
     document.getElementById('modalEvento')?.addEventListener('click', (e) => {
       if (e.target.id === 'modalEvento') this.closeModal();
+    });
+    
+    document.getElementById('modalEventosDia')?.addEventListener('click', (e) => {
+      if (e.target.id === 'modalEventosDia') this.closeDayEventsModal();
     });
 
     // Auto-calcular hora fin al cambiar duración
@@ -58,7 +67,7 @@ class CalendarioStudyAI {
     this.selectedDate = new Date();
     this.renderCalendar();
     this.updateCurrentMonthDisplay();
-    this.updateSelectedDateEvents();
+    // El modal se abrirá al hacer click en el día
   }
 
   changeView(view) {
@@ -164,13 +173,13 @@ class CalendarioStudyAI {
       dayDiv.appendChild(eventsContainer);
     }
 
-    // Event listener para seleccionar día
+    // Event listener para seleccionar día y abrir modal
     dayDiv.addEventListener('click', () => {
       document.querySelectorAll('.calendar-day.selected').forEach(el => 
         el.classList.remove('selected'));
       dayDiv.classList.add('selected');
       this.selectedDate = new Date(date);
-      this.updateSelectedDateEvents();
+      this.openDayEventsModal();
     });
 
     return dayDiv;
@@ -178,93 +187,171 @@ class CalendarioStudyAI {
 
   getEventosForDate(date) {
     return this.eventos.filter(evento => {
-      const eventoDate = new Date(evento.fecha);
+      // Crear fecha usando zona horaria local para evitar problemas de UTC
+      const [year, month, day] = evento.fecha.split('-').map(Number);
+      const eventoDate = new Date(year, month - 1, day);
       return this.isSameDay(eventoDate, date);
     }).sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
   }
 
-  updateSelectedDateEvents() {
-    const fechaEl = document.getElementById('fechaSeleccionada');
-    const listaEl = document.getElementById('eventosLista');
-    
-    if (!this.selectedDate || !fechaEl || !listaEl) return;
+  // Abrir modal de eventos del día
+  openDayEventsModal() {
+    const modal = document.getElementById('modalEventosDia');
+    if (!modal || !this.selectedDate) return;
 
-    // Actualizar fecha seleccionada
+    this.updateDayEventsModal();
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  // Cerrar modal de eventos del día
+  closeDayEventsModal() {
+    const modal = document.getElementById('modalEventosDia');
+    if (modal) {
+      modal.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  }
+
+  // Actualizar contenido del modal de eventos del día
+  updateDayEventsModal() {
+    if (!this.selectedDate) return;
+
+    const fechaTituloEl = document.getElementById('fechaSeleccionadaModal');
+    const fechaDetalleEl = document.getElementById('fechaDetalle');
+    const listaEl = document.getElementById('eventosListaModal');
+    
+    if (!fechaTituloEl || !fechaDetalleEl || !listaEl) return;
+
+    // Actualizar fecha en el modal
     const options = { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
       day: 'numeric' 
     };
-    fechaEl.textContent = this.selectedDate.toLocaleDateString('es-ES', options);
+    const fechaFormateada = this.selectedDate.toLocaleDateString('es-ES', options);
+    fechaTituloEl.textContent = 'Eventos del día';
+    fechaDetalleEl.textContent = fechaFormateada;
 
     // Obtener eventos del día
     const dayEvents = this.getEventosForDate(this.selectedDate);
     
     if (dayEvents.length === 0) {
       listaEl.innerHTML = `
-        <div class="no-eventos">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
-            <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
-          </svg>
-          <p>No hay eventos programados</p>
-          <button class="btn-small btn-primary" onclick="calendario.openModal()">
-            Agregar evento
+        <div class="no-eventos-modal">
+          <div class="no-eventos-icon">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" opacity="0.2">
+              <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+            </svg>
+          </div>
+          <h4>No hay eventos programados</h4>
+          <p>Haz clic en "Nuevo Evento" para agregar tu primer evento de estudio</p>
+          <button class="btn-crear-primer-evento" onclick="calendario.openModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6z"/>
+            </svg>
+            Crear evento
           </button>
         </div>
       `;
-      return;
+    } else {
+      // Renderizar eventos
+      listaEl.innerHTML = dayEvents.map(evento => this.createEventoListItem(evento)).join('');
     }
 
-    // Renderizar eventos
-    listaEl.innerHTML = dayEvents.map(evento => this.createEventoListItem(evento)).join('');
+    // Actualizar estadísticas
+    this.updateDayStats(dayEvents);
+  }
+
+  // Actualizar estadísticas del día
+  updateDayStats(dayEvents) {
+    const totalEventosEl = document.getElementById('totalEventosDia');
+    const tiempoTotalEl = document.getElementById('tiempoTotalDia');
+    const eventosCompletadosEl = document.getElementById('eventosCompletados');
+
+    if (!totalEventosEl || !tiempoTotalEl || !eventosCompletadosEl) return;
+
+    const totalEventos = dayEvents.length;
+    const tiempoTotal = dayEvents.reduce((total, evento) => total + (evento.duracion || 0), 0);
+    const eventosCompletados = dayEvents.filter(evento => evento.completado || false).length;
+
+    totalEventosEl.textContent = totalEventos;
+    tiempoTotalEl.textContent = tiempoTotal > 0 ? `${Math.floor(tiempoTotal / 60)}h ${tiempoTotal % 60}m` : '0h';
+    eventosCompletadosEl.textContent = eventosCompletados;
+  }
+
+  // Función legacy mantenida para compatibilidad
+  updateSelectedDateEvents() {
+    // Esta función ya no se usa pero se mantiene para evitar errores
+    console.log('updateSelectedDateEvents llamada - funcionalidad movida a modal');
   }
 
   createEventoListItem(evento) {
-    const tipoEmojis = {
-      estudio: '📚',
-      examen: '📝',
-      tarea: '📋',
-      revision: '🔍',
-      descanso: '☕'
+    const tipoConfig = {
+      estudio: { emoji: '📚', color: '#3b82f6', label: 'Estudio' },
+      examen: { emoji: '📝', color: '#ef4444', label: 'Examen' },
+      tarea: { emoji: '📋', color: '#f59e0b', label: 'Tarea' },
+      revision: { emoji: '🔍', color: '#8b5cf6', label: 'Revisión' },
+      descanso: { emoji: '☕', color: '#10b981', label: 'Descanso' }
     };
 
-    const prioridadClasses = {
-      baja: 'priority-low',
-      media: 'priority-medium',
-      alta: 'priority-high'
+    const prioridadConfig = {
+      baja: { color: '#10b981', label: 'Baja' },
+      media: { color: '#f59e0b', label: 'Media' },
+      alta: { color: '#ef4444', label: 'Alta' }
     };
 
+    const tipo = tipoConfig[evento.tipo] || { emoji: '📅', color: '#6b7280', label: 'Evento' };
+    const prioridad = prioridadConfig[evento.prioridad] || prioridadConfig.media;
     const horaFin = this.calculateEndTime(evento.horaInicio, evento.duracion);
 
     return `
-      <div class="evento-item ${prioridadClasses[evento.prioridad]}" data-id="${evento.id}">
-        <div class="evento-header">
-          <div class="evento-tipo">${tipoEmojis[evento.tipo] || '📅'}</div>
-          <div class="evento-time">${evento.horaInicio} - ${horaFin}</div>
-          <div class="evento-actions">
-            <button class="btn-icon" onclick="calendario.editEvento('${evento.id}')" title="Editar">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-              </svg>
-            </button>
-            <button class="btn-icon btn-danger" onclick="calendario.deleteEvento('${evento.id}')" title="Eliminar">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-              </svg>
-            </button>
+      <div class="evento-card" data-id="${evento.id}" style="border-left: 4px solid ${prioridad.color}">
+        <div class="evento-card-header">
+          <div class="evento-type-badge" style="background-color: ${tipo.color}20; color: ${tipo.color}">
+            <span class="evento-emoji">${tipo.emoji}</span>
+            <span class="evento-type-label">${tipo.label}</span>
+          </div>
+          <div class="evento-priority" style="color: ${prioridad.color}" title="Prioridad ${prioridad.label}">
+            <div class="priority-dot" style="background-color: ${prioridad.color}"></div>
           </div>
         </div>
-        <div class="evento-title">${evento.titulo}</div>
-        ${evento.descripcion ? `<div class="evento-description">${evento.descripcion}</div>` : ''}
-        <div class="evento-duration">${evento.duracion} minutos</div>
+        
+        <div class="evento-card-content">
+          <h4 class="evento-title">${evento.titulo}</h4>
+          ${evento.descripcion ? `<p class="evento-description">${evento.descripcion}</p>` : ''}
+          
+          <div class="evento-meta">
+            <div class="evento-time-info">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="time-icon">
+                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.7L16.2,16.2Z"/>
+              </svg>
+              <span>${evento.horaInicio} - ${horaFin}</span>
+              <span class="duration-badge">${evento.duracion}min</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="evento-card-actions">
+          <button class="action-btn edit-btn" onclick="calendario.editEvento('${evento.id}')" title="Editar evento">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+            </svg>
+          </button>
+          <button class="action-btn delete-btn" onclick="calendario.deleteEvento('${evento.id}')" title="Eliminar evento">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+            </svg>
+          </button>
+        </div>
       </div>
     `;
   }
 
   loadTodaysEvents() {
     this.selectedDate = new Date();
-    this.updateSelectedDateEvents();
+    // Función legacy - el modal se maneja por separado
   }
 
   openModal(evento = null) {
@@ -291,7 +378,11 @@ class CalendarioStudyAI {
       if (this.selectedDate) {
         const dateInput = document.getElementById('eventoFecha');
         if (dateInput) {
-          dateInput.value = this.selectedDate.toISOString().split('T')[0];
+          // Usar zona horaria local para evitar problemas de desfase
+          const year = this.selectedDate.getFullYear();
+          const month = String(this.selectedDate.getMonth() + 1).padStart(2, '0');
+          const day = String(this.selectedDate.getDate()).padStart(2, '0');
+          dateInput.value = `${year}-${month}-${day}`;
         }
       }
     }
@@ -360,7 +451,11 @@ class CalendarioStudyAI {
 
     this.saveEventos();
     this.renderCalendar();
-    this.updateSelectedDateEvents();
+    // Actualizar modal si está abierto
+    const modalDia = document.getElementById('modalEventosDia');
+    if (modalDia && modalDia.classList.contains('show')) {
+      this.updateDayEventsModal();
+    }
     this.closeModal();
   }
 
@@ -394,7 +489,10 @@ class CalendarioStudyAI {
   }
 
   hasTimeConflict(newEvento) {
-    const newStart = new Date(`${newEvento.fecha}T${newEvento.horaInicio}`);
+    // Crear fechas usando zona horaria local
+    const [newYear, newMonth, newDay] = newEvento.fecha.split('-').map(Number);
+    const [newHour, newMinute] = newEvento.horaInicio.split(':').map(Number);
+    const newStart = new Date(newYear, newMonth - 1, newDay, newHour, newMinute);
     const newEnd = new Date(newStart.getTime() + newEvento.duracion * 60000);
 
     return this.eventos.some(evento => {
@@ -402,7 +500,9 @@ class CalendarioStudyAI {
       
       if (evento.fecha !== newEvento.fecha) return false; // Diferentes días
       
-      const existingStart = new Date(`${evento.fecha}T${evento.horaInicio}`);
+      const [existingYear, existingMonth, existingDay] = evento.fecha.split('-').map(Number);
+      const [existingHour, existingMinute] = evento.horaInicio.split(':').map(Number);
+      const existingStart = new Date(existingYear, existingMonth - 1, existingDay, existingHour, existingMinute);
       const existingEnd = new Date(existingStart.getTime() + evento.duracion * 60000);
       
       // Verificar solapamiento
@@ -422,7 +522,11 @@ class CalendarioStudyAI {
       this.eventos = this.eventos.filter(ev => ev.id !== id);
       this.saveEventos();
       this.renderCalendar();
-      this.updateSelectedDateEvents();
+      // Actualizar modal si está abierto
+      const modalDia = document.getElementById('modalEventosDia');
+      if (modalDia && modalDia.classList.contains('show')) {
+        this.updateDayEventsModal();
+      }
       this.showNotification('Evento eliminado correctamente', 'success');
     }
   }
@@ -506,7 +610,7 @@ class CalendarioStudyAI {
         id: 'sample-1',
         titulo: 'Estudio de Matemáticas',
         tipo: 'estudio',
-        fecha: today.toISOString().split('T')[0],
+        fecha: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`,
         duracion: 90,
         horaInicio: '09:00',
         prioridad: 'alta',
@@ -518,7 +622,7 @@ class CalendarioStudyAI {
         id: 'sample-2',
         titulo: 'Examen de Historia',
         tipo: 'examen',
-        fecha: tomorrow.toISOString().split('T')[0],
+        fecha: `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`,
         duracion: 120,
         horaInicio: '14:00',
         prioridad: 'alta',
@@ -530,7 +634,7 @@ class CalendarioStudyAI {
         id: 'sample-3',
         titulo: 'Proyecto de Programación',
         tipo: 'tarea',
-        fecha: nextWeek.toISOString().split('T')[0],
+        fecha: `${nextWeek.getFullYear()}-${String(nextWeek.getMonth() + 1).padStart(2, '0')}-${String(nextWeek.getDate()).padStart(2, '0')}`,
         duracion: 180,
         horaInicio: '10:00',
         prioridad: 'media',
@@ -544,6 +648,7 @@ class CalendarioStudyAI {
     this.saveEventos(sampleEvents);
     return sampleEvents;
   }
+
 
   // Notificaciones
   showNotification(message, type = 'info') {
@@ -591,5 +696,5 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializeCalendar);
 } else {
   // Dar un pequeño delay para que los elementos se carguen
-  setTimeout(initializeCalendar, 100);
+  setTimeout(initializeCalendar, 200);
 }

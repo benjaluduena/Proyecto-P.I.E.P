@@ -201,7 +201,23 @@ async function loadFlashcards() {
   try {
     showLoading();
     
-    // Obtener ID del contenido desde URL
+    // Primero verificar si hay datos del historial en sessionStorage
+    const historialData = sessionStorage.getItem('currentFlashcards');
+    if (historialData) {
+      console.log('📥 Cargando flashcards desde historial...');
+      try {
+        const flashcardData = JSON.parse(historialData);
+        await processFlashcardData(flashcardData);
+        // Limpiar sessionStorage después de usar
+        sessionStorage.removeItem('currentFlashcards');
+        return;
+      } catch (error) {
+        console.warn('⚠️ Error al procesar datos del historial, intentando desde API:', error);
+        sessionStorage.removeItem('currentFlashcards');
+      }
+    }
+    
+    // Si no hay datos del historial, usar el método original con URL
     const urlParams = new URLSearchParams(window.location.search);
     const outputId = urlParams.get('id');
     
@@ -209,7 +225,7 @@ async function loadFlashcards() {
       throw new Error('ID de contenido no encontrado en la URL');
     }
 
-    console.log('📥 Cargando flashcards para ID:', outputId);
+    console.log('📥 Cargando flashcards desde API para ID:', outputId);
     
     const response = await apiCall(`/api/ai/content/${outputId}`);
     
@@ -218,8 +234,33 @@ async function loadFlashcards() {
     }
     
     const data = await response.json();
-    console.log('📄 Datos recibidos:', data);
-    console.log('📊 Estructura de datos:', {
+    await processFlashcardData(data);
+  } catch (error) {
+    console.error('❌ Error al cargar flashcards:', error);
+    showError(error.message);
+  }
+}
+
+// Función para procesar datos de flashcards (desde API o historial)
+async function processFlashcardData(data) {
+  try {
+    console.log('📄 Procesando datos de flashcards:', data);
+    
+    // Si los datos vienen del historial, ya tienen la estructura correcta
+    if (data.content && data.pdf_title) {
+      console.log('📋 Datos del historial detectados');
+      const content = data.content;
+      await processFlashcardContent(content);
+      
+      // Actualizar título del documento si es posible
+      const metaElement = document.getElementById('flashcardsMeta');
+      if (metaElement && data.pdf_title) {
+        metaElement.textContent = `Estudiando: ${data.pdf_title}`;
+      }
+      return;
+    }
+    
+    console.log('📊 Estructura de datos de API:', {
       hasSuccess: !!data.success,
       hasContent: !!data.content,
       hasOutput: !!data.output,
@@ -242,7 +283,17 @@ async function loadFlashcards() {
     }
     
     console.log('📋 Contenido extraído:', content);
+    await processFlashcardContent(content);
+    
+  } catch (error) {
+    console.error('❌ Error procesando flashcards:', error);
+    showError(error.message);
+  }
+}
 
+// Función para procesar el contenido de flashcards
+async function processFlashcardContent(content) {
+  try {
     // Procesar flashcards
     let cards = [];
     

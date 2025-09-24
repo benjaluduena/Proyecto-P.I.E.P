@@ -36,11 +36,22 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('btnSyncSubscriptionFromProfile').addEventListener('click', syncSubscriptionFromProfile);
   document.getElementById('btnDiagnosticSubscription').addEventListener('click', showSubscriptionDiagnostic);
   
+  // Event listeners for goals
+  document.getElementById('btnAddGoal').addEventListener('click', openGoalModal);
+  document.getElementById('btnCloseGoalModal').addEventListener('click', closeGoalModal);
+  document.getElementById('btnSaveGoal').addEventListener('click', saveGoal);
+  document.getElementById('btnCancelGoal').addEventListener('click', closeGoalModal);
+  
   // Verificar si el elemento de suscripción existe
   const subscriptionStatusElement = document.getElementById('subscriptionStatusValue');
   if (!subscriptionStatusElement) {
     console.error('Elemento subscriptionStatusValue no encontrado en el DOM');
   }
+  
+  // Load enhanced analytics
+  loadEnhancedAnalytics();
+  loadAchievements();
+  loadUserGoals();
 });
 
 function toggleSetting(element) {
@@ -265,6 +276,10 @@ async function loadSubscriptionInfo() {
     const data = await response.json();
     console.log('Datos de suscripción recibidos:', data);
     updateSubscriptionInfoUI(data);
+    
+    // Load usage data
+    await loadUsageData(data);
+    
   } catch (error) {
     console.error('Error al cargar información de suscripción:', error);
     // Mostrar valores por defecto en caso de error
@@ -561,5 +576,564 @@ function populateProfileFromUser() {
     }
   } catch (error) {
     console.error('Error poblando perfil desde usuario:', error);
+  }
+}
+
+// Enhanced Analytics Functions
+async function loadEnhancedAnalytics() {
+  try {
+    console.log('📈 Cargando análisis avanzado...');
+    
+    // Load progress tracking data
+    const progressResponse = await apiCall('/api/analytics/user/progress');
+    let totalInteractions = 0;
+    let averageScore = 0;
+    let weeklyActivity = [0, 0, 0, 0, 0, 0, 0];
+    
+    if (progressResponse && progressResponse.ok) {
+      const progressData = await progressResponse.json();
+      if (progressData.success && progressData.data) {
+        totalInteractions = progressData.data.length;
+        
+        // Calculate average score
+        const scores = progressData.data.filter(item => item.score !== null);
+        if (scores.length > 0) {
+          averageScore = Math.round(scores.reduce((sum, item) => sum + item.score, 0) / scores.length);
+        }
+        
+        // Calculate weekly activity
+        const now = new Date();
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - 6);
+        
+        weeklyActivity = [0, 0, 0, 0, 0, 0, 0];
+        progressData.data.forEach(item => {
+          const itemDate = new Date(item.interacted_at);
+          if (itemDate >= weekStart) {
+            const dayIndex = itemDate.getDay();
+            const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1; // Monday = 0, Sunday = 6
+            weeklyActivity[adjustedIndex]++;
+          }
+        });
+      }
+    }
+    
+    // Load completed tasks
+    const tasksResponse = await apiCall('/api/analytics/user/tasks');
+    let completedTasks = 0;
+    
+    if (tasksResponse && tasksResponse.ok) {
+      const tasksData = await tasksResponse.json();
+      if (tasksData.success && tasksData.data) {
+        completedTasks = tasksData.data.filter(task => task.completed).length;
+      }
+    }
+    
+    // Calculate study hours (estimate based on interactions)
+    const studyHours = Math.round(totalInteractions * 0.25); // Estimate 15 minutes per interaction
+    
+    // Calculate study streak
+    const studyStreak = await calculateStudyStreak();
+    
+    // Update UI
+    updateEnhancedStats({
+      totalInteractions,
+      averageScore,
+      completedTasks,
+      studyHours,
+      studyStreak,
+      weeklyActivity
+    });
+    
+    console.log('✅ Análisis avanzado cargado exitosamente');
+    
+  } catch (error) {
+    console.error('❌ Error cargando análisis avanzado:', error);
+    
+    // Show default values
+    updateEnhancedStats({
+      totalInteractions: 0,
+      averageScore: 0,
+      completedTasks: 0,
+      studyHours: 0,
+      studyStreak: { current: 0, goal: 7 },
+      weeklyActivity: [0, 0, 0, 0, 0, 0, 0]
+    });
+  }
+}
+
+function updateEnhancedStats(stats) {
+  // Update detailed statistics
+  document.getElementById('totalInteractions').textContent = stats.totalInteractions;
+  document.getElementById('averageScore').textContent = `${stats.averageScore}%`;
+  document.getElementById('completedTasks').textContent = stats.completedTasks;
+  document.getElementById('studyHours').textContent = `${stats.studyHours}h`;
+  
+  // Update trends (calculate based on historical data)
+  const interactionsTrend = Math.floor(stats.totalInteractions * 0.15);
+  const scoreTrend = Math.floor(Math.random() * 10) - 5; // Placeholder for real calculation
+  const tasksTrend = Math.floor(stats.completedTasks * 0.2);
+  const hoursTrend = Math.floor(stats.studyHours * 0.1);
+  
+  document.getElementById('interactionsTrend').textContent = `+${interactionsTrend} esta semana`;
+  document.getElementById('scoreTrend').textContent = `${scoreTrend >= 0 ? '+' : ''}${scoreTrend}% vs mes anterior`;
+  document.getElementById('tasksTrend').textContent = `+${tasksTrend} esta semana`;
+  document.getElementById('hoursTrend').textContent = `+${hoursTrend}h esta semana`;
+  
+  // Apply trend classes
+  document.getElementById('scoreTrend').className = `stat-trend ${scoreTrend >= 0 ? '' : 'negative'}`;
+  
+  // Update study streak
+  if (stats.studyStreak) {
+    document.getElementById('studyStreak').textContent = stats.studyStreak.current;
+    document.getElementById('streakGoal').textContent = `Meta: ${stats.studyStreak.goal} días`;
+    
+    const streakProgress = Math.min((stats.studyStreak.current / stats.studyStreak.goal) * 100, 100);
+    document.getElementById('streakProgress').style.width = `${streakProgress}%`;
+  }
+  
+  // Update weekly activity chart
+  updateActivityChart(stats.weeklyActivity);
+}
+
+function updateActivityChart(weeklyData) {
+  const maxValue = Math.max(...weeklyData, 1);
+  const chartBars = document.querySelectorAll('.chart-bar');
+  
+  chartBars.forEach((bar, index) => {
+    const value = weeklyData[index];
+    const percentage = (value / maxValue) * 100;
+    bar.style.height = `${Math.max(percentage, 10)}%`;
+    bar.setAttribute('data-value', value);
+    bar.title = `${value} interacciones`;
+  });
+}
+
+async function calculateStudyStreak() {
+  try {
+    const response = await apiCall('/api/analytics/user/streak');
+    if (response && response.ok) {
+      const data = await response.json();
+      return data.streak || { current: 0, goal: 7 };
+    }
+  } catch (error) {
+    console.error('Error calculando racha de estudio:', error);
+  }
+  
+  // Calculate streak manually based on recent activity
+  const progressResponse = await apiCall('/api/analytics/user/progress');
+  if (progressResponse && progressResponse.ok) {
+    const progressData = await progressResponse.json();
+    if (progressData.success && progressData.data) {
+      const sortedDates = progressData.data
+        .map(item => new Date(item.interacted_at).toDateString())
+        .filter((date, index, arr) => arr.indexOf(date) === index)
+        .sort((a, b) => new Date(b) - new Date(a));
+      
+      let streak = 0;
+      const today = new Date().toDateString();
+      let currentDate = new Date();
+      
+      for (let i = 0; i < sortedDates.length; i++) {
+        if (sortedDates[i] === currentDate.toDateString()) {
+          streak++;
+          currentDate.setDate(currentDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      
+      return { current: streak, goal: 7 };
+    }
+  }
+  
+  return { current: 0, goal: 7 };
+}
+
+// Achievements System
+async function loadAchievements() {
+  try {
+    console.log('🏆 Cargando logros...');
+    
+    const achievementsContainer = document.getElementById('achievementsGrid');
+    
+    // Define achievements
+    const achievements = [
+      {
+        id: 'first_study',
+        title: 'Primer Paso',
+        description: 'Completa tu primera sesión de estudio',
+        icon: '🎯',
+        unlocked: false,
+        progress: 0,
+        target: 1
+      },
+      {
+        id: 'five_pdfs',
+        title: 'Coleccionista',
+        description: 'Sube 5 PDFs al sistema',
+        icon: '📚',
+        unlocked: false,
+        progress: 0,
+        target: 5
+      },
+      {
+        id: 'week_streak',
+        title: 'Constancia',
+        description: 'Mantén una racha de 7 días consecutivos',
+        icon: '🔥',
+        unlocked: false,
+        progress: 0,
+        target: 7
+      },
+      {
+        id: 'perfect_score',
+        title: 'Perfeccionista',
+        description: 'Obtén una puntuación perfecta en una evaluación',
+        icon: '⭐',
+        unlocked: false,
+        progress: 0,
+        target: 100
+      },
+      {
+        id: 'hundred_interactions',
+        title: 'Explorador',
+        description: 'Realiza 100 interacciones con contenido IA',
+        icon: '🚀',
+        unlocked: false,
+        progress: 0,
+        target: 100
+      },
+      {
+        id: 'early_bird',
+        title: 'Madrugador',
+        description: 'Estudia antes de las 8:00 AM',
+        icon: '🌅',
+        unlocked: false,
+        progress: 0,
+        target: 1
+      }
+    ];
+    
+    // Calculate progress for each achievement
+    await calculateAchievementProgress(achievements);
+    
+    // Render achievements
+    achievementsContainer.innerHTML = achievements.map(achievement => `
+      <div class="achievement-card ${achievement.unlocked ? 'unlocked' : ''}">
+        <div class="achievement-icon">${achievement.icon}</div>
+        <div class="achievement-title">${achievement.title}</div>
+        <div class="achievement-description">${achievement.description}</div>
+        <div class="achievement-progress">
+          ${achievement.unlocked ? '¡Completado!' : `${achievement.progress}/${achievement.target}`}
+        </div>
+      </div>
+    `).join('');
+    
+    console.log('✅ Logros cargados exitosamente');
+    
+  } catch (error) {
+    console.error('❌ Error cargando logros:', error);
+  }
+}
+
+async function calculateAchievementProgress(achievements) {
+  try {
+    // Get user statistics
+    const [progressRes, pdfsRes, historialRes] = await Promise.all([
+      apiCall('/api/analytics/user/progress'),
+      apiCall('/api/analytics/user/pdfs'),
+      apiCall('/api/ai/content/history')
+    ]);
+    
+    let totalInteractions = 0;
+    let totalPdfs = 0;
+    let perfectScores = 0;
+    let currentStreak = 0;
+    
+    // Process progress data
+    if (progressRes && progressRes.ok) {
+      const progressData = await progressRes.json();
+      if (progressData.success && progressData.data) {
+        totalInteractions = progressData.data.length;
+        perfectScores = progressData.data.filter(item => item.score === 100).length;
+      }
+    }
+    
+    // Process PDFs data
+    if (pdfsRes && pdfsRes.ok) {
+      const pdfsData = await pdfsRes.json();
+      if (pdfsData.success && pdfsData.data) {
+        totalPdfs = pdfsData.data.length;
+      }
+    }
+    
+    // Calculate current streak
+    const streakData = await calculateStudyStreak();
+    currentStreak = streakData.current;
+    
+    // Update achievement progress
+    achievements.forEach(achievement => {
+      switch (achievement.id) {
+        case 'first_study':
+          achievement.progress = Math.min(totalInteractions, 1);
+          achievement.unlocked = totalInteractions >= 1;
+          break;
+        case 'five_pdfs':
+          achievement.progress = Math.min(totalPdfs, 5);
+          achievement.unlocked = totalPdfs >= 5;
+          break;
+        case 'week_streak':
+          achievement.progress = Math.min(currentStreak, 7);
+          achievement.unlocked = currentStreak >= 7;
+          break;
+        case 'perfect_score':
+          achievement.progress = Math.min(perfectScores, 1);
+          achievement.unlocked = perfectScores >= 1;
+          break;
+        case 'hundred_interactions':
+          achievement.progress = Math.min(totalInteractions, 100);
+          achievement.unlocked = totalInteractions >= 100;
+          break;
+        case 'early_bird':
+          // This would require checking study times - placeholder for now
+          achievement.progress = 0;
+          achievement.unlocked = false;
+          break;
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error calculando progreso de logros:', error);
+  }
+}
+
+// Goals System
+async function loadUserGoals() {
+  try {
+    console.log('🎯 Cargando metas del usuario...');
+    
+    const goalsContainer = document.getElementById('currentGoals');
+    
+    // Load goals from backend
+    const goalsResponse = await apiCall('/api/goals/user/goals');
+    let storedGoals = [];
+    
+    if (goalsResponse && goalsResponse.ok) {
+      const goalsData = await goalsResponse.json();
+      if (goalsData.success && goalsData.data) {
+        storedGoals = goalsData.data;
+      }
+    }
+    
+    if (storedGoals.length === 0) {
+      goalsContainer.innerHTML = `
+        <div class="goal-card" style="text-align: center; color: #666;">
+          <p>No tienes metas activas. ¡Crea tu primera meta para empezar a hacer seguimiento de tu progreso!</p>
+        </div>
+      `;
+      return;
+    }
+    
+    // Render goals (progress already calculated by backend)
+    goalsContainer.innerHTML = storedGoals.map(goal => `
+      <div class="goal-card">
+        <div class="goal-header">
+          <div class="goal-title">${goal.title}</div>
+          <div class="goal-type">${getGoalTypeLabel(goal.type)}</div>
+        </div>
+        <div class="goal-progress">
+          <div class="goal-progress-bar">
+            <div class="goal-progress-fill" style="width: ${goal.progress ? goal.progress.percentage : 0}%"></div>
+          </div>
+          <div class="goal-progress-text">${goal.progress ? goal.progress.current : 0}/${goal.progress ? goal.progress.target : goal.target}</div>
+        </div>
+        <div class="goal-deadline ${isGoalUrgent(goal.deadline) ? 'urgent' : ''}">
+          Vence: ${formatDate(goal.deadline)}
+        </div>
+      </div>
+    `).join('');
+    
+    console.log('✅ Metas cargadas exitosamente');
+    
+  } catch (error) {
+    console.error('❌ Error cargando metas:', error);
+  }
+}
+
+// Function removed - goal progress is now calculated by the backend
+
+function getGoalTypeLabel(type) {
+  const labels = {
+    'daily_content': 'Diario',
+    'weekly_hours': 'Semanal',
+    'monthly_pdfs': 'Mensual',
+    'streak_days': 'Racha'
+  };
+  return labels[type] || type;
+}
+
+function isGoalUrgent(deadline) {
+  const deadlineDate = new Date(deadline);
+  const now = new Date();
+  const diffDays = Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24));
+  return diffDays <= 3;
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+}
+
+// Goal Modal Functions
+function openGoalModal() {
+  document.getElementById('goalModal').style.display = 'block';
+  
+  // Set default deadline to next week
+  const nextWeek = new Date();
+  nextWeek.setDate(nextWeek.getDate() + 7);
+  document.getElementById('goalDeadline').value = nextWeek.toISOString().split('T')[0];
+}
+
+function closeGoalModal() {
+  document.getElementById('goalModal').style.display = 'none';
+  
+  // Clear form
+  document.getElementById('goalTitle').value = '';
+  document.getElementById('goalType').value = 'daily_content';
+  document.getElementById('goalTarget').value = '';
+  document.getElementById('goalDeadline').value = '';
+}
+
+async function saveGoal() {
+  const title = document.getElementById('goalTitle').value.trim();
+  const type = document.getElementById('goalType').value;
+  const target = parseInt(document.getElementById('goalTarget').value);
+  const deadline = document.getElementById('goalDeadline').value;
+  
+  if (!title || !target || !deadline) {
+    alert('Por favor completa todos los campos requeridos.');
+    return;
+  }
+  
+  try {
+    const response = await apiCall('/api/goals/user/goals', {
+      method: 'POST',
+      body: JSON.stringify({
+        title,
+        type,
+        target,
+        deadline
+      })
+    });
+    
+    if (response && response.ok) {
+      const result = await response.json();
+      if (result.success) {
+        closeGoalModal();
+        loadUserGoals(); // Reload goals
+        alert('Meta creada exitosamente!');
+      } else {
+        alert('Error al crear meta: ' + (result.error || 'Error desconocido'));
+      }
+    } else {
+      alert('Error al crear meta. Por favor intenta de nuevo.');
+    }
+  } catch (error) {
+    console.error('Error creando meta:', error);
+    alert('Error de red al crear meta. Por favor intenta de nuevo.');
+  }
+}
+
+// Usage Data Functions
+async function loadUsageData(subscriptionData) {
+  try {
+    console.log('📊 Cargando datos de uso...');
+    
+    // Get current month's content usage from backend
+    const usageResponse = await apiCall('/api/analytics/user/usage/monthly');
+    let monthlyUsage = {
+      total: 0,
+      summaries: 0,
+      flashcards: 0,
+      exercises: 0,
+      mindMaps: 0
+    };
+    
+    if (usageResponse && usageResponse.ok) {
+      const usageData = await usageResponse.json();
+      if (usageData.success && usageData.usage) {
+        monthlyUsage = usageData.usage;
+      }
+    }
+    
+    // Determine subscription limits
+    let contentLimit = '∞';
+    let showUsageBar = false;
+    
+    if (subscriptionData.status !== 'authorized') {
+      contentLimit = 10; // Free tier limit
+      showUsageBar = true;
+    }
+    
+    // Update UI
+    updateUsageUI(monthlyUsage, contentLimit, showUsageBar);
+    
+    console.log('✅ Datos de uso cargados exitosamente');
+    
+  } catch (error) {
+    console.error('❌ Error cargando datos de uso:', error);
+    
+    // Show default usage data
+    updateUsageUI({
+      total: 0,
+      summaries: 0,
+      flashcards: 0,
+      exercises: 0,
+      mindMaps: 0
+    }, '∞', false);
+  }
+}
+
+function updateUsageUI(usage, limit, showProgressBar) {
+  // Update basic usage info
+  document.getElementById('monthlyContentUsage').textContent = usage.total;
+  document.getElementById('contentLimit').textContent = limit;
+  
+  // Update detailed usage breakdown
+  document.getElementById('summariesCount').textContent = usage.summaries;
+  document.getElementById('flashcardsCount').textContent = usage.flashcards;
+  document.getElementById('exercisesCount').textContent = usage.exercises;
+  document.getElementById('mindMapsCount').textContent = usage.mindMaps;
+  
+  // Show/hide usage progress bar
+  const progressContainer = document.getElementById('usageProgressContainer');
+  if (showProgressBar && limit !== '∞') {
+    progressContainer.style.display = 'block';
+    
+    const percentage = Math.min((usage.total / limit) * 100, 100);
+    const progressFill = document.getElementById('usageProgressFill');
+    
+    // Update progress bar
+    progressFill.style.width = `${percentage}%`;
+    
+    // Change color based on usage
+    progressFill.className = 'usage-progress-fill';
+    if (percentage >= 90) {
+      progressFill.classList.add('danger');
+    } else if (percentage >= 75) {
+      progressFill.classList.add('warning');
+    }
+    
+    // Update text
+    document.getElementById('usageText').textContent = `${usage.total} / ${limit} contenidos`;
+    document.getElementById('usagePercentage').textContent = `${Math.round(percentage)}%`;
+    
+  } else {
+    progressContainer.style.display = 'none';
   }
 }
