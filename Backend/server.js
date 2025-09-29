@@ -17,6 +17,7 @@ const diagnosticRoutes = require('./routes/diagnostic');
 const configRoutes = require('./routes/config');
 const analyticsRoutes = require('./routes/analytics');
 const goalsRoutes = require('./routes/goals');
+const historialRoutes = require('./routes/historial');
 
 const app = express();
 const PORT = process.env.PORT || 5500;
@@ -172,7 +173,7 @@ app.use((req, res, next) => {
 
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Rutas con rate limiting específico
+// Rutas de la API
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/pdfs', uploadLimiter, pdfRoutes);
 app.use('/api/ai', aiRoutes);
@@ -184,6 +185,7 @@ app.use('/api/diagnostic', diagnosticRoutes);
 app.use('/api/config', configRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/goals', goalsRoutes);
+app.use('/api/historial', historialRoutes);
 
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../Frontend'), { index: false }));
@@ -259,4 +261,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Servidor P.I.E.P. ejecutándose en puerto ${PORT}`);
   console.log(`📚 Plataforma Inteligente de Estudio Personalizado`);
   console.log(`🌐 http://localhost:${PORT}`);
-}); 
+});

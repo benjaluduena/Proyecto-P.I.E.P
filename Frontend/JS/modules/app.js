@@ -137,11 +137,13 @@ class App {
   initializeSubscriptions() {
     const btnCambiarPlan = document.getElementById('btnCambiarPlan');
     if (btnCambiarPlan) {
-      btnCambiarPlan.addEventListener('click', async () => {
+      // Solo navegar a la sección "cambiar-plan".
+      // La redirección a MercadoPago debe ocurrir únicamente cuando el usuario elige un plan nuevo.
+      btnCambiarPlan.addEventListener('click', () => {
         try {
-          await this.startSubscription({ amount: 1500, currency: 'ARS' });
+          this.loadSection('cambiar-plan');
         } catch (error) {
-          this.uiModule.showNotification('No se pudo iniciar el cambio de plan', 'error');
+          this.uiModule.showNotification('No se pudo abrir la sección de cambio de plan', 'error');
         }
       });
     }
@@ -231,6 +233,57 @@ class App {
   // Cargar sección
   async loadSection(sectionName) {
     try {
+      // Carga fluida del historial dentro del contenedor principal
+      if (sectionName === 'historial') {
+        // Limpiar y mostrar loading coherente
+        this.forceCleanupLoading();
+        this.uiModule.showLoading('Cargando historial...');
+
+        // Inyectar CSS del historial unificado si no existe
+        if (!document.querySelector('#historial-unified-css')) {
+          const link = document.createElement('link');
+          link.id = 'historial-unified-css';
+          link.rel = 'stylesheet';
+          link.href = '/Css/historial-unified.css';
+          document.head.appendChild(link);
+        }
+
+        // Obtener HTML y extraer contenido del body
+        const response = await fetch('Pages/historial-unified.html');
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const body = doc.body;
+
+        const contenedor = document.getElementById('contenido');
+        if (contenedor) {
+          contenedor.innerHTML = '';
+
+          // Insertar elementos principales del historial
+          const loading = body.querySelector('#loadingIndicator');
+          const container = body.querySelector('.historial-container');
+
+          if (loading) contenedor.appendChild(loading);
+          if (container) {
+            contenedor.appendChild(container);
+          } else {
+            // Fallback: insertar todos los hijos de body
+            Array.from(body.children).forEach(node => contenedor.appendChild(node));
+          }
+
+          // Cargar script específico y inicializar sección
+          await this.loadSectionScript('historial');
+          await this.initializeSection('historial');
+
+          // Actualizar el menú activo
+          this.updateActiveMenu('historial');
+        }
+
+        // Asegurar limpieza del loading
+        this.forceCleanupLoading();
+        setTimeout(() => this.forceCleanupLoading(), 200);
+        return;
+      }
       // Limpiar completamente antes de cargar nueva sección
       this.forceCleanupLoading();
       this.uiModule.showLoading('Cargando sección...');
@@ -317,8 +370,8 @@ class App {
       }
       
       const script = document.createElement('script');
-      // Usar versión simplificada para historial
-      const scriptPath = sectionName === 'historial' ? 'historial-simple' : sectionName;
+      // Usar versión unificada para historial
+      const scriptPath = sectionName === 'historial' ? 'historial-unified' : sectionName;
       script.src = `/JS/${scriptPath}.js?t=${new Date().getTime()}`; // Añadir timestamp para evitar caché
       script.type = 'text/javascript';
       script.defer = true;

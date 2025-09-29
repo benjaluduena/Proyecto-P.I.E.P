@@ -156,14 +156,26 @@ function setupEventListeners() {
   const backToHistoryBtn = document.getElementById('backToHistoryBtn');
   if (backToHistoryBtn) {
     backToHistoryBtn.addEventListener('click', () => {
-      window.location.href = '/historial.html';
+      // Navegación SPA preferida
+      if (window.cargarSeccion) {
+        window.cargarSeccion('historial');
+      } else {
+        // Fallback a la página unificada si no estamos en el SPA
+        window.location.href = '/Pages/historial-unified.html';
+      }
     });
   }
 
   const backToHistoryFromEmpty = document.getElementById('backToHistoryFromEmpty');
   if (backToHistoryFromEmpty) {
     backToHistoryFromEmpty.addEventListener('click', () => {
-      window.location.href = '/historial.html';
+      // Navegación SPA preferida
+      if (window.cargarSeccion) {
+        window.cargarSeccion('historial');
+      } else {
+        // Fallback a la página unificada si no estamos en el SPA
+        window.location.href = '/Pages/historial-unified.html';
+      }
     });
   }
 

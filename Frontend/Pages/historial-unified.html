@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Historial de contenido generado con IA - P.I.E.P. Plataforma Inteligente de Estudio Personalizado">
+  <meta name="keywords" content="historial, estudio, IA, educación, resúmenes, flashcards">
+  <title>Mi Historial de Estudio - P.I.E.P.</title>
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" as="style">
+  <link rel="preload" href="../Css/historial-unified.css" as="style">
+  <link rel="preload" href="../JS/historial-unified.js" as="script">
+  
+  <!-- Stylesheets -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../Css/historial-unified.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="../Assets/Icons/favicon.svg">
+  <link rel="alternate icon" href="../Assets/Icons/favicon.ico">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Mi Historial de Estudio - P.I.E.P.">
+  <meta property="og:description" content="Accede a todo tu contenido generado con IA de forma organizada y eficiente">
+  <meta property="og:image" content="../Assets/Imagenes/og-historial.jpg">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="Mi Historial de Estudio - P.I.E.P.">
+  <meta property="twitter:description" content="Accede a todo tu contenido generado con IA de forma organizada y eficiente">
+</head>
+
+<body>
+  <!-- Skip to main content for accessibility -->
+  <a href="#main-content" class="sr-only">Saltar al contenido principal</a>
+  
+  <!-- Loading indicator -->
+  <div id="loadingIndicator" class="loading-indicator" style="display: none;" role="status" aria-live="polite">
+    <div class="loading-spinner" aria-hidden="true"></div>
+    <div class="loading-text">Cargando historial...</div>
+  </div>
+
+  <!-- Main container -->
+  <div class="historial-container">
+    <!-- Header section -->
+    <header class="historial-header">
+      <div class="header-content">
+        <div class="title-section">
+          <h1 class="page-title">
+            <svg class="title-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M13,3A9,9 0 0,0 4,12H1L4.89,15.89L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3Z"/>
+            </svg>
+            <span class="title-text">Mi Historial de Estudio</span>
+          </h1>
+          <p class="page-subtitle">
+            Accede a todo tu contenido generado con IA • Organiza • Estudia • Repasa
+          </p>
+        </div>
+        
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <!-- View options -->
+          <div class="view-options" role="group" aria-label="Opciones de vista">
+            <button id="gridView" class="view-btn active" title="Vista en cuadrícula" aria-pressed="true">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M3,11H11V3H3M3,21H11V13H3M13,21H21V13H13M13,3V11H21V3"/>
+              </svg>
+              <span class="sr-only">Vista en cuadrícula</span>
+            </button>
+            <button id="listView" class="view-btn" title="Vista en lista" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M3,5H21V7H3V5M3,13V11H21V13H3M3,19V17H21V19H3Z"/>
+              </svg>
+              <span class="sr-only">Vista en lista</span>
+            </button>
+          </div>
+          
+          <!-- Sort options -->
+          <div class="sort-options">
+            <label for="sortSelect" class="sr-only">Ordenar por</label>
+            <select id="sortSelect" class="sort-select" aria-label="Ordenar contenido">
+              <option value="newest">Más reciente</option>
+              <option value="oldest">Más antiguo</option>
+              <option value="type">Por tipo</option>
+              <option value="pdf">Por PDF</option>
+            </select>
+          </div>
+          
+          <!-- Bulk actions -->
+          <div class="bulk-actions">
+            <button id="exportFavorites" class="action-btn" title="Exportar favoritos" style="display: none;">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+              </svg>
+              <span>Exportar</span>
+            </button>
+            <button id="deleteAll" class="action-btn btn-danger" title="Limpiar historial" style="display: none;">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+              </svg>
+              <span>Limpiar</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Search and filters -->
+      <div class="search-filter-bar">
+        <div class="search-section">
+          <div class="search-container">
+            <div class="search-box">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/>
+              </svg>
+              <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Buscar por contenido, PDF, fecha..." 
+                class="search-input"
+                aria-label="Buscar en el historial"
+                autocomplete="off"
+              >
+              <button id="clearSearch" class="clear-search" style="display: none;" title="Limpiar búsqueda">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                </svg>
+                <span class="sr-only">Limpiar búsqueda</span>
+              </button>
+            </div>
+            <button id="advancedSearch" class="advanced-search-btn" title="Búsqueda avanzada">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M14,12V19.88C14.04,20.18 13.94,20.5 13.71,20.71C13.32,21.1 12.69,21.1 12.3,20.71L10.29,18.7C10.06,18.47 9.96,18.16 10,17.87V12H9.97L4.21,4.62C3.87,4.19 3.95,3.56 4.38,3.22C4.57,3.08 4.78,3 5,3V3H19V3C19.22,3 19.43,3.08 19.62,3.22C20.05,3.56 20.13,4.19 19.79,4.62L14.03,12H14Z"/>
+              </svg>
+              <span class="sr-only">Búsqueda avanzada</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Filter tabs -->
+        <div class="filter-section">
+          <nav class="filter-tabs" role="tablist" aria-label="Filtros de contenido">
+            <button class="filter-btn active" data-filter="all" role="tab" aria-selected="true" aria-controls="content-all">
+              <span class="filter-icon" aria-hidden="true">📁</span>
+              <span class="filter-text">Todos</span>
+              <span class="filter-count" id="count-all">0</span>
+            </button>
+            <button class="filter-btn" data-filter="favorites" role="tab" aria-selected="false" aria-controls="content-favorites">
+              <span class="filter-icon" aria-hidden="true">❤️</span>
+              <span class="filter-text">Favoritos</span>
+              <span class="filter-count" id="count-favorites">0</span>
+            </button>
+            <button class="filter-btn" data-filter="resumen" role="tab" aria-selected="false" aria-controls="content-resumen">
+              <span class="filter-icon" aria-hidden="true">📄</span>
+              <span class="filter-text">Resúmenes</span>
+              <span class="filter-count" id="count-resumen">0</span>
+            </button>
+            <button class="filter-btn" data-filter="verdadero_falso" role="tab" aria-selected="false" aria-controls="content-verdadero-falso">
+              <span class="filter-icon" aria-hidden="true">✅</span>
+              <span class="filter-text">V/F</span>
+              <span class="filter-count" id="count-verdadero_falso">0</span>
+            </button>
+            <button class="filter-btn" data-filter="multiple_choice" role="tab" aria-selected="false" aria-controls="content-multiple-choice">
+              <span class="filter-icon" aria-hidden="true">📝</span>
+              <span class="filter-text">Múltiple</span>
+              <span class="filter-count" id="count-multiple_choice">0</span>
+            </button>
+            <button class="filter-btn" data-filter="mapa_mental" role="tab" aria-selected="false" aria-controls="content-mapa-mental">
+              <span class="filter-icon" aria-hidden="true">🧠</span>
+              <span class="filter-text">Mapas</span>
+              <span class="filter-count" id="count-mapa_mental">0</span>
+            </button>
+            <button class="filter-btn" data-filter="flashcards" role="tab" aria-selected="false" aria-controls="content-flashcards">
+              <span class="filter-icon" aria-hidden="true">🎴</span>
+              <span class="filter-text">Flashcards</span>
+              <span class="filter-count" id="count-flashcards">0</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Statistics bar -->
+    <div class="stats-bar" id="statsBar" style="display: none;">
+      <div class="stat-card">
+        <div class="stat-value" id="totalItems">0</div>
+        <div class="stat-label">Total de elementos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalPdfs">0</div>
+        <div class="stat-label">PDFs procesados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalFavorites">0</div>
+        <div class="stat-label">Favoritos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="studyTime">0h</div>
+        <div class="stat-label">Tiempo de estudio</div>
+      </div>
+    </div>
+
+    <!-- Main content area -->
+    <main id="main-content" class="content-area">
+      <!-- Content grid -->
+      <div id="contentGrid" class="content-grid" role="main" aria-live="polite" aria-label="Contenido del historial">
+        <!-- Content cards will be dynamically inserted here -->
+      </div>
+
+      <!-- Empty state -->
+      <div id="emptyState" class="empty-state" style="display: none;" role="status">
+        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+        </svg>
+        <h2 class="empty-state-title">No hay contenido disponible</h2>
+        <p class="empty-state-description">
+          Aún no has generado ningún contenido con IA. 
+          <br>Sube un PDF y genera resúmenes, preguntas o mapas mentales para comenzar.
+        </p>
+        <a href="../index.html" class="btn btn-primary" style="margin-top: var(--spacing-lg); display: inline-flex;">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,1 20,12A8,8 0 0,0 12,4M11,16.5L6.5,12L7.91,10.59L11,13.67L16.59,8.09L18,9.5L11,16.5Z"/>
+          </svg>
+          Comenzar a estudiar
+        </a>
+      </div>
+
+      <!-- No results state -->
+      <div id="noResultsState" class="empty-state" style="display: none;" role="status">
+        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/>
+        </svg>
+        <h2 class="empty-state-title">No se encontraron resultados</h2>
+        <p class="empty-state-description">
+          No hay contenido que coincida con tu búsqueda o filtros actuales.
+          <br>Intenta con otros términos o ajusta los filtros.
+        </p>
+        <button id="clearFiltersBtn" class="btn btn-secondary" style="margin-top: var(--spacing-lg); display: inline-flex;">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+          </svg>
+          Limpiar filtros
+        </button>
+      </div>
+
+      <!-- Pagination -->
+      <nav class="pagination" id="pagination" style="display: none;" aria-label="Navegación de páginas">
+        <button id="prevPage" class="pagination-btn" disabled>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"/>
+          </svg>
+          Anterior
+        </button>
+        <div class="pagination-info" id="pageInfo" aria-live="polite">
+          Página 1 de 1
+        </div>
+        <button id="nextPage" class="pagination-btn" disabled>
+          Siguiente
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/>
+          </svg>
+        </button>
+      </nav>
+    </main>
+  </div>
+
+  <!-- Modals and overlays will be added dynamically by JavaScript -->
+
+  <!-- Scripts -->
+  <script src="../lib/supabase.js"></script>
+  <script src="../JS/config.js"></script>
+  <script src="../JS/auth-check.js"></script>
+  <script src="../JS/historial-unified.js"></script>
+
+  <!-- Analytics (if available) -->
+  <script>
+    // Track page view
+    if (typeof gtag !== 'undefined') {
+      gtag('config', 'GA_MEASUREMENT_ID', {
+        page_title: 'Historial de Estudio',
+        page_location: window.location.href
+      });
+    }
+  </script>
+
+  <!-- Service Worker registration (if available) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('../sw.js')
+          .then(registration => {
+            console.log('SW registered: ', registration);
+          })
+          .catch(registrationError => {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

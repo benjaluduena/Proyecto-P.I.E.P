@@ -178,14 +178,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Botón Cambiar plan
   const btnCambiarPlan = document.getElementById('btnCambiarPlan');
   if (btnCambiarPlan) {
-    btnCambiarPlan.addEventListener('click', async () => {
-      try {
-        // Ajusta el monto al mínimo permitido por tu cuenta/región en MP
-        await PIEP.startSubscription({ amount: 1500, currency: 'ARS' });
-      } catch (e) {
-        alert('No se pudo iniciar el cambio de plan. Intenta de nuevo.');
-      }
-    });
+    // Ahora solo abre la sección de cambio de plan. La redirección a MercadoPago ocurre
+    // únicamente cuando el usuario selecciona un plan diferente en la UI de cambiar-plan.
+    btnCambiarPlan.addEventListener('click', handleCambiarPlan);
   }
 
   // Rellenar información del usuario en el sidebar
