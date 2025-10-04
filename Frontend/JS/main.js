@@ -1,62 +1,23 @@
 let isDropdownOpen = false;
-// Función de carga de sección que delega al sistema modular
+// Carga inicial
 function cargarSeccion(nombre) {
-  console.log(`cargarSeccion llamado con: ${nombre}`);
+  console.log(`Cargando sección: ${nombre}`);
   
-  // Si el sistema modular está disponible, usarlo
-  if (window.app && window.app.loadSection) {
-    console.log('Usando sistema modular para cargar sección');
-    window.app.loadSection(nombre);
+  const contenedor = document.getElementById('contenido');
+  if (!contenedor) {
+    console.error('Contenedor de contenido no encontrado');
     return;
   }
-  
-  // Fallback al sistema legacy si el modular no está disponible
-  console.log('Usando sistema legacy para cargar sección');
-  loadSectionLegacy(nombre);
-}
 
-// Sistema legacy de carga (backup)
-function loadSectionLegacy(nombre) {
-  // Ocultar cualquier loading activo antes de comenzar
-  if (window.app && window.app.uiModule) {
-    window.app.uiModule.hideLoading();
-  }
-  
-  // Limpiar recursos de la sección anterior
-  if (window.cleanupHistorial && document.getElementById('historialContainer')) {
-    console.log('Limpiando recursos de historial antes de cargar nueva sección');
-    window.cleanupHistorial();
-  }
-  
-  if (window.cleanupCambiarPlan && document.querySelector('.cambiar-plan-container')) {
-    console.log('Limpiando recursos de cambiar plan antes de cargar nueva sección');
-    window.cleanupCambiarPlan();
-  }
-  
-  // Eliminar scripts anteriores para evitar duplicados
-  const oldScripts = document.querySelectorAll('script[data-section]');
-  oldScripts.forEach(script => {
-    if (script.parentNode) {
-      script.parentNode.removeChild(script);
-    }
-  });
-
-  // Eliminar cualquier script de la misma sección previamente insertado por otros sistemas
-  const dupScripts = Array.from(document.querySelectorAll('script[src]')).filter(s => {
-    const src = s.getAttribute('src') || '';
-    return src.includes(`/JS/${nombre}.js`);
-  });
-  dupScripts.forEach(s => {
-    if (s.parentNode) {
-      s.parentNode.removeChild(s);
-      console.log(`🗑️ Script duplicado eliminado (legacy): ${s.src}`);
-    }
-  });
-  
   fetch(`Pages/${nombre}.html`)
-    .then(res => res.text())
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      return res.text();
+    })
     .then(html => {
-      const contenedor = document.getElementById('contenido');
+      console.log(`HTML cargado para ${nombre}`);
       contenedor.innerHTML = html;
 
       // Carga el script después de insertar el HTML
@@ -64,13 +25,10 @@ function loadSectionLegacy(nombre) {
       script.src = `/JS/${nombre}.js`;
       script.type = 'text/javascript';
       script.defer = true;
-      script.setAttribute('data-section', nombre);
       
-      script.onload = function() {
-        console.log(`Script ${nombre}.js cargado correctamente`);
-      };
-      script.onerror = function() {
-        console.error(`Error al cargar el script ${nombre}.js`);
+      // Manejar errores del script
+      script.onerror = () => {
+        console.warn(`Script ${nombre}.js no encontrado, continuando sin él`);
       };
       
       document.body.appendChild(script);
@@ -78,60 +36,29 @@ function loadSectionLegacy(nombre) {
       // Reasignar logout por si la sección cambia el DOM
       asignarLogout();
       
-      // Inicializaciones específicas por sección
-      if (nombre === 'home' && window.initializeHomeIfNeeded) {
-        console.log('Inicializando home después de cargar HTML...');
-        setTimeout(() => {
-          if (window.initializeHomeIfNeeded) {
-            window.initializeHomeIfNeeded();
-            console.log('Home inicializado correctamente');
-          } else {
-            console.error('Error: initializeHomeIfNeeded no está disponible');
-          }
-        }, 300);
-      }
-      
-      if (nombre === 'historial' && window.initializeHistorial) {
-        setTimeout(() => window.initializeHistorial(), 200);
-      }
-      
-      if (nombre === 'cambiar-plan' && window.initializeCambiarPlan) {
-        setTimeout(() => window.initializeCambiarPlan(), 200);
-      }
-      
-      if (nombre === 'planes-estudio' && window.initializeStudyPlans) {
-        setTimeout(() => {
-          console.log('Inicializando planes de estudio...');
-          window.initializeStudyPlans();
-        }, 300);
-      }
+      // Volver a poblar información del usuario después de cargar la sección
+      setTimeout(() => {
+        populateUserInfo();
+      }, 200);
     })
     .catch(err => {
-      console.error('Error al cargar sección:', err);
-      document.getElementById('contenido').innerHTML = `<p>Error al cargar ${nombre}</p>`;
+      console.error(`Error cargando ${nombre}:`, err);
+      contenedor.innerHTML = `
+        <div style="padding: 20px; text-align: center;">
+          <h3>Error al cargar ${nombre}</h3>
+          <p>No se pudo cargar la sección solicitada.</p>
+          <button onclick="cargarSeccion('home')" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Volver al inicio
+          </button>
+        </div>
+      `;
     });
 }
 
 // Carga inicial
 window.onload = () => {
-  console.log('Evento window.onload disparado');
-  // Verificar que supabase esté disponible antes de cargar la sección home
-  if (window.supabase) {
-    console.log('Supabase disponible, cargando sección home');
-    cargarSeccion('home');
-  } else {
-    console.error('Supabase no disponible, esperando...');
-    // Esperar a que supabase esté disponible
-    setTimeout(() => {
-      if (window.supabase) {
-        console.log('Supabase disponible después de espera, cargando sección home');
-        cargarSeccion('home');
-      } else {
-        console.error('Supabase no disponible después de espera, cargando sección home de todos modos');
-        cargarSeccion('home');
-      }
-    }, 500);
-  }
+  console.log('Página cargada, iniciando aplicación...');
+  cargarSeccion('home');
 };
 
 // Función de logout mejorada
@@ -160,9 +87,14 @@ async function logout() {
 
 // Función para inicializar los event listeners
 document.addEventListener("DOMContentLoaded", () => {
-  // Inicializar navegación móvil
-  initializeMobileNavigation();
+  console.log('DOMContentLoaded ejecutado');
   
+  // Verificar si Supabase está disponible
+  if (typeof supabase === 'undefined') {
+    console.error('Supabase no está disponible');
+  } else {
+    console.log('Supabase está disponible');
+  }
   // Dropdown de perfil
   const userProfile = document.getElementById("userProfile");
   const profileDropdown = document.getElementById("profileDropdown");
@@ -197,16 +129,39 @@ document.addEventListener("DOMContentLoaded", () => {
     btnCerrarSesion.addEventListener("click", logout);
   }
 
-  // Botón Cambiar plan
-  const btnCambiarPlan = document.getElementById('btnCambiarPlan');
-  if (btnCambiarPlan) {
-    // Ahora solo abre la sección de cambio de plan. La redirección a MercadoPago ocurre
-    // únicamente cuando el usuario selecciona un plan diferente en la UI de cambiar-plan.
-    btnCambiarPlan.addEventListener('click', handleCambiarPlan);
+  // Event listeners para los botones del menú
+  const homeBtn = document.getElementById('homeBtn');
+  const classroomBtn = document.getElementById('classroomBtn');
+  
+  if (homeBtn) {
+    homeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      console.log('Botón Home clickeado');
+      cargarSeccion('home');
+      
+      // Actualizar clases activas
+      document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+      homeBtn.classList.add('active');
+    });
+  }
+  
+  if (classroomBtn) {
+    classroomBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      console.log('Botón de Classroom clickeado');
+      if (typeof window.openClassroomPage === 'function') {
+        window.openClassroomPage();
+      } else {
+        console.error('Función openClassroomPage no está disponible');
+      }
+    });
   }
 
   // Rellenar información del usuario en el sidebar
-  populateUserInfo();
+  // Ejecutar populateUserInfo después de un pequeño delay para asegurar que todo esté listo
+  setTimeout(() => {
+    populateUserInfo();
+  }, 100);
 
   // Mostrar título completo solo si hay truncado
   const up = document.getElementById('userProfile');
@@ -216,6 +171,52 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.addEventListener('resize', updateUserProfileTitles);
 });
+
+// Función para abrir la página de classroom según el rol del usuario
+window.openClassroomPage = async function() {
+  console.log('Función openClassroomPage ejecutada');
+  
+  try {
+    // Verificar si Supabase está disponible
+    if (typeof supabase === 'undefined') {
+      console.error('Supabase no está disponible');
+      return;
+    }
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.log('No hay usuario autenticado, redirigiendo a login');
+      window.location.href = '/login.html';
+      return;
+    }
+
+    console.log('Usuario autenticado:', user.email);
+
+    // Verificar el rol del usuario
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    console.log('Perfil del usuario:', profile);
+
+    if (profile && profile.role === 'docente') {
+      console.log('Redirigiendo a classroom de docente');
+      window.location.href = '/classroom-teacher.html';
+    } else if (profile && profile.role === 'estudiante') {
+      console.log('Redirigiendo a classroom de estudiante');
+      window.location.href = '/classroom-student.html';
+    } else {
+      console.log('Rol no válido:', profile?.role);
+      console.error('Rol de usuario no válido');
+    }
+  } catch (error) {
+    console.error('Error verificando rol:', error);
+  }
+};
+
+
 
 // Función para alternar el dropdown
 function toggleDropdown() {
@@ -251,14 +252,6 @@ function openSettings() {
 
 // Asignar logout al botón 'Salir' de forma robusta
 function asignarLogout() {
-  // Buscar botón "Cambiar plan"
-  const btnCambiarPlan = document.getElementById('btnCambiarPlan');
-  if (btnCambiarPlan) {
-    btnCambiarPlan.removeEventListener('click', handleCambiarPlan);
-    btnCambiarPlan.addEventListener('click', handleCambiarPlan);
-    console.log('Botón Cambiar plan listo');
-  }
-  
   // Busca el botón por el icono de logout
   const botones = document.querySelectorAll('.sidebar-footer .menu-item');
   for (let btn of botones) {
@@ -270,13 +263,6 @@ function asignarLogout() {
       break;
     }
   }
-}
-
-// Función para manejar clic en "Cambiar plan"
-function handleCambiarPlan(e) {
-  e.preventDefault();
-  console.log('Cargando sección cambiar-plan...');
-  cargarSeccion('cambiar-plan');
 }
 
 // Ejecutar al cargar el DOM y tras cargar secciones
@@ -328,72 +314,78 @@ function getBestAvatarUrl(user) {
 }
 
 async function populateUserInfo() {
-  const nameEl = document.querySelector('.user-info .user-name');
-  const emailEl = document.querySelector('.user-info .user-email');
-  const avatarImg = document.querySelector('#userAvatar img');
+  try {
+    const nameEl = document.querySelector('.user-info .user-name');
+    const emailEl = document.querySelector('.user-info .user-email');
+    const avatarImg = document.querySelector('#userAvatar img');
 
-  if (!nameEl || !emailEl) return;
+    if (!nameEl || !emailEl) {
+      console.log('Elementos de usuario no encontrados');
+      return;
+    }
 
-  // Establecer avatar por defecto inicialmente
-  setAvatarImage(avatarImg, null);
+    // Establecer avatar por defecto inicialmente
+    setAvatarImage(avatarImg, null);
 
-  // Intentar con el usuario guardado
-  let user = getStoredUser();
-
-  // Si no existe aún, intentar obtenerlo desde Supabase
-  if (!user && window.supabase) {
+    // Intentar obtener la sesión actual de Supabase
+    let user = null;
+    
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session && session.user) {
         user = session.user;
+        // Guardar en localStorage
         localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(user));
         localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
+        localStorage.setItem(CONFIG.STORAGE_KEYS.ACCESS_TOKEN, session.access_token);
       }
-    } catch (_) {
-      // Ignorar errores silenciosamente
+    } catch (error) {
+      console.error('Error obteniendo sesión de Supabase:', error);
     }
-  }
 
-  if (!user) return;
-
-  nameEl.textContent = getBestDisplayName(user);
-  if (user.email) {
-    emailEl.textContent = user.email;
-  }
-
-  const avatarUrl = getBestAvatarUrl(user);
-  setAvatarImage(avatarImg, avatarUrl);
-
-  // Actualizar títulos por si hay truncado
-  updateUserProfileTitles();
-}
-
-// Actualizar UI si cambia el estado de autenticación (solo para index.html)
-async function setupAuthStateListenerForMain() {
-  try {
-    const supabase = await window.waitForSupabase();
-    if (supabase && supabase.auth && typeof supabase.auth.onAuthStateChange === 'function') {
-      supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN' && session && session.user) {
-          try {
-            localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(session.user));
-            localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
-            populateUserInfo();
-          } catch (_) {}
-        } else if (event === 'SIGNED_OUT') {
-          clearSession();
-          redirectToLogin();
-        }
-      });
+    // Si no se pudo obtener de Supabase, intentar con localStorage
+    if (!user) {
+      user = getStoredUser();
     }
+
+    if (!user) {
+      console.log('No se pudo obtener información del usuario');
+      // Establecer valores por defecto
+      nameEl.textContent = 'Usuario';
+      emailEl.textContent = 'usuario@email.com';
+      return;
+    }
+
+    // Actualizar la información del usuario
+    const displayName = getBestDisplayName(user);
+    const userEmail = user.email || 'usuario@email.com';
+    
+    nameEl.textContent = displayName;
+    emailEl.textContent = userEmail;
+
+    const avatarUrl = getBestAvatarUrl(user);
+    setAvatarImage(avatarImg, avatarUrl);
+
+    // Actualizar títulos por si hay truncado
+    updateUserProfileTitles();
+    
+    console.log('Información del usuario actualizada:', { displayName, userEmail });
   } catch (error) {
-    console.error('Error configurando listener de auth en main:', error);
+    console.error('Error en populateUserInfo:', error);
   }
 }
 
-// Solo configurar el listener si estamos en index.html
-if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
-  document.addEventListener('supabaseReady', setupAuthStateListenerForMain);
+// Actualizar UI si cambia el estado de autenticación
+if (window.supabase && supabase.auth && typeof supabase.auth.onAuthStateChange === 'function') {
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (session && session.user) {
+      try {
+        localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(session.user));
+        localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
+      } catch (_) {}
+      populateUserInfo();
+    }
+  });
 }
 
 function isTruncated(element) {
@@ -418,93 +410,4 @@ function updateUserProfileTitles() {
       emailEl.removeAttribute('title');
     }
   }
-}
-
-// Funciones para navegación móvil
-function initializeMobileNavigation() {
-  const hamburgerBtn = document.getElementById('hamburgerBtn');
-  const sidebar = document.getElementById('sidebar');
-  const sidebarOverlay = document.getElementById('sidebarOverlay');
-  const mobileHeader = document.getElementById('mobileHeader');
-
-  // Solo inicializar en dispositivos móviles
-  if (!hamburgerBtn || !sidebar || !sidebarOverlay) return;
-
-  // Mostrar/ocultar header móvil según el tamaño de pantalla
-  function toggleMobileHeader() {
-    if (window.innerWidth <= 768) {
-      mobileHeader.style.display = 'flex';
-    } else {
-      mobileHeader.style.display = 'none';
-    }
-  }
-
-  // Inicializar visibilidad del header móvil
-  toggleMobileHeader();
-
-  // Toggle del menú hamburguesa
-  hamburgerBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleMobileSidebar();
-  });
-
-  // Cerrar sidebar al hacer clic en el overlay
-  sidebarOverlay.addEventListener('click', closeMobileSidebar);
-
-  // Cerrar sidebar al hacer clic en un enlace del menú
-  const menuItems = sidebar.querySelectorAll('.menu-item');
-  menuItems.forEach(item => {
-    item.addEventListener('click', () => {
-      setTimeout(closeMobileSidebar, 300); // Delay para permitir la navegación
-    });
-  });
-
-  // Cerrar sidebar al redimensionar la ventana a desktop
-  window.addEventListener('resize', () => {
-    toggleMobileHeader();
-    if (window.innerWidth > 768) {
-      closeMobileSidebar();
-    }
-  });
-
-  // Cerrar sidebar al hacer scroll (opcional)
-  window.addEventListener('scroll', closeMobileSidebar);
-}
-
-function toggleMobileSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const sidebarOverlay = document.getElementById('sidebarOverlay');
-  const hamburgerBtn = document.getElementById('hamburgerBtn');
-
-  if (sidebar.classList.contains('open')) {
-    closeMobileSidebar();
-  } else {
-    openMobileSidebar();
-  }
-}
-
-function openMobileSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const sidebarOverlay = document.getElementById('sidebarOverlay');
-  const hamburgerBtn = document.getElementById('hamburgerBtn');
-
-  sidebar.classList.add('open');
-  sidebarOverlay.classList.add('show');
-  hamburgerBtn.classList.add('active');
-  
-  // Prevenir scroll del body
-  document.body.style.overflow = 'hidden';
-}
-
-function closeMobileSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const sidebarOverlay = document.getElementById('sidebarOverlay');
-  const hamburgerBtn = document.getElementById('hamburgerBtn');
-
-  sidebar.classList.remove('open');
-  sidebarOverlay.classList.remove('show');
-  hamburgerBtn.classList.remove('active');
-  
-  // Restaurar scroll del body
-  document.body.style.overflow = '';
 }

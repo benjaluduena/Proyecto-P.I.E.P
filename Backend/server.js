@@ -18,7 +18,8 @@ const configRoutes = require('./routes/config');
 const analyticsRoutes = require('./routes/analytics');
 const goalsRoutes = require('./routes/goals');
 const historialRoutes = require('./routes/historial');
-
+const classroomRoutes = require('./routes/classroom');
+const postsRoutes = require('./routes/posts');
 const app = express();
 const PORT = process.env.PORT || 5500;
 
@@ -94,6 +95,7 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
+<<<<<<< HEAD
         scriptSrc: [
           "'self'",
           "'unsafe-inline'",
@@ -137,29 +139,8 @@ app.use(
   })
 );
 
-// Configurar CORS explícitamente
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:5500', 'http://127.0.0.1:5500'];
-
-app.use(cors({
-  origin: function (origin, callback) {
-    // Permitir requests sin origin (ej: aplicaciones móviles, Postman)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
-      callback(null, true);
-    } else {
-      callback(new Error('No permitido por CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Signature', 'X-Request-Id']
-}));
-
 // Aplicar rate limiting general
-app.use(limiter);
+// app.use(limiter); // Desactivado para desarrollo
 // Configurar JSON parsing solo para rutas que no sean de subida de archivos
 app.use((req, res, next) => {
   if (req.path.includes('/api/pdfs/upload')) {
@@ -186,7 +167,8 @@ app.use('/api/config', configRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/goals', goalsRoutes);
 app.use('/api/historial', historialRoutes);
-
+app.use('/api/classroom', classroomRoutes);
+app.use('/api', postsRoutes);
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../Frontend'), { index: false }));
 
@@ -212,6 +194,15 @@ app.get('/index.html', (req, res) => {
 
 app.get('/home', (req, res) => {
   res.sendFile(path.join(__dirname, '../Frontend', 'index.html'));
+});
+
+// Rutas para classroom
+app.get('/classroom-teacher', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend', 'classroom-teacher.html'));
+});
+
+app.get('/classroom-student', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend', 'classroom-student.html'));
 });
 
 // Ruta de prueba

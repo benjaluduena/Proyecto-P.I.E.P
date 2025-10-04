@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom - P.I.E.P.</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/Css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous"></script>
+    <style>
+        .classroom-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #dee2e6;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .classroom-info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            border: 1px solid #e1e5e9;
+        }
+
+        .classroom-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .classroom-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0;
+        }
+
+        .classroom-status {
+            background: #e8f5e8;
+            color: #2d5a2d;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.875rem;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .materials-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            border: 1px solid #e1e5e9;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .material-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #e1e5e9;
+            transition: all 0.2s ease;
+        }
+
+        .material-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .material-title {
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .material-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .material-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 12px;
+        }
+
+        .material-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            background: white;
+            color: #495057;
+            transition: all 0.2s ease;
+        }
+
+        .btn-small:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .empty-state p {
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #dc3545;
+        }
+
+        .error-state h3 {
+            margin-bottom: 16px;
+            color: #dc3545;
+        }
+
+        .error-state p {
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="classroom-container">
+        <div class="header-section">
+            <div>
+                <h1 id="pageTitle">Classroom</h1>
+                <p id="pageSubtitle">Cargando información...</p>
+            </div>
+            <button id="backToClassrooms" class="btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Volver a mis Classrooms
+            </button>
+        </div>
+
+        <div id="classroomContent">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Cargando classroom...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/lib/supabase.js"></script>
+    <script src="/JS/config.js"></script>
+    <!-- Comentado temporalmente para evitar conflictos con la lógica personalizada -->
+    <!-- <script src="/JS/auth-check.js"></script> -->
+    <script>
+        // Variables globales
+        let currentClassroomId = null;
+        let currentClassroomData = null;
+
+        // Función para obtener parámetros de la URL
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Función para cargar datos del classroom
+        async function loadClassroomData() {
+            try {
+                // Obtener el ID del classroom de la URL
+                currentClassroomId = getUrlParameter('classroomId');
+                
+                if (!currentClassroomId) {
+                    showError('No se especificó un classroom');
+                    return;
+                }
+
+                // Verificar autenticación
+                // Primero verificar si hay sesión
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                // Verificar que es estudiante
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single();
+
+                if (!profile || profile.role !== 'estudiante') {
+                    showError('Acceso denegado. Solo estudiantes pueden acceder a esta página.');
+                    return;
+                }
+
+                // Cargar información del classroom
+                await loadClassroomInfo();
+                
+            } catch (error) {
+                console.error('Error cargando classroom:', error);
+                showError('Error cargando el classroom');
+            }
+        }
+
+        // Función para cargar información del classroom desde la API
+        async function loadClassroomInfo() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    throw new Error('No hay sesión activa');
+                }
+
+                const response = await fetch(`/api/classrooms/${currentClassroomId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${session.access_token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                currentClassroomData = data.classroom;
+                
+                // Actualizar la interfaz con la información del classroom
+                updateClassroomUI();
+                
+            } catch (error) {
+                console.error('Error cargando información del classroom:', error);
+                showError(`Error cargando información: ${error.message}`);
+            }
+        }
+
+        // Función para actualizar la interfaz del classroom
+        function updateClassroomUI() {
+            if (!currentClassroomData) return;
+            
+            // Actualizar título de la página
+            document.title = `${currentClassroomData.name} - P.I.E.P.`;
+            
+            // Actualizar header
+            document.getElementById('pageTitle').textContent = currentClassroomData.name;
+            document.getElementById('pageSubtitle').textContent = `Materia: ${currentClassroomData.subject || 'No especificada'}`;
+            
+            // Mostrar información del classroom
+            displayClassroomInfo();
+            
+            // Cargar materiales del classroom
+            loadClassroomMaterials();
+        }
+
+        // Función para mostrar información del classroom
+        function displayClassroomInfo() {
+            if (!currentClassroomData) return;
+            
+            const classroomInfo = `
+                <div class="classroom-info-card">
+                    <div class="classroom-header">
+                        <h2 class="classroom-title">${currentClassroomData.name}</h2>
+                        <span class="classroom-status">${currentClassroomData.is_active ? 'Activo' : 'Inactivo'}</span>
+                    </div>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Materia</div>
+                            <div class="info-value">${currentClassroomData.subject || 'No especificada'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Nivel Educativo</div>
+                            <div class="info-value">${currentClassroomData.grade_level || 'No especificado'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Código de Unión</div>
+                            <div class="info-value">${currentClassroomData.join_code}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Estado</div>
+                            <div class="info-value ${currentClassroomData.is_active ? 'text-green-600' : 'text-red-600'}">
+                                ${currentClassroomData.is_active ? 'Activo' : 'Inactivo'}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${currentClassroomData.description ? `
+                        <div style="margin-top: 20px;">
+                            <div class="info-label" style="text-align: left; margin-bottom: 8px;">Descripción</div>
+                            <p style="color: #444; line-height: 1.6;">${currentClassroomData.description}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            const container = document.getElementById('classroomContent');
+            container.innerHTML = classroomInfo;
+        }
+
+        // Función para cargar materiales del classroom
+        async function loadClassroomMaterials() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    throw new Error('No hay sesión activa');
+                }
+
+                const response = await fetch(`/api/classrooms/${currentClassroomId}/materials`, {
+                    headers: {
+                        'Authorization': `Bearer ${session.access_token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                displayMaterials(data.materials || []);
+                
+            } catch (error) {
+                console.error('Error cargando materiales:', error);
+                displayMaterials([]);
+            }
+        }
+
+        // Función para mostrar materiales
+        function displayMaterials(materials) {
+            const container = document.getElementById('classroomContent');
+            
+            if (!materials || materials.length === 0) {
+                const materialsSection = `
+                    <div class="materials-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-book"></i>
+                            Materiales del Classroom
+                        </h3>
+                        <div class="empty-state">
+                            <h3>No hay materiales disponibles</h3>
+                            <p>Tu docente aún no ha compartido materiales en este classroom.</p>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', materialsSection);
+                return;
+            }
+
+            const materialsSection = `
+                <div class="materials-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-book"></i>
+                        Materiales del Classroom
+                    </h3>
+                    <div class="materials-grid">
+                        ${materials.map(material => `
+                            <div class="material-card">
+                                <div class="material-title">${material.title}</div>
+                                ${material.description ? `<div class="material-description">${material.description}</div>` : ''}
+                                <div class="material-meta">
+                                    <span>📄 ${material.pdf_uploads?.file_name || 'Sin archivo'}</span>
+                                    ${material.due_date ? `<span>📅 ${new Date(material.due_date).toLocaleDateString()}</span>` : ''}
+                                </div>
+                                <div class="material-actions">
+                                    ${material.pdf_uploads?.file_url ? 
+                                        `<button class="btn-small" onclick="viewPDF('${material.pdf_uploads.file_url}')">Ver PDF</button>` : 
+                                        ''
+                                    }
+                                    ${material.classroom_study_outputs && material.classroom_study_outputs.length > 0 ? 
+                                        `<button class="btn-small" onclick="viewGeneratedContent(${material.id})">Ver Contenido IA</button>` : 
+                                        ''
+                                    }
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', materialsSection);
+        }
+
+        // Función para ver PDF
+        function viewPDF(fileUrl) {
+            window.open(fileUrl, '_blank');
+        }
+
+        // Función para ver contenido generado por IA
+        function viewGeneratedContent(materialId) {
+            // Implementar vista de contenido generado por IA
+            alert('Funcionalidad en desarrollo');
+        }
+
+        // Función para mostrar errores
+        function showError(message) {
+            const container = document.getElementById('classroomContent');
+            container.innerHTML = `
+                <div class="error-state">
+                    <h3>Error</h3>
+                    <p>${message}</p>
+                    <button onclick="window.location.href='/classroom-student.html'" class="btn-primary">
+                        Volver a mis Classrooms
+                    </button>
+                </div>
+            `;
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Botón para volver a classrooms
+            const backToClassroomsBtn = document.getElementById('backToClassrooms');
+            if (backToClassroomsBtn) {
+                backToClassroomsBtn.addEventListener('click', () => {
+                    window.location.href = '/classroom-student.html';
+                });
+            }
+
+            // Cargar datos del classroom
+            loadClassroomData();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+/* CSS de iconos simples usando Unicode */
+.icon {
+    display: inline-block;
+    font-family: sans-serif;
+    font-weight: bold;
+    width: 1.5em;
+    text-align: center;
+}
+
+/* Ejemplos de iconos */
+.icon-calendar::before { content: "\1F4C5"; }  /* 📅 */
+.icon-user::before     { content: "\1F464"; }  /* 👤 */
+.icon-edit::before     { content: "\270E"; }   /* ✎ */
+.icon-trash::before    { content: "\1F5D1"; }  /* 🗑️ */
+.icon-plus::before     { content: "\2795"; }   /* ➕ */
+.icon-minus::before    { content: "\2796"; }   /* ➖ */

@@ -755,4 +755,80 @@ Instrucciones:
   }
 });
 
-module.exports = router; 
+// Obtener todos los materiales de IA del docente
+router.get('/teacher/materials', supabaseAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const s = req.supabase || supabase;
+
+    // Obtener todos los PDFs del docente con sus materiales generados
+    const { data: pdfs, error: pdfsError } = await s
+      .from('pdf_uploads')
+      .select(`
+        id,
+        title,
+        file_name,
+        file_url,
+        created_at,
+        study_outputs (
+          id,
+          type,
+          content,
+          created_at
+        )
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (pdfsError) {
+      console.error('Error obteniendo PDFs:', pdfsError);
+      return res.status(500).json({ error: 'Error al obtener los materiales' });
+    }
+
+    // Filtrar solo PDFs que tienen materiales generados
+    const materialsWithContent = pdfs.filter(pdf => 
+      pdf.study_outputs && pdf.study_outputs.length > 0
+    );
+
+    // Formatear la respuesta
+    const formattedMaterials = materialsWithContent.map(pdf => ({
+      pdf_id: pdf.id,
+      pdf_title: pdf.title,
+      pdf_file_name: pdf.file_name,
+      pdf_file_url: pdf.file_url,
+      pdf_created_at: pdf.created_at,
+      materials: pdf.study_outputs.map(output => ({
+        id: output.id,
+        type: output.type,
+        content: output.content,
+        created_at: output.created_at,
+        type_display: getTypeDisplayName(output.type)
+      }))
+    }));
+
+    res.json({ materials: formattedMaterials });
+
+  } catch (error) {
+    console.error('Error al obtener materiales del docente:', error);
+    res.status(500).json({ 
+      error: 'Error interno del servidor',
+      details: error.message 
+    });
+  }
+});
+
+// Función helper para obtener nombres amigables de tipos
+function getTypeDisplayName(type) {
+  const typeNames = {
+    'resumen': 'Resumen',
+    'recomendacion_video': 'Recomendaciones de Video',
+    'recomendacion_texto': 'Recomendaciones de Texto',
+    'multiple_choice': 'Preguntas de Opción Múltiple',
+    'verdadero_falso': 'Preguntas Verdadero/Falso',
+    'flashcards': 'Tarjetas de Estudio',
+    'problema': 'Problemas Prácticos',
+    'mapa_mental': 'Mapa Mental'
+  };
+  return typeNames[type] || type;
+}
+module.exports = router;

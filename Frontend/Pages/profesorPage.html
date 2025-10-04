@@ -1,0 +1,2496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="img-src 'self' data: https://fqmpmseabhtvahzdavej.supabase.co;">
+  <title>Aula - P.I.E.P.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #10b981;
+      --success-hover: #059669;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --white: #ffffff;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --border-radius: 12px;
+      --border-radius-lg: 16px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      color: var(--gray-800);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--gray-200);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 1.5rem 0;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .classroom-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .classroom-subtitle {
+      font-size: 1rem;
+      color: var(--gray-600);
+      font-weight: 500;
+      margin-left: 3.5rem;
+    }
+
+    .title-icon {
+      width: 3rem;
+      height: 3rem;
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      border-radius: var(--border-radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--white);
+      font-weight: 600;
+      font-size: 1.25rem;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      transition: var(--transition);
+    }
+
+    .title-icon:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+    }
+
+    .classroom-stats {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      background: var(--gray-50);
+      padding: 0.75rem 1rem;
+      border-radius: var(--border-radius);
+      border: 1px solid var(--gray-200);
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.5rem 1rem;
+      background: var(--gray-100);
+      border-radius: var(--border-radius);
+    }
+
+    /* Content Container */
+    .content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .content-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* Loading Animation */
+    .loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--gray-500);
+    }
+
+    .loading-spinner {
+      width: 1.25rem;
+      height: 1.25rem;
+      border: 2px solid var(--gray-200);
+      border-top: 2px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Main Content */
+    .content {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    /* New Post Form */
+    .new-post-card {
+      background: var(--white);
+      border-radius: var(--border-radius-lg);
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      transition: var(--transition);
+      border: 1px solid var(--gray-200);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .new-post-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--success));
+    }
+
+    .new-post-card:hover {
+      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      transform: translateY(-2px);
+    }
+
+    .form-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--gray-100);
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .textarea-wrapper {
+      position: relative;
+    }
+
+    .post-textarea {
+      width: 100%;
+      min-height: 120px;
+      border: 2px solid var(--gray-200);
+      border-radius: var(--border-radius);
+      padding: 1rem;
+      font-size: 1rem;
+      font-family: inherit;
+      resize: vertical;
+      transition: var(--transition);
+      background: var(--gray-50);
+    }
+
+    .post-textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+    }
+
+    .char-counter {
+      position: absolute;
+      bottom: 0.75rem;
+      right: 1rem;
+      font-size: 0.75rem;
+      color: var(--gray-400);
+      background: var(--white);
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .file-input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .file-input-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: var(--gray-100);
+      border: 2px dashed var(--gray-300);
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 500;
+      color: var(--gray-600);
+    }
+
+    .file-input-label:hover {
+      background: var(--gray-50);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .file-preview {
+      display: none;
+      margin-top: 1rem;
+      border-radius: var(--border-radius);
+      max-width: 100%;
+      max-height: 300px;
+      object-fit: cover;
+      border: 1px solid var(--gray-200);
+    }
+
+    .file-info {
+      display: none;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: var(--gray-50);
+      border-radius: var(--border-radius);
+      border: 1px solid var(--gray-200);
+    }
+
+    .file-info-content {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .file-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      background: var(--primary);
+      border-radius: var(--border-radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--white);
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+
+    .remove-file-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      transition: var(--transition);
+    }
+
+    .remove-file-btn:hover {
+      background: #fee2e2;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: var(--border-radius-lg);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgb(0 0 0 / 0.1);
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: var(--white);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--gray-100);
+      color: var(--gray-700);
+      border: 1px solid var(--gray-200);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--gray-50);
+      border-color: var(--gray-300);
+    }
+
+    /* Posts Container */
+    .posts-container {
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--gray-500);
+    }
+
+    .empty-state-icon {
+      width: 4rem;
+      height: 4rem;
+      margin: 0 auto 1rem;
+      background: var(--gray-100);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    /* Post Card */
+    .post-card {
+      background: var(--white);
+      border-radius: var(--border-radius-lg);
+      box-shadow: 0 2px 4px rgb(0 0 0 / 0.1);
+      overflow: hidden;
+      border: 1px solid var(--gray-200);
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .post-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--success));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .post-card:hover {
+      box-shadow: 0 8px 16px rgb(0 0 0 / 0.15);
+      transform: translateY(-2px);
+    }
+
+    .post-card:hover::before {
+      opacity: 1;
+    }
+
+    .post-header {
+      padding: 1.5rem 1.5rem 0;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .author-avatar {
+      width: 2.75rem;
+      height: 2.75rem;
+      background: linear-gradient(135deg, var(--primary), var(--success));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--white);
+      font-weight: 600;
+      font-size: 1.125rem;
+    }
+
+    .author-info h4 {
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 0.25rem;
+    }
+
+    .post-date {
+      font-size: 0.875rem;
+      color: var(--gray-500);
+    }
+
+    .post-content {
+      padding: 1.5rem;
+      padding-top: 1rem;
+    }
+
+    .post-text {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--gray-700);
+      margin-bottom: 1rem;
+      white-space: pre-wrap;
+    }
+
+    .post-attachment {
+      margin-top: 1rem;
+    }
+
+    .post-image {
+      width: 100%;
+      border-radius: var(--border-radius);
+      border: 1px solid var(--gray-200);
+      transition: var(--transition);
+    }
+
+    .post-image:hover {
+      transform: scale(1.02);
+    }
+
+    .attachment-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.875rem 1.25rem;
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--border-radius);
+      text-decoration: none;
+      color: var(--primary);
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    .attachment-link:hover {
+      background: var(--primary);
+      color: var(--white);
+    }
+
+    /* Comments Section */
+    .comments-section {
+      border-top: 1px solid var(--gray-200);
+      padding: 1.5rem;
+      background: var(--gray-50);
+    }
+
+    .comments-header {
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .comment-item {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .comment-item:last-child {
+      margin-bottom: 1.5rem;
+      border-bottom: none;
+    }
+
+    .comment-avatar {
+      width: 2rem;
+      height: 2rem;
+      background: var(--success);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--white);
+      font-weight: 500;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .comment-content {
+      flex: 1;
+    }
+
+    .comment-author {
+      font-weight: 600;
+      color: var(--gray-800);
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .comment-text {
+      color: var(--gray-600);
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+
+    .comment-form {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-end;
+    }
+
+    .comment-input {
+      flex: 1;
+      border: 2px solid var(--gray-200);
+      border-radius: var(--border-radius);
+      padding: 0.75rem;
+      font-size: 0.875rem;
+      font-family: inherit;
+      transition: var(--transition);
+      background: var(--white);
+    }
+
+    .comment-input:focus {
+      outline: none;
+      border-color: var(--success);
+      box-shadow: 0 0 0 3px rgb(16 185 129 / 0.1);
+    }
+
+    .btn-comment {
+      background: var(--success);
+      color: var(--white);
+      padding: 0.75rem 1.25rem;
+    }
+
+    .btn-comment:hover:not(:disabled) {
+      background: var(--success-hover);
+      transform: translateY(-1px);
+    }
+
+    /* Notifications */
+    .notification {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      padding: 1rem 1.5rem;
+      border-radius: var(--border-radius);
+      color: var(--white);
+      font-weight: 500;
+      z-index: 1000;
+      transform: translateX(100%);
+      transition: var(--transition);
+      max-width: 400px;
+    }
+
+    .notification.show {
+      transform: translateX(0);
+    }
+
+    .notification.success {
+      background: var(--success);
+    }
+
+    .notification.error {
+      background: var(--danger);
+    }
+
+    .notification.warning {
+      background: var(--warning);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .classroom-title {
+        font-size: 1.5rem;
+      }
+
+      .classroom-stats {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .content {
+        margin: 1rem auto;
+        padding: 0 0.5rem;
+      }
+
+      .new-post-card,
+      .post-content,
+      .comments-section {
+        padding: 1rem;
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        justify-content: center;
+      }
+
+      .comment-form {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .classroom-title {
+        font-size: 1.25rem;
+      }
+
+      .title-icon {
+        width: 2rem;
+        height: 2rem;
+      }
+
+      .post-header {
+        padding: 1rem 1rem 0;
+      }
+
+      .author-avatar {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1rem;
+      }
+    }
+
+    /* Animations */
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    .post-card {
+      animation: slideIn 0.3s ease-out;
+    }
+
+    /* Accessibility improvements */
+    .btn:focus,
+    .post-textarea:focus,
+    .comment-input:focus {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Modal Styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background: var(--white);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow: hidden;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+
+    .modal.show .modal-content {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--gray-50);
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--gray-900);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--gray-500);
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      transition: var(--transition);
+    }
+
+    .close-btn:hover {
+      background: var(--gray-200);
+      color: var(--gray-700);
+    }
+
+    .modal-body {
+      padding: 2rem;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      padding: 1.5rem 2rem;
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      background: var(--gray-50);
+    }
+
+    /* Materials List Styles */
+    .materials-section {
+      margin-bottom: 2rem;
+    }
+
+    .section-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-header h4 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 0.5rem;
+    }
+
+    .materials-list {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .material-item {
+      border: 2px solid var(--gray-200);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+      background: var(--white);
+    }
+
+    .material-item:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow);
+    }
+
+    .material-item.selected {
+      border-color: var(--primary);
+      background: #eff6ff;
+      box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+    }
+
+    .material-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .material-title {
+      font-weight: 600;
+      color: var(--gray-900);
+      font-size: 1.125rem;
+    }
+
+    .material-type {
+      background: var(--primary);
+      color: var(--white);
+      padding: 0.25rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .material-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.875rem;
+      color: var(--gray-600);
+    }
+
+    .material-preview-text {
+      color: var(--gray-700);
+      font-size: 0.875rem;
+      line-height: 1.5;
+      max-height: 3rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+    }
+
+    /* Preview Section */
+    .preview-section {
+      border-top: 1px solid var(--gray-200);
+      padding-top: 2rem;
+    }
+
+    .preview-section h4 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 1rem;
+    }
+
+    .material-preview {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .preview-content {
+      color: var(--gray-700);
+      line-height: 1.6;
+    }
+
+    .preview-content h5 {
+      color: var(--gray-900);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .preview-content ul {
+      margin: 0.5rem 0;
+      padding-left: 1.5rem;
+    }
+
+    .preview-content li {
+      margin-bottom: 0.25rem;
+    }
+
+    /* Empty State */
+    .empty-materials {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: var(--gray-500);
+    }
+
+    .empty-materials-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .empty-materials h4 {
+      font-size: 1.125rem;
+      color: var(--gray-700);
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-materials p {
+      margin-bottom: 1.5rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .modal-content {
+        width: 95%;
+        margin: 1rem;
+      }
+
+      .modal-header,
+      .modal-body,
+      .modal-footer {
+        padding: 1rem;
+      }
+
+      .material-item {
+        padding: 1rem;
+      }
+
+      .modal-footer {
+        flex-direction: column;
+      }
+
+      .modal-footer .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    /* AI Material Post Styles */
+    .ai-material-post {
+      border-left: 4px solid #10b981;
+      background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    }
+
+    .ai-material-badge {
+      background: #10b981;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-top: 0.25rem;
+      display: inline-block;
+    }
+
+    .ai-material-access {
+      margin-top: 1rem;
+    }
+
+    .ai-material-card {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 2px solid #0ea5e9;
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .ai-material-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .ai-icon {
+      font-size: 1.5rem;
+    }
+
+    .ai-title {
+      font-weight: 600;
+      color: var(--gray-900);
+      font-size: 1.125rem;
+    }
+
+    .ai-material-description {
+      color: var(--gray-600);
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+    }
+
+    .ai-access-btn {
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .ai-access-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div>
+        <div class="classroom-title">
+          <div class="title-icon">📚</div>
+          <span id="classroomTitle">
+            <div class="loading">
+              <div class="loading-spinner"></div>
+              Cargando...
+            </div>
+          </span>
+        </div>
+        <div class="classroom-subtitle" id="classroomSubtitle">
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            Cargando información...
+          </div>
+        </div>
+      </div>
+      <div class="classroom-stats">
+        <div class="stat-item">
+          <span>📝</span>
+          <span id="postsCount">0 publicaciones</span>
+        </div>
+        
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="content">
+    <div class="content-container">
+    <!-- New Post Form -->
+    <section class="new-post-card">
+      <h3 class="form-title">
+        <span>✏️</span>
+        Crear nueva publicación
+      </h3>
+      
+      <form id="newPostForm">
+        <div class="form-group">
+          <div class="textarea-wrapper">
+            <textarea 
+              id="postContent" 
+              class="post-textarea"
+              placeholder="¿Qué quieres compartir con tu clase?"
+              maxlength="2000"
+              required
+            ></textarea>
+            <div class="char-counter">
+              <span id="charCount">0</span>/2000
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="file-input-wrapper">
+            <input 
+              type="file" 
+              id="postFile" 
+              class="file-input"
+              accept="image/*,application/pdf,.doc,.docx"
+            >
+            <label for="postFile" class="file-input-label">
+              <span>📎</span>
+              Adjuntar archivo
+            </label>
+          </div>
+          
+          <img id="filePreview" class="file-preview" alt="Vista previa de imagen" />
+          
+          <div id="fileInfo" class="file-info">
+            <div class="file-info-content">
+              <div class="file-icon" id="fileIcon">📄</div>
+              <div>
+                <div id="fileName" style="font-weight: 500;"></div>
+                <div id="fileSize" style="font-size: 0.875rem; color: var(--gray-500);"></div>
+              </div>
+              <button type="button" class="remove-file-btn" id="removeFileBtn">
+                <span>❌</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="clearFormBtn">
+            <span>🗑️</span>
+            Limpiar
+          </button>
+          <button type="button" class="btn btn-primary" id="shareResourceBtn">📂 Compartir Material IA</button>
+
+
+          <button type="submit" class="btn btn-primary" id="createPostBtn">
+            <span>📤</span>
+            Publicar
+          </button>
+
+        </div>
+      </form>
+    </section>
+<!-- Lista de Recursos -->
+
+
+    <!-- Posts Container -->
+    <section id="postsContainer" class="posts-container">
+      <div class="loading" style="text-align: center; padding: 2rem;">
+        <div class="loading-spinner"></div>
+        Cargando publicaciones...
+      </div>
+    </section>
+    </div>
+  </main>
+
+  <!-- Notification Container -->
+  <div id="notificationContainer"></div>
+
+  <!-- Modal para compartir materiales de IA -->
+  <div id="shareMaterialModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <span>📂</span>
+          Compartir Material de IA
+        </h3>
+        <button class="close-btn" onclick="closeShareMaterialModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="materials-section">
+          <div class="section-header">
+            <h4>Selecciona un material para compartir</h4>
+            <div class="loading" id="materialsLoading" style="display: none;">
+              <div class="loading-spinner"></div>
+              Cargando materiales...
+            </div>
+          </div>
+          
+          <div id="materialsList" class="materials-list">
+            <!-- Los materiales se cargarán aquí dinámicamente -->
+          </div>
+        </div>
+        
+        <div class="preview-section" id="previewSection" style="display: none;">
+          <h4>Vista previa del material</h4>
+          <div id="materialPreview" class="material-preview">
+            <!-- La vista previa se mostrará aquí -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeShareMaterialModal()">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary" id="shareMaterialBtn" onclick="shareSelectedMaterial()" disabled>
+          <span>📤</span>
+          Compartir en Classroom
+        </button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Función para inicializar la página con un classroomId específico
+  function initClassroomPage(classroomId) {
+    if (!classroomId) {
+      console.error("No se proporcionó classroomId");
+      return;
+    }
+
+    // Redirige a la misma página con el classroomId en los parámetros de URL
+    const url = new URL(window.location.href);
+    url.searchParams.set("classroomId", classroomId);
+    window.location.href = url.toString();
+
+    // O, si quieres inicializar sin recargar, podrías hacer:
+    // const app = new ClassroomApp();
+    // app.classroomId = classroomId;
+    // app.loadClassroomInfo();
+    // app.loadPosts();
+    console.log('Clase seleccionada:', classroomId);
+  }
+</script>
+
+  <script>
+    // Configuration and State Management
+    class ClassroomApp {
+      constructor() {
+        this.classroomId = new URLSearchParams(window.location.search).get("classroomId");
+        this.posts = [];
+        this.isLoading = false;
+        this.currentUser = null;
+        
+        this.init();
+      }
+
+      async init() {
+        if (!this.classroomId) {
+          this.showNotification("No se encontró el classroom", "error");
+          setTimeout(() => window.location.href = "/index.html", 2000);
+          return;
+        }
+
+        this.initEventListeners();
+        await this.loadClassroomInfo();
+        await this.loadPosts();
+      }
+
+      initEventListeners() {
+        // Form submission
+        document.getElementById("newPostForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          this.createPost();
+        });
+
+        // Character counter
+        const textarea = document.getElementById("postContent");
+        const charCount = document.getElementById("charCount");
+        textarea.addEventListener("input", () => {
+          charCount.textContent = textarea.value.length;
+          charCount.style.color = textarea.value.length > 1800 ? "var(--danger)" : "var(--gray-400)";
+        });
+
+        // File input
+        const fileInput = document.getElementById("postFile");
+        fileInput.addEventListener("change", () => this.handleFileSelect());
+
+        // Remove file
+        document.getElementById("removeFileBtn").addEventListener("click", () => this.clearFileSelection());
+
+        // Clear form
+        document.getElementById("clearFormBtn").addEventListener("click", () => this.clearForm());
+
+        // Share material button
+        document.getElementById("shareResourceBtn").addEventListener("click", () => this.openShareMaterialModal());
+      }
+
+      // Session Management
+      getAccessToken() {
+        try {
+          const session = localStorage.getItem("session");
+          return session ? JSON.parse(session).access_token : null;
+        } catch (error) {
+          console.error("Error parsing session:", error);
+          return null;
+        }
+      }
+
+      // File Handling
+      handleFileSelect() {
+        const fileInput = document.getElementById("postFile");
+        const file = fileInput.files[0];
+        const preview = document.getElementById("filePreview");
+        const fileInfo = document.getElementById("fileInfo");
+        
+        if (!file) {
+          this.clearFileSelection();
+          return;
+        }
+
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          this.showNotification("El archivo es demasiado grande (máximo 10MB)", "error");
+          fileInput.value = "";
+          return;
+        }
+
+        if (file.type.startsWith("image/")) {
+          this.showImagePreview(file, preview, fileInfo);
+        } else {
+          this.showFileInfo(file, preview, fileInfo);
+        }
+      }
+
+      showImagePreview(file, preview, fileInfo) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          preview.src = e.target.result;
+          preview.style.display = "block";
+          fileInfo.style.display = "none";
+        };
+        reader.readAsDataURL(file);
+      }
+
+      showFileInfo(file, preview, fileInfo) {
+        preview.style.display = "none";
+        
+        const fileName = document.getElementById("fileName");
+        const fileSize = document.getElementById("fileSize");
+        const fileIcon = document.getElementById("fileIcon");
+
+        fileName.textContent = file.name;
+        fileSize.textContent = this.formatFileSize(file.size);
+        
+        // Set appropriate icon based on file type
+        if (file.type.includes("pdf")) {
+          fileIcon.textContent = "📄";
+          fileIcon.style.background = "var(--danger)";
+        } else if (file.type.includes("word") || file.name.endsWith(".doc") || file.name.endsWith(".docx")) {
+          fileIcon.textContent = "📝";
+          fileIcon.style.background = "var(--primary)";
+        } else {
+          fileIcon.textContent = "📎";
+          fileIcon.style.background = "var(--gray-500)";
+        }
+
+        fileInfo.style.display = "block";
+      }
+
+      clearFileSelection() {
+        const fileInput = document.getElementById("postFile");
+        const preview = document.getElementById("filePreview");
+        const fileInfo = document.getElementById("fileInfo");
+
+        fileInput.value = "";
+        preview.style.display = "none";
+        preview.src = "";
+        fileInfo.style.display = "none";
+      }
+
+      formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+
+      clearForm() {
+        document.getElementById("postContent").value = "";
+        document.getElementById("charCount").textContent = "0";
+        this.clearFileSelection();
+      }
+
+      // API Calls
+      async makeRequest(url, options = {}) {
+        const token = this.getAccessToken();
+        if (!token) {
+          throw new Error("Sesión expirada");
+        }
+
+        const defaultHeaders = {
+          "Authorization": `Bearer ${token}`
+        };
+
+        if (options.body && !(options.body instanceof FormData)) {
+          defaultHeaders["Content-Type"] = "application/json";
+        }
+
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            ...defaultHeaders,
+            ...options.headers
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return response.json();
+      }
+
+      async loadClassroomInfo() {
+        try {
+          const classroom = await this.makeRequest(`/api/classroom/${this.classroomId}`);
+          document.getElementById("classroomTitle").textContent = classroom.name;
+          document.getElementById("classroomSubtitle").textContent = `${classroom.subject} • ${classroom.description}`;
+        } catch (error) {
+          console.error("Error loading classroom info:", error);
+          this.showNotification("No se pudo cargar la información del classroom", "error");
+          document.getElementById("classroomTitle").textContent = "Error al cargar";
+          document.getElementById("classroomSubtitle").textContent = "No se pudo cargar la información";
+        }
+      }
+
+      async loadPosts() {
+        try {
+          this.isLoading = true;
+          this.posts = await this.makeRequest(`/api/classroom/${this.classroomId}/posts`);
+          this.renderPosts();
+          this.updatePostsCount();
+        } catch (error) {
+          console.error("Error loading posts:", error);
+          this.showNotification("Error al cargar las publicaciones", "error");
+          document.getElementById("postsContainer").innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">⚠️</div>
+              <h3>Error al cargar publicaciones</h3>
+              <p>Por favor, intenta recargar la página</p>
+            </div>
+          `;
+        } finally {
+          this.isLoading = false;
+        }
+      }
+
+      renderPosts() {
+        const container = document.getElementById("postsContainer");
+        
+        if (this.posts.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📝</div>
+              <h3>No hay publicaciones aún</h3>
+              <p>Sé el primero en compartir algo con la clase</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = this.posts.map(post => this.renderPostCard(post)).join("");
+        
+        // Add event listeners for comment forms
+        document.querySelectorAll(".comment-form").forEach(form => {
+          form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const postId = form.dataset.postId;
+            this.addComment(postId, form);
+          });
+        });
+      }
+
+      renderPostCard(post) {
+        const authorInitials = this.getInitials(post.author_name || "Docente");
+        const postDate = this.formatDate(post.created_at);
+        const hasAttachment = post.file_url;
+        const isAIMaterial = post.material_type === 'ai_generated';
+        
+        return `
+          <article class="post-card ${isAIMaterial ? 'ai-material-post' : ''}">
+            <div class="post-header">
+              <div class="author-avatar">${authorInitials}</div>
+              <div class="author-info">
+                <h4>${this.escapeHtml(post.author_name || "Docente")}</h4>
+                <div class="post-date">${postDate}</div>
+                ${isAIMaterial ? '<div class="ai-material-badge">🤖 Material IA</div>' : ''}
+              </div>
+            </div>
+            
+            <div class="post-content">
+              ${post.content ? `<div class="post-text">${this.escapeHtml(post.content)}</div>` : ''}
+              
+              ${hasAttachment ? this.renderAttachment(post.file_url) : ''}
+              
+              ${isAIMaterial ? this.renderAIMaterialAccess(post.material_id) : ''}
+            </div>
+
+            <div class="comments-section">
+              <div class="comments-header">
+                <span>💬</span>
+                ${post.comments.length} comentario${post.comments.length !== 1 ? 's' : ''}
+              </div>
+              
+              <div class="comments-list">
+                ${post.comments.map(comment => this.renderComment(comment)).join('')}
+              </div>
+              
+              <form class="comment-form" data-post-id="${post.id}">
+                <input 
+                  type="text" 
+                  class="comment-input" 
+                  placeholder="Escribe un comentario..."
+                  required
+                  maxlength="500"
+                >
+                <button type="submit" class="btn btn-comment">
+                  <span>💬</span>
+                  <span class="sr-only">Comentar</span>
+                </button>
+              </form>
+            </div>
+          </article>
+        `;
+      }
+
+      renderAttachment(fileUrl) {
+        const isImage = fileUrl.match(/\.(jpeg|jpg|png|gif|webp)$/i);
+        
+        if (isImage) {
+          return `
+            <div class="post-attachment">
+              <img 
+                src="${fileUrl}" 
+                class="post-image" 
+                alt="Imagen adjunta"
+                loading="lazy"
+                onclick="this.requestFullscreen()"
+                style="cursor: zoom-in;"
+              />
+            </div>
+          `;
+        } else {
+          const fileName = fileUrl.split('/').pop() || 'Archivo adjunto';
+          return `
+            <div class="post-attachment">
+              <a href="${fileUrl}" target="_blank" rel="noopener" class="attachment-link">
+                <span>📎</span>
+                <span>${this.escapeHtml(fileName)}</span>
+                <span>↗️</span>
+              </a>
+            </div>
+          `;
+        }
+      }
+
+      renderAIMaterialAccess(materialId) {
+        return `
+          <div class="ai-material-access">
+            <div class="ai-material-card">
+              <div class="ai-material-header">
+                <span class="ai-icon">🤖</span>
+                <span class="ai-title">Material Educativo de IA</span>
+              </div>
+              <div class="ai-material-description">
+                Haz clic para acceder al contenido educativo generado por IA
+              </div>
+              <button class="btn btn-primary ai-access-btn" onclick="openAIMaterial(${materialId})">
+                <span>📖</span>
+                Ver Material
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      renderComment(comment) {
+        const authorInitials = this.getInitials(comment.user_name);
+        
+        return `
+          <div class="comment-item">
+            <div class="comment-avatar">${authorInitials}</div>
+            <div class="comment-content">
+              <div class="comment-author">${this.escapeHtml(comment.user_name)}</div>
+              <div class="comment-text">${this.escapeHtml(comment.text)}</div>
+            </div>
+          </div>
+        `;
+      }
+
+      async createPost() {
+        const content = document.getElementById("postContent").value.trim();
+        const fileInput = document.getElementById("postFile");
+        const file = fileInput.files[0];
+        const createBtn = document.getElementById("createPostBtn");
+
+        if (!content && !file) {
+          this.showNotification("Escribe algo o selecciona un archivo", "warning");
+          return;
+        }
+
+        try {
+          createBtn.disabled = true;
+          createBtn.innerHTML = '<div class="loading-spinner"></div> Publicando...';
+
+          const formData = new FormData();
+          formData.append("content", content);
+          if (file) {
+            formData.append("file", file);
+          }
+
+          await this.makeRequest(`/api/classroom/${this.classroomId}/posts`, {
+            method: "POST",
+            body: formData
+          });
+
+          this.showNotification("¡Publicación creada exitosamente!", "success");
+          this.clearForm();
+          await this.loadPosts();
+          
+        } catch (error) {
+          console.error("Error creating post:", error);
+          this.showNotification("Error al crear la publicación. Intenta nuevamente.", "error");
+        } finally {
+          createBtn.disabled = false;
+          createBtn.innerHTML = '<span>📤</span> Publicar';
+        }
+      }
+
+      async addComment(postId, form) {
+        const input = form.querySelector(".comment-input");
+        const text = input.value.trim();
+        const submitBtn = form.querySelector('button[type="submit"]');
+        
+        if (!text) {
+          input.focus();
+          return;
+        }
+
+        try {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<div class="loading-spinner"></div>';
+
+          await this.makeRequest(`/api/post/${postId}/comments`, {
+            method: "POST",
+            body: JSON.stringify({ text })
+          });
+
+          input.value = "";
+          this.showNotification("Comentario agregado", "success");
+          await this.loadPosts();
+          
+        } catch (error) {
+          console.error("Error adding comment:", error);
+          this.showNotification("Error al agregar el comentario", "error");
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>💬</span><span class="sr-only">Comentar</span>';
+        }
+      }
+
+      // Utility functions
+      updatePostsCount() {
+        const countElement = document.getElementById("postsCount");
+        const count = this.posts.length;
+        countElement.textContent = `${count} publicación${count !== 1 ? 'es' : ''}`;
+      }
+
+      getInitials(name) {
+        if (!name) return "?";
+        return name
+          .split(" ")
+          .map(word => word.charAt(0))
+          .join("")
+          .toUpperCase()
+          .substring(0, 2);
+      }
+
+      formatDate(dateString) {
+        try {
+          const date = new Date(dateString);
+          const now = new Date();
+          const diffInHours = (now - date) / (1000 * 60 * 60);
+
+          if (diffInHours < 1) {
+            const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+            return `Hace ${diffInMinutes} minuto${diffInMinutes !== 1 ? 's' : ''}`;
+          } else if (diffInHours < 24) {
+            const hours = Math.floor(diffInHours);
+            return `Hace ${hours} hora${hours !== 1 ? 's' : ''}`;
+          } else if (diffInHours < 168) { // 7 days
+            const days = Math.floor(diffInHours / 24);
+            return `Hace ${days} día${days !== 1 ? 's' : ''}`;
+          } else {
+            return date.toLocaleDateString('es-ES', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+          }
+        } catch (error) {
+          return "Fecha inválida";
+        }
+      }
+
+      escapeHtml(text) {
+        const map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        };
+        return String(text).replace(/[&<>"']/g, (m) => map[m]);
+      }
+
+      showNotification(message, type = "success") {
+        const container = document.getElementById("notificationContainer");
+        const notification = document.createElement("div");
+        
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        
+        container.appendChild(notification);
+        
+        // Trigger animation
+        setTimeout(() => notification.classList.add("show"), 100);
+        
+        // Auto remove after 4 seconds
+        setTimeout(() => {
+          notification.classList.remove("show");
+          setTimeout(() => {
+            if (notification.parentNode) {
+              notification.parentNode.removeChild(notification);
+            }
+          }, 300);
+        }, 4000);
+      }
+
+      // Error boundary
+      handleError(error, context = "") {
+        console.error(`Error in ${context}:`, error);
+        
+        if (error.message.includes("Sesión expirada") || error.message.includes("401")) {
+          this.showNotification("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.", "error");
+          setTimeout(() => {
+            localStorage.removeItem("session");
+            window.location.href = "/login.html";
+          }, 3000);
+          return;
+        }
+        
+        this.showNotification(`Error: ${error.message}`, "error");
+      }
+
+      // Share Material Modal Functions
+      async openShareMaterialModal() {
+        const modal = document.getElementById("shareMaterialModal");
+        modal.style.display = "block";
+        setTimeout(() => modal.classList.add("show"), 100);
+        
+        await this.loadTeacherMaterials();
+      }
+
+      closeShareMaterialModal() {
+        const modal = document.getElementById("shareMaterialModal");
+        modal.classList.remove("show");
+        setTimeout(() => {
+          modal.style.display = "none";
+          this.resetShareModal();
+        }, 300);
+      }
+
+      resetShareModal() {
+        document.getElementById("materialsList").innerHTML = "";
+        document.getElementById("previewSection").style.display = "none";
+        document.getElementById("shareMaterialBtn").disabled = true;
+        this.selectedMaterial = null;
+      }
+
+      async loadTeacherMaterials() {
+        const loading = document.getElementById("materialsLoading");
+        const materialsList = document.getElementById("materialsList");
+        
+        try {
+          loading.style.display = "block";
+          materialsList.innerHTML = "";
+
+          const response = await this.makeRequest("/api/ai/teacher/materials");
+          const { materials } = response;
+
+          if (!materials || materials.length === 0) {
+            materialsList.innerHTML = `
+              <div class="empty-materials">
+                <div class="empty-materials-icon">📚</div>
+                <h4>No tienes materiales de IA</h4>
+                <p>Primero necesitas generar contenido educativo desde tus PDFs.</p>
+                <button class="btn btn-primary" onclick="this.closeShareMaterialModal()">
+                  Entendido
+                </button>
+              </div>
+            `;
+            return;
+          }
+
+          // Renderizar materiales
+          materialsList.innerHTML = materials.map(pdf => `
+            <div class="pdf-group">
+              <h5 style="color: var(--gray-700); margin-bottom: 1rem; font-size: 1rem; font-weight: 600;">
+                📄 ${pdf.pdf_title}
+              </h5>
+              ${pdf.materials.map(material => `
+                <div class="material-item" data-material-id="${material.id}" data-pdf-id="${pdf.pdf_id}" data-pdf-title="${pdf.pdf_title}">
+                  <div class="material-header">
+                    <div class="material-title">${material.type_display}</div>
+                    <div class="material-type">${material.type}</div>
+                  </div>
+                  <div class="material-info">
+                    <span>📅 ${new Date(material.created_at).toLocaleDateString()}</span>
+                    <span>📄 ${pdf.pdf_file_name}</span>
+                  </div>
+                  <div class="material-preview-text">
+                    ${this.getMaterialPreviewText(material.content, material.type)}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `).join('');
+
+          // Agregar event listeners a los materiales
+          document.querySelectorAll('.material-item').forEach(item => {
+            item.addEventListener('click', () => this.selectMaterial(item));
+          });
+
+        } catch (error) {
+          console.error("Error cargando materiales:", error);
+          materialsList.innerHTML = `
+            <div class="empty-materials">
+              <div class="empty-materials-icon">⚠️</div>
+              <h4>Error al cargar materiales</h4>
+              <p>No se pudieron cargar tus materiales de IA. Intenta nuevamente.</p>
+            </div>
+          `;
+        } finally {
+          loading.style.display = "none";
+        }
+      }
+
+      getMaterialPreviewText(content, type) {
+        if (!content) return "Sin contenido disponible";
+        
+        switch (type) {
+          case 'resumen':
+            return content.resumen_general || content.summary || "Resumen disponible";
+          case 'multiple_choice':
+            return content.preguntas && content.preguntas.length > 0 
+              ? `${content.preguntas.length} preguntas de opción múltiple`
+              : "Preguntas disponibles";
+          case 'verdadero_falso':
+            return content.preguntas && content.preguntas.length > 0 
+              ? `${content.preguntas.length} preguntas verdadero/falso`
+              : "Preguntas disponibles";
+          case 'flashcards':
+            return content.__type === 'mapa_mental' 
+              ? "Mapa mental disponible"
+              : "Tarjetas de estudio disponibles";
+          case 'problema':
+            return "Problemas prácticos disponibles";
+          case 'recomendacion_video':
+            return "Recomendaciones de videos disponibles";
+          case 'recomendacion_texto':
+            return "Recomendaciones de textos disponibles";
+          default:
+            return "Contenido disponible";
+        }
+      }
+
+      selectMaterial(item) {
+        // Remover selección anterior
+        document.querySelectorAll('.material-item').forEach(i => i.classList.remove('selected'));
+        
+        // Seleccionar nuevo material
+        item.classList.add('selected');
+        
+        // Obtener datos del material
+        const materialId = item.dataset.materialId;
+        const pdfId = item.dataset.pdfId;
+        const pdfTitle = item.dataset.pdfTitle;
+        
+        this.selectedMaterial = {
+          id: materialId,
+          pdf_id: pdfId,
+          pdf_title: pdfTitle,
+          element: item
+        };
+        
+        // Mostrar preview
+        this.showMaterialPreview(materialId);
+        
+        // Habilitar botón de compartir
+        document.getElementById("shareMaterialBtn").disabled = false;
+      }
+
+      async showMaterialPreview(materialId) {
+        const previewSection = document.getElementById("previewSection");
+        const materialPreview = document.getElementById("materialPreview");
+        
+        try {
+          const response = await this.makeRequest(`/api/ai/content/${materialId}`);
+          const { output } = response;
+          
+          previewSection.style.display = "block";
+          materialPreview.innerHTML = this.renderMaterialPreview(output);
+          
+        } catch (error) {
+          console.error("Error obteniendo preview:", error);
+          materialPreview.innerHTML = `
+            <div class="preview-content">
+              <p>No se pudo cargar la vista previa del material.</p>
+            </div>
+          `;
+        }
+      }
+
+      renderMaterialPreview(output) {
+        const { content, type } = output;
+        
+        switch (type) {
+          case 'resumen':
+            return `
+              <div class="preview-content">
+                <h5>Resumen General</h5>
+                <p>${content.resumen_general || content.summary || 'Sin resumen disponible'}</p>
+                
+                ${content.conceptos_clave && content.conceptos_clave.length > 0 ? `
+                  <h5>Conceptos Clave</h5>
+                  <ul>
+                    ${content.conceptos_clave.map(concepto => `<li>${concepto}</li>`).join('')}
+                  </ul>
+                ` : ''}
+                
+                ${content.conclusiones ? `
+                  <h5>Conclusiones</h5>
+                  <p>${content.conclusiones}</p>
+                ` : ''}
+              </div>
+            `;
+            
+          case 'multiple_choice':
+            return `
+              <div class="preview-content">
+                <h5>Preguntas de Opción Múltiple</h5>
+                <p>${content.preguntas ? content.preguntas.length : 0} preguntas disponibles</p>
+                ${content.preguntas && content.preguntas.length > 0 ? `
+                  <div style="margin-top: 1rem;">
+                    <strong>Primera pregunta:</strong>
+                    <p>${content.preguntas[0].enunciado}</p>
+                    <ul>
+                      ${content.preguntas[0].opciones.map((opcion, index) => 
+                        `<li>${String.fromCharCode(65 + index)}. ${opcion}</li>`
+                      ).join('')}
+                    </ul>
+                  </div>
+                ` : ''}
+              </div>
+            `;
+            
+          case 'verdadero_falso':
+            return `
+              <div class="preview-content">
+                <h5>Preguntas Verdadero/Falso</h5>
+                <p>${content.preguntas ? content.preguntas.length : 0} preguntas disponibles</p>
+                ${content.preguntas && content.preguntas.length > 0 ? `
+                  <div style="margin-top: 1rem;">
+                    <strong>Primera pregunta:</strong>
+                    <p>${content.preguntas[0].enunciado}</p>
+                    <p><strong>Respuesta:</strong> ${content.preguntas[0].respuesta}</p>
+                  </div>
+                ` : ''}
+              </div>
+            `;
+            
+          case 'flashcards':
+            if (content.__type === 'mapa_mental') {
+              return `
+                <div class="preview-content">
+                  <h5>Mapa Mental</h5>
+                  <p><strong>Título:</strong> ${content.titulo || 'Mapa Mental'}</p>
+                  <p>Mapa mental estructurado disponible para compartir.</p>
+                </div>
+              `;
+            }
+            return `
+              <div class="preview-content">
+                <h5>Tarjetas de Estudio</h5>
+                <p>Tarjetas de estudio disponibles para compartir.</p>
+              </div>
+            `;
+            
+          default:
+            return `
+              <div class="preview-content">
+                <h5>Material Educativo</h5>
+                <p>Contenido educativo generado por IA disponible para compartir.</p>
+              </div>
+            `;
+        }
+      }
+
+      async shareSelectedMaterial() {
+        if (!this.selectedMaterial) {
+          this.showNotification("Selecciona un material para compartir", "warning");
+          return;
+        }
+
+        const shareBtn = document.getElementById("shareMaterialBtn");
+        const originalText = shareBtn.innerHTML;
+        
+        try {
+          shareBtn.disabled = true;
+          shareBtn.innerHTML = '<div class="loading-spinner"></div> Compartiendo...';
+
+          // Crear el post con el material
+          const postContent = `📚 **Material Educativo Compartido**
+
+**PDF:** ${this.selectedMaterial.pdf_title}
+**Tipo:** ${this.selectedMaterial.element.querySelector('.material-type').textContent}
+
+He compartido este material educativo generado por IA para que puedan estudiarlo. ¡Espero que les sea útil!`;
+
+          const response = await this.makeRequest(`/api/classroom/${this.classroomId}/posts`, {
+            method: "POST",
+            body: JSON.stringify({ 
+              content: postContent,
+              material_id: this.selectedMaterial.id,
+              material_type: 'ai_generated'
+            })
+          });
+
+          this.showNotification("¡Material compartido exitosamente en el classroom!", "success");
+          this.closeShareMaterialModal();
+          await this.loadPosts();
+
+        } catch (error) {
+          console.error("Error compartiendo material:", error);
+          this.showNotification("Error al compartir el material. Intenta nuevamente.", "error");
+        } finally {
+          shareBtn.disabled = false;
+          shareBtn.innerHTML = originalText;
+        }
+      }
+
+      // Function to open AI material in a new window/tab
+    // Reemplaza la versión actual por esta
+async openAIMaterial(materialId) {
+  try {
+    // obtener classroomId (desde estado o URL)
+    const classroomId = this.classroomId || new URLSearchParams(window.location.search).get("classroomId");
+    if (!classroomId) {
+      this.showNotification("Classroom ID no encontrado en la URL", "error");
+      return;
+    }
+
+    console.log(`🔍 Solicitando material ${materialId} para classroom ${classroomId}`);
+    
+
+    // Llamada a la ruta segura que verificará que el material está compartido en el aula
+    const resp = await this.makeRequest(`/api/classroom/${classroomId}/material/${materialId}`);
+
+    // resp debe ser: { output: { content, type } } según tu backend
+    const output = resp;
+    if (!output) {
+      console.warn("Respuesta sin output:", resp);
+      this.showNotification("Material no encontrado o no compartido en este classroom", "error");
+      return;
+    }
+
+    // Si backend devuelve file_url utilizable, podemos abrirlo directamente
+    if (resp.file_url) {
+      window.open(resp.file_url, "_blank");
+      return;
+    }
+
+    // Generar HTML del material (usa la función que ya tienes en la clase)
+    const materialHTML = this.generateMaterialHTML(output);
+
+    // Abrir nueva ventana y escribir el HTML
+    const materialWindow = window.open("", "_blank", "width=900,height=700,scrollbars=yes,resizable=yes");
+    if (!materialWindow) {
+      this.showNotification("No se pudo abrir la ventana. Verifica que los pop-ups estén permitidos.", "warning");
+      return;
+    }
+
+    materialWindow.document.write(materialHTML);
+    materialWindow.document.close();
+    console.log("✅ Material abierto correctamente");
+  } catch (error) {
+    console.error("Error abriendo material de IA:", error);
+    // Si la makeRequest lanza el error con status 404/403, lo veremos aquí
+    this.showNotification("Error al abrir el material. Intenta nuevamente.", "error");
+  }
+}
+
+      getTypeDisplayName(type) {
+        const typeNames = {
+          'resumen': 'Resumen',
+          'recomendacion_video': 'Recomendaciones de Video',
+          'recomendacion_texto': 'Recomendaciones de Texto',
+          'multiple_choice': 'Preguntas de Opción Múltiple',
+          'verdadero_falso': 'Preguntas Verdadero/Falso',
+          'flashcards': 'Tarjetas de Estudio',
+          'problema': 'Problemas Prácticos',
+          'mapa_mental': 'Mapa Mental'
+        };
+        return typeNames[type] || type;
+      }
+
+      generateMaterialHTML(output) {
+        const { content, type } = output;
+        const typeDisplay = this.getTypeDisplayName(type);
+        
+        let contentHTML = '';
+        
+        switch (type) {
+          case 'resumen':
+            contentHTML = `
+              <div class="material-content">
+                <h2>Resumen General</h2>
+                <p>${content.resumen_general || content.summary || 'Sin resumen disponible'}</p>
+                
+                ${content.conceptos_clave && content.conceptos_clave.length > 0 ? `
+                  <h3>Conceptos Clave</h3>
+                  <ul>
+                    ${content.conceptos_clave.map(concepto => `<li>${concepto}</li>`).join('')}
+                  </ul>
+                ` : ''}
+                
+                ${content.aplicaciones_practicas && content.aplicaciones_practicas.length > 0 ? `
+                  <h3>Aplicaciones Prácticas</h3>
+                  <ul>
+                    ${content.aplicaciones_practicas.map(aplicacion => `<li>${aplicacion}</li>`).join('')}
+                  </ul>
+                ` : ''}
+                
+                ${content.conclusiones ? `
+                  <h3>Conclusiones</h3>
+                  <p>${content.conclusiones}</p>
+                ` : ''}
+              </div>
+            `;
+            break;
+            
+          case 'multiple_choice':
+            contentHTML = `
+              <div class="material-content">
+                <h2>Preguntas de Opción Múltiple</h2>
+                ${content.preguntas && content.preguntas.length > 0 ? `
+                  <div class="questions-container">
+                    ${content.preguntas.map((pregunta, index) => `
+                      <div class="question-item">
+                        <h4>Pregunta ${index + 1}</h4>
+                        <p class="question-text">${pregunta.enunciado}</p>
+                        <div class="options">
+                          ${pregunta.opciones.map((opcion, optIndex) => `
+                            <div class="option ${optIndex === pregunta.respuesta ? 'correct' : ''}">
+                              ${String.fromCharCode(65 + optIndex)}. ${opcion}
+                              ${optIndex === pregunta.respuesta ? ' ✓' : ''}
+                            </div>
+                          `).join('')}
+                        </div>
+                        ${pregunta.explicacion ? `
+                          <div class="explanation">
+                            <strong>Explicación:</strong> ${pregunta.explicacion}
+                          </div>
+                        ` : ''}
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : '<p>No hay preguntas disponibles</p>'}
+              </div>
+            `;
+            break;
+            
+          case 'verdadero_falso':
+            contentHTML = `
+              <div class="material-content">
+                <h2>Preguntas Verdadero/Falso</h2>
+                ${content.preguntas && content.preguntas.length > 0 ? `
+                  <div class="questions-container">
+                    ${content.preguntas.map((pregunta, index) => `
+                      <div class="question-item">
+                        <h4>Pregunta ${index + 1}</h4>
+                        <p class="question-text">${pregunta.enunciado}</p>
+                        <div class="answer">
+                          <strong>Respuesta:</strong> 
+                          <span class="answer-value ${pregunta.respuesta}">${pregunta.respuesta}</span>
+                        </div>
+                        ${pregunta.explicacion ? `
+                          <div class="explanation">
+                            <strong>Explicación:</strong> ${pregunta.explicacion}
+                          </div>
+                        ` : ''}
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : '<p>No hay preguntas disponibles</p>'}
+              </div>
+            `;
+            break;
+            
+          case 'flashcards':
+            if (content.__type === 'mapa_mental') {
+              contentHTML = `
+                <div class="material-content">
+                  <h2>Mapa Mental</h2>
+                  <h3>${content.titulo || 'Mapa Mental'}</h3>
+                  <div class="mindmap-content">
+                    <pre>${content.markmap}</pre>
+                  </div>
+                  ${content.notas && content.notas.length > 0 ? `
+                    <h3>Notas</h3>
+                    <ul>
+                      ${content.notas.map(nota => `<li>${nota}</li>`).join('')}
+                    </ul>
+                  ` : ''}
+                </div>
+              `;
+            } else {
+              contentHTML = `
+                <div class="material-content">
+                  <h2>Tarjetas de Estudio</h2>
+                  <p>Contenido de tarjetas de estudio disponible.</p>
+                </div>
+              `;
+            }
+            break;
+            
+          default:
+            contentHTML = `
+              <div class="material-content">
+                <h2>Material Educativo</h2>
+                <p>Contenido educativo generado por IA.</p>
+              </div>
+            `;
+        }
+        
+        return `
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${typeDisplay} - Material Educativo</title>
+            <style>
+              body {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                line-height: 1.6;
+                color: #374151;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 2rem;
+                background: #f9fafb;
+              }
+              .header {
+                background: white;
+                padding: 2rem;
+                border-radius: 12px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                margin-bottom: 2rem;
+                text-align: center;
+              }
+              .header h1 {
+                color: #1f2937;
+                margin: 0;
+                font-size: 2rem;
+              }
+              .header .badge {
+                background: #10b981;
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 1rem;
+                font-size: 0.875rem;
+                margin-top: 0.5rem;
+                display: inline-block;
+              }
+              .material-content {
+                background: white;
+                padding: 2rem;
+                border-radius: 12px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+              }
+              .material-content h2 {
+                color: #1f2937;
+                border-bottom: 2px solid #e5e7eb;
+                padding-bottom: 0.5rem;
+                margin-bottom: 1.5rem;
+              }
+              .material-content h3 {
+                color: #374151;
+                margin-top: 2rem;
+                margin-bottom: 1rem;
+              }
+              .material-content h4 {
+                color: #4b5563;
+                margin-top: 1.5rem;
+                margin-bottom: 0.5rem;
+              }
+              .question-item {
+                border: 1px solid #e5e7eb;
+                border-radius: 8px;
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+                background: #f9fafb;
+              }
+              .question-text {
+                font-weight: 500;
+                margin-bottom: 1rem;
+              }
+              .options {
+                margin: 1rem 0;
+              }
+              .option {
+                padding: 0.5rem;
+                margin: 0.25rem 0;
+                border-radius: 4px;
+                background: white;
+                border: 1px solid #d1d5db;
+              }
+              .option.correct {
+                background: #d1fae5;
+                border-color: #10b981;
+                color: #065f46;
+              }
+              .answer-value.verdadero {
+                color: #10b981;
+                font-weight: 600;
+              }
+              .answer-value.falso {
+                color: #ef4444;
+                font-weight: 600;
+              }
+              .explanation {
+                background: #f3f4f6;
+                padding: 1rem;
+                border-radius: 6px;
+                margin-top: 1rem;
+                border-left: 4px solid #3b82f6;
+              }
+              .mindmap-content pre {
+                background: #f3f4f6;
+                padding: 1rem;
+                border-radius: 6px;
+                overflow-x: auto;
+                white-space: pre-wrap;
+                font-family: 'Courier New', monospace;
+              }
+              ul {
+                padding-left: 1.5rem;
+              }
+              li {
+                margin-bottom: 0.5rem;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>${typeDisplay}</h1>
+              <div class="badge">🤖 Generado por IA</div>
+            </div>
+            ${contentHTML}
+          </body>
+          </html>
+        `;
+      }
+    }
+
+    // Initialize the application
+    let classroomApp;
+    document.addEventListener("DOMContentLoaded", () => {
+      try {
+        classroomApp = new ClassroomApp();
+      } catch (error) {
+        console.error("Failed to initialize ClassroomApp:", error);
+        document.getElementById("postsContainer").innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">⚠️</div>
+            <h3>Error al cargar la aplicación</h3>
+            <p>Por favor, recarga la página o contacta al soporte técnico</p>
+          </div>
+        `;
+      }
+    });
+
+    // Global functions for modal
+    function closeShareMaterialModal() {
+      if (classroomApp) {
+        classroomApp.closeShareMaterialModal();
+      }
+    }
+
+    function shareSelectedMaterial() {
+      if (classroomApp) {
+        classroomApp.shareSelectedMaterial();
+      }
+    }
+
+    // Global function to open AI material
+    function openAIMaterial(materialId) {
+      if (classroomApp) {
+        classroomApp.openAIMaterial(materialId);
+      }
+    }
+
+    // Service Worker registration for offline support
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+       // navigator.serviceWorker.register('/sw.js')
+//   .then(reg => console.log('Service Worker registrado', reg))
+//   .catch(err => console.error('SW registration failed:', err));
+
+      });
+    }
+  </script>
+</body>
+</html>

@@ -186,5 +186,4 @@ router.get('/system/health', async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
-
 module.exports = router;

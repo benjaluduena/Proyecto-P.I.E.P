@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Perfil - P.I.E.P.</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        .message {
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Crear Perfil</h1>
+        <form id="createProfileForm">
+            <div class="form-group">
+                <label for="name">Nombre</label>
+                <input type="text" id="name" value="Marta" required>
+            </div>
+            <div class="form-group">
+                <label for="role">Rol</label>
+                <select id="role" required>
+                    <option value="docente" selected>Docente</option>
+                    <option value="estudiante">Estudiante</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="education_level">Nivel Educativo</label>
+                <select id="education_level" required>
+                    <option value="secundario" selected>Secundario</option>
+                    <option value="terciario">Terciario</option>
+                    <option value="universitario">Universitario</option>
+                    <option value="posgrado">Posgrado</option>
+                </select>
+            </div>
+            <button type="submit">Crear Perfil</button>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        document.getElementById('createProfileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                role: document.getElementById('role').value,
+                education_level: document.getElementById('education_level').value
+            };
+
+            try {
+                // Obtener token de la sesión
+                const session = localStorage.getItem('session');
+                const sessionData = session ? JSON.parse(session) : null;
+                const accessToken = sessionData ? sessionData.access_token : null;
+                
+                if (!accessToken) {
+                    throw new Error('No hay token de acceso. Por favor, inicia sesión.');
+                }
+
+                const response = await fetch('/api/auth/create-profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Error creando perfil');
+                }
+
+                document.getElementById('message').innerHTML = `
+                    <div class="success">
+                        ✅ Perfil creado exitosamente!<br>
+                        Ahora puedes crear classrooms.
+                    </div>
+                `;
+
+                // Redirigir después de 2 segundos
+                setTimeout(() => {
+                    window.location.href = '/classroom-teacher.html';
+                }, 2000);
+
+            } catch (error) {
+                document.getElementById('message').innerHTML = `
+                    <div class="error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
+
