@@ -96,44 +96,43 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://unpkg.com", "'unsafe-eval'",'https://apis.google.com'],
-        scriptSrcAttr: ["'unsafe-inline'"], // <-- esto permite onclick inline
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
-        fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-        imgSrc: ["'self'", "data:", "https://fqmpmseabhtvahzdavej.supabase.co"],
-        connectSrc: ["'self'", "https://fqmpmseabhtvahzdavej.supabase.co", "https://*.supabase.co"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
+          "https://cdn.jsdelivr.net",
+          "https://unpkg.com",
+          "https://apis.google.com"
+        ],
         scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc: [
           "'self'",
           "'unsafe-inline'",
-          'https://fonts.googleapis.com',
-          'https://cdnjs.cloudflare.com',
-          'https://cdn.jsdelivr.net'
+          "https://fonts.googleapis.com",
+          "https://cdnjs.cloudflare.com",
+          "https://cdn.jsdelivr.net"
         ],
         fontSrc: [
           "'self'",
-          'data:',
-          'https://fonts.gstatic.com',
-          'https://cdnjs.cloudflare.com',
-          'https://cdnjs.cloudflare.com'
+          "data:",
+          "https://fonts.gstatic.com",
+          "https://cdnjs.cloudflare.com"
         ],
         imgSrc: [
           "'self'",
-          'data:',
-          'https://lh3.googleusercontent.com'
+          "data:",
+          "https://fqmpmseabhtvahzdavej.supabase.co",
+          "https://lh3.googleusercontent.com"
         ],
         connectSrc: [
           "'self'",
-          'https://fqmpmseabhtvahzdavej.supabase.co',
-          'https://apis.google.com',
-          'https://accounts.google.com',
-          'https://oauth2.googleapis.com'
+          "https://fqmpmseabhtvahzdavej.supabase.co",
+          "https://*.supabase.co",
+          "https://apis.google.com",
+          "https://accounts.google.com",
+          "https://oauth2.googleapis.com"
         ],
-        frameSrc: [
-          'https://accounts.google.com'
-        ]
-
+        frameSrc: ["https://accounts.google.com"]
       }
     }
   })
@@ -283,6 +282,6 @@ app.listen(PORT, () => {
   console.log(`🚀 Servidor P.I.E.P. ejecutándose en puerto ${PORT}`);
   console.log(`📚 Plataforma Inteligente de Estudio Personalizado`);
   console.log(`🌐 http://localhost:${PORT}`);
-}); 
+});
 
 
