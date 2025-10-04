@@ -7,16 +7,17 @@
 body {
     font-family: 'Poppins', Arial, sans-serif;
     margin: 0;
-    background: white;
     color: #333;
     height: 100vh;
     overflow: hidden;
 }
 
 .home-container {
+    background: #fcf9ff;
     height: 100vh;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     padding: 20px;
     width: 100%;
     box-sizing: border-box;
@@ -63,13 +64,12 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    height: 269px;
+    min-height: 269px;
     overflow: hidden;
     width: 400px;
     background: white;
     border: 2px solid #f1f1f1;
     border-radius: 15px;
-    padding: 25px;
     transition: all 0.3s ease;
 }
 
@@ -77,11 +77,42 @@ body {
     border-color: #e0e0e0;
 }
 
+.upload-header{
+  display: flex;
+  align-items: center;
+  text-align: left;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 2px solid #f1f1f1;
+  margin-bottom: 0.875rem;
+}
+
+.upload-header .svg-circle{
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border: 2px solid #f3f4f6;
+  border-radius: 50%;
+}
+
+.upload-header h2{
+  font-size: 0.875rem;
+}
+
+.upload-header p{
+  font-size: 0.75rem;
+  color: #6a7282;
+}
+
 .upload-title {
     color: #333;
     margin-bottom: 10px;
     font-size: 18px;
     font-weight: 600;
+}
+
+.uploadBox-container{
+  margin: 0px 25px 0px 25px;
 }
 
 .upload-box {
@@ -99,7 +130,6 @@ body {
     padding: 25px 15px;
     margin: 8px 0;
     transition: all 0.3s ease;
-    cursor: pointer;
     position: relative;
     background: #fafafa;
 }
@@ -121,16 +151,26 @@ body {
 }
 
 .file-icon {
-    font-size: 36px;
-    color: #ccc;
-    margin-bottom: 10px;
+    color: #5f5f5f;
+    transition: all 0.3s ease;
+}
+
+.file-icon.file-loaded {
+    color: #5f5f5f;
+    transform: scale(1.1);
 }
 
 .upload-text {
     color: #666;
     font-size: 14px;
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 0.8rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.upload-text.file-loaded {
+    color: #666;
     font-weight: 500;
 }
 
@@ -141,21 +181,19 @@ body {
     width: 100%;
     height: 100%;
     opacity: 0;
-    cursor: pointer;
+    z-index: -1;
 }
 
 .upload-button {
     background: #a259fa;
     color: white;
     border: none;
-    padding: 10px 25px;
+    padding: 12px 24px;
     border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 0.8rem;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     font-family: 'Poppins', Arial, sans-serif;
 }
 
@@ -168,7 +206,7 @@ body {
     width: 100%;
     max-height: 100px;
     overflow-y: auto;
-    margin-top: 10px;
+    margin: 10px 0px;
     font-size: 13px;
     color: #444;
 }
@@ -177,7 +215,6 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 5px;
     background: #fff;
     padding: 5px 10px;
     border: 1px solid #ddd;
@@ -205,14 +242,16 @@ body {
 /* Carousel Container */
 .carousel-container {
     position: relative;
-    max-width: 900px;
+    max-width: 1200px;
     margin: 2.2rem auto 0;
     padding: 0 60px;
+    width: 100%;
 }
 
 .carousel-wrapper {
     overflow: hidden;
     border-radius: 15px;
+    width: 100%;
 }
 
 .carousel-track {
@@ -223,6 +262,7 @@ body {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    width: 100%;
 }
 
 .carousel-track:active {
@@ -230,31 +270,37 @@ body {
 }
 
 .carousel-slide {
-    min-width: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 20px 15px;
+    flex-shrink: 0;
 }
 
-/* Para desktop: mostrar 2 tarjetas */
+/* Desktop: mostrar 2 tarjetas */
 @media (min-width: 769px) {
-    .carousel-track {
-        display: flex;
-        transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-    
     .carousel-slide {
         min-width: 50%;
         flex: 0 0 50%;
     }
+    
+    .carousel-container {
+        max-width: 900px;
+        padding: 0 60px;
+    }
 }
 
-/* Para mobile: mostrar 1 tarjeta */
+/* Mobile: mostrar 1 tarjeta */
 @media (max-width: 768px) {
     .carousel-slide {
         min-width: 100%;
         flex: 0 0 100%;
+    }
+    
+    .carousel-container {
+        max-width: 100%;
+        padding: 0 50px;
+        margin: 1.5rem auto 0;
     }
 }
 
@@ -272,10 +318,11 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #666;
+    color: black;
     transition: all 0.3s ease;
     z-index: 10;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    touch-action: manipulation;
 }
 
 .carousel-btn:hover {
@@ -283,6 +330,10 @@ body {
     border-color: #a259fa;
     color: white;
     transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-btn:active {
+    transform: translateY(-50%) scale(0.95);
 }
 
 .carousel-btn-prev {
@@ -299,33 +350,47 @@ body {
     pointer-events: none;
 }
 
-/* Carousel Indicators */
-.carousel-indicators {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 25px;
+/* Botones más grandes en móviles para mejor usabilidad táctil */
+@media (max-width: 768px) {
+    .carousel-btn {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .carousel-btn svg {
+        width: 22px;
+        height: 22px;
+    }
+    
+    .carousel-btn-prev {
+        left: 5px;
+    }
+    
+    .carousel-btn-next {
+        right: 5px;
+    }
 }
 
-.indicator {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: none;
-    background: #e0e0e0;
-    cursor: pointer;
-    transition: all 0.3s ease;
+@media (max-width: 480px) {
+    .carousel-btn {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .carousel-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .carousel-btn-prev {
+        left: 2px;
+    }
+    
+    .carousel-btn-next {
+        right: 2px;
+    }
 }
 
-.indicator.active {
-    background: #a259fa;
-    transform: scale(1.2);
-}
-
-.indicator:hover {
-    background: #a259fa;
-    opacity: 0.7;
-}
 
 /* ====== CARDS MINIMALISTAS ====== */
 
@@ -333,296 +398,218 @@ body {
 .cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
+    gap: 40px;
     max-width: 900px;
     margin: 0 auto;
     margin-top: 2.2rem;
 }
 
-/* Card Base - Diseño Minimalista Limpio */
 .card {
-    /* Layout y dimensiones */
-    width: 280px;
-    height: 340px;
-    padding: 24px;
-    margin: 0 auto;
-    
-    /* Estilo visual minimalista */
-    background: #ffffff;
-    border: 1px solid #f0f0f0;
-    border-radius: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    
-    /* Interacción sutil */
-    cursor: pointer;
+    background: white;
+    border: 2px solid #f1f1f1;
+    border-radius: 15px;
+    padding: 25px 20px;
     position: relative;
-    transition: all 0.2s ease;
-    
-    /* Layout interno */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-
-/* Card active state - clickeable */
-.card:not(.disabled) {
+    overflow: hidden;
+    transition: all 0.3s ease;
     cursor: pointer;
+    text-align: center;
+    width: 220px;
+    height: 250px;
+
+    /* CSS Grid para contenido interno */
+    display: grid;
+    grid-template-rows:
+        auto
+        /* badge (posición absoluta, no afecta) */
+        60px
+        /* icono - altura fija */
+        1fr
+        /* título - se adapta al contenido */
+        2fr
+        /* descripción - ocupa más espacio */
+        auto;
+    /* stats - altura mínima necesaria */
+
+    grid-template-areas:
+        "badge"
+        "icon"
+        "title"
+        "description"
+        "stats";
+
+    align-items: center;
+    justify-items: center;
 }
 
-.card:not(.disabled):active {
-    transform: translateY(-2px) scale(0.98);
-    transition: all 0.1s ease;
-}
-
-/* Card Hover Effects - Minimalista */
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
     border-color: #e0e0e0;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
 
 .card.active:hover {
-    border-color: #e0e0e0;
+    border-color: #a259fa;
 }
 
-/* Card Focus State para Accesibilidad */
-.card:focus {
-    outline: 2px solid #a259fa;
-    outline-offset: 2px;
-}
-
-/* Card Badge - Minimalista */
 .container-card-badge {
     position: absolute;
-    top: 16px;
-    right: 16px;
-    z-index: 2;
+    top: -10px;
+    right: -10px;
+    grid-area: badge;
 }
 
 .card-badge {
-    background: #a259fa;
-    color: white;
+    background: #f2edfe;
+    color: #a259fa;
     padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 10px;
+    border-radius: 8px;
+    font-size: 9px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    white-space: nowrap;
-    transition: all 0.2s ease;
 }
 
 .card-badge.nuevo {
-    background: #4caf50;
+    background: #e8f5e8;
+    color: #4caf50;
 }
 
-.card:hover .card-badge {
-    /* Sin efectos en hover para mantener minimalismo */
-}
-
-/* Card Icon - Minimalista Limpio */
 .card-icon {
-    /* Layout y posición */
+    grid-area: icon;
     width: 60px;
     height: 60px;
-    margin: 0 0 20px 0;
-    flex-shrink: 0;
-    
-    /* Estilo visual limpio con mejor contraste */
-    background: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
+    background: #f2edfe;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    
-    /* Transición suave */
-    transition: all 0.2s ease;
+    font-size: 24px;
+    transition: all 0.3s ease;
+    align-self: center;
+    /* Centra verticalmente en su área */
 }
 
-/* Imagen dentro del ícono */
-.card-icon img {
-    width: 32px;
-    height: 32px;
-    transition: all 0.2s ease;
-    /* Asegurar colores sólidos y visibles */
-    opacity: 1;
-    filter: none;
-}
-
-/* Hover effects del ícono - Sin cambio de color */
 .card:hover .card-icon {
-    transform: translateY(-2px);
-    background: #ffffff;
-    border-color: #d0d0d0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: scale(1.1);
 }
 
-.card:hover .card-icon img {
-    /* Mantener colores originales y sólidos */
-    opacity: 1;
-    filter: none;
-}
-
-/* Card Content - Minimalista */
-.card-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
+.card-content-home {
+    grid-area: title / title / stats / stats;
+    /* Ocupa desde title hasta stats */
+    display: grid;
+    grid-template-rows: subgrid;
+    /* Hereda las filas del padre */
     width: 100%;
-    flex-grow: 1;
-    text-align: center;
+    align-items: center;
 }
 
-/* Card Title - Tipografía Limpia */
 .card-title {
-    font-size: 18px;
+    grid-area: title;
+    font-size: 16px;
     font-weight: 600;
-    color: #1a1a1a;
-    margin: 0 0 8px 0;
-    text-align: center;
-    line-height: 1.3;
-    transition: all 0.2s ease;
-}
-
-.card:hover .card-title {
     color: #333;
+    margin-bottom:5px ;
+    align-self: end;
+    /* Alinea al final de su área */
 }
 
-/* Card Description - Texto Simple */
 .card-description {
-    font-size: 14px;
+    grid-area: description;
+    font-size: 12px;
     color: #666;
-    line-height: 1.5;
+    line-height: 1.4;
     font-weight: 400;
-    margin: 0 0 20px 0;
-    text-align: center;
-    flex-grow: 1;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
+    margin: 0;
+    align-self: center;
+    /* Centra verticalmente en su área */
+    padding: 0 5px;
 }
 
-/* Card Stats - Estilo Limpio */
 .card-stats {
+    grid-area: stats;
+    align-self: start;
+    /* Alinea al inicio de su área */
     margin: 0;
-    text-align: center;
-    flex-shrink: 0;
 }
 
 .usage-count {
-    font-size: 11px;
+    font-size: 10px;
     color: #999;
     font-weight: 500;
-    padding: 4px 8px;
-    background: #f5f5f5;
-    border-radius: 8px;
-    transition: all 0.2s ease;
 }
 
-.card:hover .usage-count {
-    background: #eee;
-}
-
-/* Card Overlay - Minimalista Limpio */
 .card-overlay {
+    height: 60px;
     position: absolute;
-    top: 0;
+    top: 10;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(162, 89, 250, 0.95);
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: all 0.2s ease;
-    border-radius: 16px;
+    transition: all 0.3s ease;
+    border-radius: 0px;
 }
 
 .card:hover .card-overlay {
     opacity: 1;
 }
 
-/* Card Action Button - Botón Minimalista */
 .card-action-btn {
-    /* Layout */
-    padding: 12px 24px;
-    border: 2px solid #e0e0e0;
+    background: white;
+    color: #a259fa;
+    border: none;
+    padding: 8px 16px;
     border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
     cursor: pointer;
-    
-    /* Tipografía */
-    font-family: 'Inter', Arial, sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    text-transform: none;
-    letter-spacing: normal;
-    
-    /* Estilo visual minimalista */
-    background: #ffffff;
-    color: #333;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    font-family: 'Poppins', Arial, sans-serif;
 }
 
 .card-action-btn:hover {
-    background: #f5f5f5;
-    border-color: #ccc;
-    color: #000;
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
 }
 
-.card-action-btn:active {
-    background: #eee;
-    transform: translateY(1px);
-}
-
-/* Card Disabled - Estado Minimalista */
+/*Card Disabled*/
 .card.disabled {
-    pointer-events: auto; /* Permitir clicks para mostrar mensaje */
-    cursor: not-allowed;
+    pointer-events: none;
+    /* Desactiva interacciones */
     opacity: 0.5;
-    background: #f8f9fa;
-    border-color: #e0e0e0;
+    /* Visualmente desactivada */
+    filter: grayscale(80%);
+    /* Tono gris para reforzar estado inactivo */
+    cursor: not-allowed;
+    /* Cursor bloqueado */
+    transition: all 0.3s ease;
 }
 
 .card.disabled:hover {
     transform: none;
+    /* Desactiva animaciones de hover */
     box-shadow: none;
+    border-color: #f1f1f1;
+    /* Color base del borde */
 }
 
 .card.disabled .card-icon {
-    background: #ffffff;
-    border-color: #e0e0e0;
-    /* Mantener fondo blanco para mejor contraste */
-}
-
-.card.disabled .card-icon img {
-    opacity: 0.8; /* Reducir solo ligeramente la opacidad en lugar de 0.5 */
-    filter: grayscale(0); /* No aplicar filtro gris para mantener colores */
-}
-
-.card.disabled .card-title {
-    color: #999;
-}
-
-.card.disabled .card-description {
+    background: #f9f9f9;
+    /* Color más tenue para el ícono */
     color: #ccc;
-}
-
-.card.disabled .usage-count {
-    background: #f0f0f0;
-    color: #aaa;
+    transform: none;
 }
 
 .card.disabled .card-overlay {
     opacity: 0 !important;
+    /* No mostrar overlay en estado desactivado */
 }
 
-.card.disabled .card-badge {
-    opacity: 0.4;
-}
 
 /* File selected state */
 .file-selected .upload-text {
@@ -640,8 +627,8 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 50%;
+    height: 50%;
     background: rgba(0, 0, 0, 0.8);
     display: none;
     justify-content: center;
@@ -923,7 +910,70 @@ body {
 }
 
 /* Responsive improvements */
+@media (max-width: 1024px) {
+  .home-container {
+    padding: 15px;
+  }
+  
+  .container-header {
+    gap: 15px;
+  }
+  
+  .mascot {
+    width: 100px !important;
+  }
+  
+  .upload-section {
+    width: 380px;
+  }
+  
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+  }
+  
+  .carousel-container {
+    padding: 0 50px;
+  }
+}
+
 @media (max-width: 768px) {
+  .home-container {
+    padding: 10px;
+    height: calc(100vh - 60px); /* Restar altura del header móvil */
+  }
+  
+  .container-header {
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+  }
+  
+  .header-left {
+    order: 1;
+    justify-content: center;
+  }
+  
+  .header-center {
+    order: 2;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .header-right {
+    display: none;
+  }
+  
+  .mascot {
+    width: 80px !important;
+  }
+  
+  .upload-section {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
   .calendar-container { width: 96%; padding: 12px; }
   .task-form .row { grid-template-columns: 1fr; }
   .new-plan .row { grid-template-columns: 1fr; }
@@ -944,89 +994,32 @@ body {
 
   /* Carousel responsive */
   .carousel-container {
-    padding: 0 40px;
-  }
-  
-  .carousel-btn {
-    width: 35px;
-    height: 35px;
-  }
-  
-  .carousel-btn-prev {
-    left: 5px;
-  }
-  
-  .carousel-btn-next {
-    right: 5px;
+    padding: 0 50px;
+    margin-top: 1.5rem;
   }
   
   .carousel-slide {
-    padding: 10px;
+    padding: 15px 10px;
   }
   
   /* Cards responsive para tablets */
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-top: 1.5rem;
+  }
+  
   .card {
-    width: 260px;
-    height: 340px;
-  }
-  
-  .card-icon {
-    width: 70px;
-    height: 70px;
-    margin: 30px auto 20px;
-  }
-  
-  .card-icon img {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .card-content {
-    padding: 0 20px;
-  }
-  
-  .card-title {
-    font-size: 18px;
-    margin: 0 0 10px 0;
-  }
-  
-  .card-description {
-    font-size: 13px;
-    line-height: 1.5;
-    margin: 0 0 20px 0;
-  }
-  
-  .card-action-btn {
-    padding: 12px 24px;
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .carousel-container {
-    padding: 0 25px;
-  }
-  
-  .carousel-btn {
-    width: 30px;
-    height: 30px;
-  }
-  
-  .carousel-btn svg {
-    width: 16px;
-    height: 16px;
-  }
-  
-  /* Cards responsive para móviles */
-  .card {
-    width: 240px;
+    width: 100%;
+    max-width: 280px;
     height: 320px;
+    margin: 0 auto;
   }
   
   .card-icon {
     width: 60px;
     height: 60px;
-    margin: 25px auto 15px;
+    margin: 20px auto 15px;
   }
   
   .card-icon img {
@@ -1034,8 +1027,8 @@ body {
     height: 32px;
   }
   
-  .card-content {
-    padding: 0 16px;
+  .card-content-home {
+    padding: 0 15px;
   }
   
   .card-title {
@@ -1046,22 +1039,116 @@ body {
   .card-description {
     font-size: 12px;
     line-height: 1.4;
-    margin: 0 0 16px 0;
+    margin: 0 0 15px 0;
   }
   
   .card-action-btn {
     padding: 10px 20px;
     font-size: 11px;
   }
+}
+
+@media (max-width: 480px) {
+  .home-container {
+    padding: 5px;
+  }
+  
+  .container-header {
+    gap: 15px;
+  }
+  
+  .mascot {
+    width: 60px !important;
+  }
+  
+  .upload-section {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+  
+  .upload-header {
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .upload-header h2 {
+    font-size: 0.8rem;
+  }
+  
+  .upload-header p {
+    font-size: 0.7rem;
+  }
+  
+  .upload-box {
+    padding: 20px 10px;
+  }
+  
+  .upload-button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+  
+  .carousel-container {
+    padding: 0 40px;
+    margin-top: 1rem;
+  }
+  
+  .carousel-slide {
+    padding: 10px 5px;
+  }
+  
+  /* Cards responsive para móviles */
+  .cards {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-top: 1rem;
+  }
+  
+  .card {
+    width: 100%;
+    max-width: 280px;
+    height: 300px;
+    margin: 0 auto;
+  }
+  
+  .card-icon {
+    width: 50px;
+    height: 50px;
+    margin: 20px auto 10px;
+  }
+  
+  .card-icon img {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .card-content-home {
+    padding: 0 12px;
+  }
+  
+  .card-title {
+    font-size: 14px;
+    margin: 0 0 6px 0;
+  }
+  
+  .card-description {
+    font-size: 11px;
+    line-height: 1.3;
+    margin: 0 0 12px 0;
+  }
+  
+  .card-action-btn {
+    padding: 8px 16px;
+    font-size: 10px;
+  }
   
   .card-badge {
-    padding: 6px 10px;
-    font-size: 9px;
+    padding: 4px 8px;
+    font-size: 8px;
   }
   
   .usage-count {
-    font-size: 10px;
-    padding: 4px 8px;
+    font-size: 9px;
   }
 }
 

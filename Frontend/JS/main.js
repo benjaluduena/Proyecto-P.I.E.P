@@ -1,7 +1,7 @@
 let isDropdownOpen = false;
 // Función de carga de sección que delega al sistema modular
 function cargarSeccion(nombre) {
-<<<<<<< HEAD
+
   console.log(`Cargando sección: ${nombre}`);
   
   const contenedor = document.getElementById('contenido');
@@ -10,7 +10,7 @@ function cargarSeccion(nombre) {
     return;
   }
 
-=======
+
   console.log(`cargarSeccion llamado con: ${nombre}`);
   
   // Si el sistema modular está disponible, usarlo
@@ -63,7 +63,7 @@ function loadSectionLegacy(nombre) {
     }
   });
   
->>>>>>> origin/feat-plan-estudio
+
   fetch(`Pages/${nombre}.html`)
     .then(res => {
       if (!res.ok) {
@@ -80,12 +80,12 @@ function loadSectionLegacy(nombre) {
       script.src = `/JS/${nombre}.js`;
       script.type = 'text/javascript';
       script.defer = true;
-<<<<<<< HEAD
+
       
       // Manejar errores del script
       script.onerror = () => {
         console.warn(`Script ${nombre}.js no encontrado, continuando sin él`);
-=======
+
       script.setAttribute('data-section', nombre);
       
       script.onload = function() {
@@ -93,7 +93,7 @@ function loadSectionLegacy(nombre) {
       };
       script.onerror = function() {
         console.error(`Error al cargar el script ${nombre}.js`);
->>>>>>> origin/feat-plan-estudio
+
       };
       
       document.body.appendChild(script);
@@ -101,7 +101,7 @@ function loadSectionLegacy(nombre) {
       // Reasignar logout por si la sección cambia el DOM
       asignarLogout();
       
-<<<<<<< HEAD
+
       // Volver a poblar información del usuario después de cargar la sección
       setTimeout(() => {
         populateUserInfo();
@@ -118,7 +118,7 @@ function loadSectionLegacy(nombre) {
           </button>
         </div>
       `;
-=======
+
       // Inicializaciones específicas por sección
       if (nombre === 'home' && window.initializeHomeIfNeeded) {
         console.log('Inicializando home después de cargar HTML...');
@@ -150,16 +150,16 @@ function loadSectionLegacy(nombre) {
     .catch(err => {
       console.error('Error al cargar sección:', err);
       document.getElementById('contenido').innerHTML = `<p>Error al cargar ${nombre}</p>`;
->>>>>>> origin/feat-plan-estudio
+
     });
 }
 
 // Carga inicial
 window.onload = () => {
-<<<<<<< HEAD
+
   console.log('Página cargada, iniciando aplicación...');
   cargarSeccion('home');
-=======
+
   console.log('Evento window.onload disparado');
   // Verificar que supabase esté disponible antes de cargar la sección home
   if (window.supabase) {
@@ -178,7 +178,7 @@ window.onload = () => {
       }
     }, 500);
   }
->>>>>>> origin/feat-plan-estudio
+
 };
 
 // Función de logout mejorada
@@ -207,6 +207,7 @@ async function logout() {
 
 // Función para inicializar los event listeners
 document.addEventListener("DOMContentLoaded", () => {
+
   console.log('DOMContentLoaded ejecutado');
   
   // Verificar si Supabase está disponible
@@ -215,6 +216,11 @@ document.addEventListener("DOMContentLoaded", () => {
   } else {
     console.log('Supabase está disponible');
   }
+
+  // Inicializar navegación móvil
+  initializeMobileNavigation();
+  
+
   // Dropdown de perfil
   const userProfile = document.getElementById("userProfile");
   const profileDropdown = document.getElementById("profileDropdown");
@@ -249,7 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnCerrarSesion.addEventListener("click", logout);
   }
 
-<<<<<<< HEAD
+
   // Event listeners para los botones del menú
   const homeBtn = document.getElementById('homeBtn');
   const classroomBtn = document.getElementById('classroomBtn');
@@ -274,7 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
         window.openClassroomPage();
       } else {
         console.error('Función openClassroomPage no está disponible');
-=======
+
   // Botón Cambiar plan
   const btnCambiarPlan = document.getElementById('btnCambiarPlan');
   if (btnCambiarPlan) {
@@ -284,7 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
         await PIEP.startSubscription({ amount: 1500, currency: 'ARS' });
       } catch (e) {
         alert('No se pudo iniciar el cambio de plan. Intenta de nuevo.');
->>>>>>> origin/feat-plan-estudio
+
       }
     });
   }
@@ -572,4 +578,93 @@ function updateUserProfileTitles() {
       emailEl.removeAttribute('title');
     }
   }
+}
+
+// Funciones para navegación móvil
+function initializeMobileNavigation() {
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const mobileHeader = document.getElementById('mobileHeader');
+
+  // Solo inicializar en dispositivos móviles
+  if (!hamburgerBtn || !sidebar || !sidebarOverlay) return;
+
+  // Mostrar/ocultar header móvil según el tamaño de pantalla
+  function toggleMobileHeader() {
+    if (window.innerWidth <= 768) {
+      mobileHeader.style.display = 'flex';
+    } else {
+      mobileHeader.style.display = 'none';
+    }
+  }
+
+  // Inicializar visibilidad del header móvil
+  toggleMobileHeader();
+
+  // Toggle del menú hamburguesa
+  hamburgerBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMobileSidebar();
+  });
+
+  // Cerrar sidebar al hacer clic en el overlay
+  sidebarOverlay.addEventListener('click', closeMobileSidebar);
+
+  // Cerrar sidebar al hacer clic en un enlace del menú
+  const menuItems = sidebar.querySelectorAll('.menu-item');
+  menuItems.forEach(item => {
+    item.addEventListener('click', () => {
+      setTimeout(closeMobileSidebar, 300); // Delay para permitir la navegación
+    });
+  });
+
+  // Cerrar sidebar al redimensionar la ventana a desktop
+  window.addEventListener('resize', () => {
+    toggleMobileHeader();
+    if (window.innerWidth > 768) {
+      closeMobileSidebar();
+    }
+  });
+
+  // Cerrar sidebar al hacer scroll (opcional)
+  window.addEventListener('scroll', closeMobileSidebar);
+}
+
+function toggleMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+
+  if (sidebar.classList.contains('open')) {
+    closeMobileSidebar();
+  } else {
+    openMobileSidebar();
+  }
+}
+
+function openMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+
+  sidebar.classList.add('open');
+  sidebarOverlay.classList.add('show');
+  hamburgerBtn.classList.add('active');
+  
+  // Prevenir scroll del body
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+
+  sidebar.classList.remove('open');
+  sidebarOverlay.classList.remove('show');
+  hamburgerBtn.classList.remove('active');
+  
+  // Restaurar scroll del body
+  document.body.style.overflow = '';
 }
