@@ -81,21 +81,17 @@ function loadSectionLegacy(nombre) {
       script.type = 'text/javascript';
       script.defer = true;
 
-      
-      // Manejar errores del script
-      script.onerror = () => {
-        console.warn(`Script ${nombre}.js no encontrado, continuando sin él`);
-
+      // Atributo para limpieza de scripts por sección
       script.setAttribute('data-section', nombre);
-      
+
+      // Manejar carga y errores del script
       script.onload = function() {
         console.log(`Script ${nombre}.js cargado correctamente`);
       };
       script.onerror = function() {
-        console.error(`Error al cargar el script ${nombre}.js`);
-
+        console.warn(`Script ${nombre}.js no encontrado, continuando sin él`);
       };
-      
+
       document.body.appendChild(script);
 
       // Reasignar logout por si la sección cambia el DOM
@@ -280,6 +276,9 @@ document.addEventListener("DOMContentLoaded", () => {
         window.openClassroomPage();
       } else {
         console.error('Función openClassroomPage no está disponible');
+      }
+    });
+  }
 
   // Botón Cambiar plan
   const btnCambiarPlan = document.getElementById('btnCambiarPlan');
@@ -290,7 +289,6 @@ document.addEventListener("DOMContentLoaded", () => {
         await PIEP.startSubscription({ amount: 1500, currency: 'ARS' });
       } catch (e) {
         alert('No se pudo iniciar el cambio de plan. Intenta de nuevo.');
-
       }
     });
   }
