@@ -1,0 +1,8 @@
+{
+  "success": true,
+  "message": "Operación exitosa",
+  "data": {
+    "id": "mock-id",
+    "timestamp": "2024-01-01T00:00:00.000Z"
+  }
+}

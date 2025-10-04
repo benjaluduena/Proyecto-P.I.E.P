@@ -70,8 +70,6 @@ document.addEventListener('DOMContentLoaded', function() {
           localStorage.setItem('user', JSON.stringify(data.user));
         }
         
-        alert('Login exitoso! Redirigiendo...');
-        
         // Redirigir al home
         window.location.href = 'index.html';
       } else {

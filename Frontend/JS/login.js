@@ -121,8 +121,6 @@ if (loginForm) {
         localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(data.session));
         localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(data.user));
         
-        console.log('Login exitoso, redirigiendo...');
-        
         // Redirigir inmediatamente - el perfil se cargará en el home
         setTimeout(() => {
           redirectToHome();
@@ -264,4 +262,4 @@ if (window.location.search.includes('clear=true')) {
   window.history.replaceState({}, '', url);
   
   alert('Sesión limpiada. Puedes iniciar sesión normalmente.');
-} 
+}

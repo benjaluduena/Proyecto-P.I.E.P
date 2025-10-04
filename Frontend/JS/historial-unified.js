@@ -308,7 +308,6 @@ class HistorialUnified {
 
         const data = await response.json();
         this.state.data = Array.isArray(data) ? data : [];
-        
         // Guardar en cache
         this.setCache(cacheKey, {
           data: this.state.data,
