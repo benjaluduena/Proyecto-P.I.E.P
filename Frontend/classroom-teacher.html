@@ -7,10 +7,163 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/Css/styles.css">
     <style>
-        .classroom-container {
-            max-width: 1200px;
-            margin: 0 auto;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            color: #334155;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
             padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.02);
+             display: flex;
+        flex-direction: column;
+        
+        }
+        
+
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            padding: 16px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            border-radius: 12px;
+            color: white;
+        }
+   
+
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .profile-text h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .profile-text p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .sidebar-section h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .class-list {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .class-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .class-item:hover {
+            background: #f1f5f9;
+        }
+
+        .class-item.active {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .class-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .class-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .class-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .notification-dot {
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+        }
+
+        .create-class-btn {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .create-class-btn:hover {
+            border-color: #94a3b8;
+            color: #475569;
+        }
+.class-item {
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.class-item:hover {
+    background: #f1f5f9;
+    transform: translateX(4px);
+}
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 20px 30px;
         }
 
         .header-section {
@@ -20,68 +173,92 @@
             margin-bottom: 30px;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filter-btn, .sort-btn {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
-            font-weight: 600;
+            color: #64748b;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        .filter-btn:hover, .sort-btn:hover {
+            border-color: #cbd5e1;
         }
 
-        .classrooms-grid {
+        .classes-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 24px;
         }
 
-        .classroom-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            border: 1px solid #e1e5e9;
-        }
+        .class-card {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+    min-height: 450px; /* 🔹 ajusta según el tamaño que quieras */
+}
 
-        .classroom-card:hover {
+        .class-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
         }
 
-        .classroom-header {
+        .class-card-header {
+            height: 120px;
+            position: relative;
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 16px;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: 700;
         }
 
+     .class-card-content {
+    flex: 1; /* ocupa todo el espacio de la tarjeta */
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+}
+
+.classroom-info {
+    margin-top: auto; /* lo empuja hacia abajo hasta antes de los botones */
+}
         .classroom-title {
-            font-size: 1.25rem;
+            font-size: 20px;
             font-weight: 600;
-            color: #1a1a1a;
-            margin: 0;
+            color: #1e293b;
+            margin-bottom: 8px;
         }
 
-        .classroom-status {
-            background: #e8f5e8;
-            color: #2d5a2d;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .classroom-info {
-            margin-bottom: 16px;
+        .class-activity {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 20px;
         }
 
         .classroom-subject {
@@ -120,10 +297,45 @@
             letter-spacing: 0.5px;
         }
 
-        .classroom-actions {
+        .join-code {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+    .classroom-actions {
+    margin-top: 16px; /* espacio entre info y botones */
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+
+        .btn-open {
+            flex: 1;
+            padding: 10px 16px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
             display: flex;
+            align-items: center;
+            justify-content: center;
             gap: 8px;
-            flex-wrap: wrap;
+        }
+
+        .btn-open:hover {
+            background: #2563eb;
         }
 
         .btn-secondary {
@@ -142,18 +354,39 @@
             border-color: #adb5bd;
         }
 
-        .join-code {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            color: #495057;
-            font-size: 0.9rem;
+        .btn-delete {
+            padding: 10px 12px;
+            background: #fef2f2;
+            color: #ef4444;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        /* Modal styles */
+        .btn-delete:hover {
+            background: #fee2e2;
+        }
+
+        /* Color classes */
+        .color-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .color-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .color-purple { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+        .color-pink { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); }
+        .color-orange { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+
+        .classroom-status {
+            background: #e8f5e8;
+            color: #2d5a2d;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -163,30 +396,41 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
         }
 
         .modal-content {
             background-color: white;
             margin: 5% auto;
             padding: 30px;
-            border-radius: 12px;
+            border-radius: 16px;
             width: 90%;
             max-width: 500px;
             position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+             animation: fadeInUp 0.4s ease;
         }
 
         .close {
             position: absolute;
             right: 20px;
             top: 20px;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
             cursor: pointer;
-            color: #aaa;
+            color: #94a3b8;
+            transition: color 0.2s ease;
         }
 
         .close:hover {
-            color: #000;
+            color: #64748b;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 24px;
         }
 
         .form-group {
@@ -197,22 +441,24 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
-            color: #333;
+            color: #374151;
+            font-size: 14px;
         }
 
         .form-input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            font-family: inherit;
         }
 
         .form-input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .form-textarea {
@@ -220,15 +466,32 @@
             resize: vertical;
         }
 
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: #666;
+            color: #64748b;
         }
 
         .empty-state h3 {
-            margin-bottom: 16px;
-            color: #333;
+            font-size: 20px;
+            color: #1e293b;
+            margin-bottom: 12px;
         }
 
         .empty-state p {
@@ -256,24 +519,304 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 15px;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
+
+            .classes-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-section {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+            }
+
+            .header-actions {
+                justify-content: center;
+            }
+        }
+
+        @keyframes fadeInUp {
+    from {
+        transform: translateY(40px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+        
+
+/* Estilo del modal ya lo tienes similar a tu modal de crear classroom */
+.modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px);}
+.modal-content { background-color: white; margin:5% auto; padding:30px; border-radius:16px; width:90%; max-width:400px; position: relative; }
+.close { position:absolute; right:20px; top:20px; font-size:24px; cursor:pointer; color:#94a3b8; transition: color 0.2s; }
+.close:hover { color:#64748b; }
+
+.animate-fadeIn { animation: fadeInUp 0.4s ease forwards; }
+.animate-fadeOut { animation: fadeOutDown 0.3s ease forwards; }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(40px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+@keyframes fadeOutDown {
+    from { opacity: 1; transform: translateY(0);}
+    to { opacity: 0; transform: translateY(40px);}
+}
+
+/* Input de código inválido */
+.input-error {
+    border-color: #f87171 !important;
+    box-shadow: 0 0 0 2px rgba(248,113,113,0.3);
+}
+
+.btn-danger { background-color: #f87171; color:white; padding:8px 16px; border:none; border-radius:6px; cursor:pointer; transition:0.2s; }
+.btn-danger:hover { background-color:#ef4444; }
+.btn-secondary { background-color:#cbd5e1; color:#1e293b; padding:8px 16px; border:none; border-radius:6px; cursor:pointer; }
+.btn-secondary:hover { background-color:#94a3b8; }
+
+/* Animaciones suaves */
+.animate-fadeIn { animation: fadeInUp 0.4s ease forwards; }
+.animate-fadeOut { animation: fadeOutDown 0.3s ease forwards; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(40px);} to { opacity: 1; transform: translateY(0);} }
+@keyframes fadeOutDown { from { opacity: 1; transform: translateY(0);} to { opacity: 0; transform: translateY(40px);} }
+
+/* Input de código inválido */
+.input-error { border-color: #f87171 !important; box-shadow: 0 0 0 2px rgba(248,113,113,0.3); cursor:text; }
+
+
+
+/* Modal básico */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Contenido del modal */
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px 30px;
+  border-radius: 12px;
+  max-width: 400px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* Cerrar botón */
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close:hover {
+  color: #000;
+}
+
+/* Lista de estudiantes */
+.students-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 15px;
+}
+
+/* Cada estudiante */
+.students-list li {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 16px;
+  color: #334155;
+}
+
+/* Avatar circular con inicial */
+.student-avatar {
+  width: 36px;
+  height: 36px;
+  background-color: #3b82f6; /* azul bonito */
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 12px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+/* Sidebar menú */
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 30px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.menu-item:hover {
+    background: #f1f5f9;
+    transform: translateX(4px);
+}
+
+.menu-item.active {
+    background: #e0f2fe;
+    color: #0369a1;
+    font-weight: 600;
+}
+
+.sidebar-ico svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+
+/* Alinear iconos y texto verticalmente */
+.menu-item span.sidebar-ico {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sidebar-section {
+    flex: 1; /* ocupa el espacio disponible */
+    display: flex;
+    flex-direction: column;
+}
+
+.class-list {
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 4px;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.menu-item:hover {
+  background-color: #e2e8f0; /* Color de fondo cuando pasa el mouse */
+  color: #1d4ed8; /* Color del texto o icono al pasar el mouse */
+}
+
     </style>
 </head>
 <body>
-    <div class="classroom-container">
-        <div class="header-section">
-            <div>
-                <h1>Mis Classrooms</h1>
-                <p>Gestiona tus clases y comparte materiales con tus estudiantes</p>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="profile-section">
+               <div class="profile-avatar" id="profileAvatar"></div>
+                <div class="profile-text">
+                    <h3 id="welcomeUser">Bienvenido Profesor</h3>
+
+                    <p>Gestiona tus clases</p>
+                </div>
             </div>
-            <button class="btn-primary" onclick="openCreateClassroomModal()">
-                + Crear Classroom
-            </button>
+
+ 
+
+  <nav class="sidebar-menu">
+    <button type="button" class="menu-item " id="homeBtn">
+      <span class="sidebar-ico">
+        <svg><use href="/Assets/sprite.svg#icon-home"></use></svg>
+      </span>
+      Inicio
+    </button>
+
+    <button type="button" class="menu-item active" id="classroomBtn">
+  <span class="sidebar-ico">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+  </span>
+  Classroom
+</button>
+
+
+    <button type="button" class="menu-item">
+      <span class="sidebar-ico">
+        <svg><use href="/Assets/sprite.svg#icon-calendar"></use></svg>
+      </span>
+      Calendario
+    </button>
+
+    <button type="button" class="menu-item">
+      <span class="sidebar-ico">
+        <svg><use href="/Assets/sprite.svg#icon-history"></use></svg>
+      </span>
+      Historial
+    </button>
+  </nav>
+
+
+            <div class="sidebar-section">
+                <h4>Mis Clases</h4>
+                <ul class="class-list" id="sidebarClassList">
+                    <!-- Las clases se cargarán dinámicamente aquí -->
+                </ul>
+                <button class="create-class-btn" onclick="openCreateClassroomModal()">
+                    <span>+</span> Crear Nueva Clase
+                </button>
+            </div>
         </div>
 
-        <div id="classroomsContent">
-            <div class="loading">
-                <div class="spinner"></div>
-                <p>Cargando classrooms...</p>
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header-section">
+                <h1 class="header-title">Todas las clases</h1>
+                <div class="header-actions">
+                  
+                </div>
+            </div>
+
+            <div id="classroomsContent">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Cargando classrooms...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -282,7 +825,7 @@
     <div id="createClassroomModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeCreateClassroomModal()">&times;</span>
-            <h2>Crear Nuevo Classroom</h2>
+            <h2 class="modal-title">Crear Nuevo Classroom</h2>
             <form id="createClassroomForm">
                 <div class="form-group">
                     <label class="form-label" for="classroomName">Nombre del Classroom *</label>
@@ -304,7 +847,8 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="classroomDescription">Descripción</label>
-                    <textarea id="classroomDescription" class="form-input form-textarea"></textarea>
+                    <textarea id="classroomDescription" class="form-input form-textarea" maxlength="150" ></textarea>
+                    <div id="charCount">0 / 150</div>
                 </div>
                 <div style="display: flex; gap: 12px; justify-content: flex-end;">
                     <button type="button" class="btn-secondary" onclick="closeCreateClassroomModal()">Cancelar</button>
@@ -313,40 +857,119 @@
             </form>
         </div>
     </div>
+<div id="deleteClassroomModal" class="modal">
+    <div class="modal-content animate-fadeIn">
+        <span class="close" onclick="closeDeleteClassroomModal()">&times;</span>
+        
+        <!-- Paso 1: Confirmación -->
+        <div id="deleteStep1">
+            <div style="text-align:center; margin-bottom:16px;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12" y2="16"></line>
+                </svg>
+            </div>
+            <h2 class="modal-title" style="text-align:center;">¿Estás seguro?</h2>
+            <p style="text-align:center; color:#475569;">Esta acción eliminará el classroom y no se podrá deshacer.</p>
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+                <button class="btn-secondary" onclick="closeDeleteClassroomModal()">No</button>
+                <button class="btn-danger" onclick="showDeleteStep2()">Sí</button>
+            </div>
+        </div>
+        
+        <!-- Paso 2: Ingreso del código -->
+        <div id="deleteStep2" style="display:none;">
+            <h2 class="modal-title" style="text-align:center;">Confirmar eliminación</h2>
+            <p style="text-align:center; color:#475569;">Ingresa el código de unión para confirmar:</p>
+
+            <!-- Mostrar código para copiar -->
+            <div style="text-align:center; margin:8px 0;">
+                <input type="text" id="joinCodeDisplay" readonly class="form-input" style="text-align:center; cursor:pointer;" title="Haz click para copiar">
+            </div>
+
+            <input type="text" id="confirmJoinCode" class="form-input" placeholder="Ingresa el código aquí" style="margin-top:12px;">
+
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+                <button class="btn-secondary" onclick="closeDeleteClassroomModal()">Cancelar</button>
+                <button class="btn-danger" id="confirmDeleteBtn" onclick="confirmDeleteClassroom()">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Estudiantes -->
+<div id="studentsModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeStudentsModal()">&times;</span>
+    <h2>Estudiantes inscritos</h2>
+    <ul id="studentsModalList" class="students-list"></ul>
+  </div>
+</div>
+
 
     <script src="/lib/supabase.js"></script>
     <script src="/JS/config.js"></script>
     <script src="/JS/auth-check.js"></script>
+   <script src="/JS/main.js"></script>
+   
     <script>
-        // Verificar autenticación y rol de docente
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (!user) {
-                    window.location.href = '/login.html';
-                    return;
-                }
+        // Verificar autenticación y rol de docente (FUNCIONALIDAD ORIGINAL)
+      document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { window.location.href = '/login.html'; return; }
 
-                // Verificar que es docente
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single();
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('name, role')
+            .eq('id', user.id)
+            .single();
 
-                if (!profile || profile.role !== 'docente') {
-                    alert('Acceso denegado. Solo docentes pueden acceder a esta página.');
-                    window.location.href = '/index.html';
-                    return;
-                }
+        if (!profile || profile.role !== 'docente') {
+            alert('Acceso denegado. Solo docentes pueden acceder.');
+            window.location.href = '/index.html';
+            return;
+        }
 
-                loadClassrooms();
-            } catch (error) {
-                console.error('Error verificando autenticación:', error);
-                window.location.href = '/login.html';
-            }
-        });
+        // Actualizar sidebar con nombre
+        const welcomeEl = document.getElementById('welcomeUser');
+        if (welcomeEl) welcomeEl.textContent = `Bienvenido ${profile.name}`;
 
+        // Actualizar inicial del avatar
+        const avatarEl = document.getElementById('profileAvatar');
+        if (avatarEl && profile.name) {
+            avatarEl.textContent = profile.name.charAt(0).toUpperCase();
+
+            // Opcional: color dinámico según letra
+            const colors = ['#3b82f6','#6366f1','#10b981','#8b5cf6','#ec4899'];
+            const colorIndex = profile.name.charCodeAt(0) % colors.length;
+            avatarEl.style.background = colors[colorIndex];
+        }
+
+        loadClassrooms(); // si tenés función equivalente para docentes
+    } catch (error) {
+        console.error(error);
+        window.location.href = '/login.html';
+    }
+});
+
+const textarea = document.getElementById('classroomDescription');
+const charCount = document.getElementById('charCount');
+const maxChars = 150;
+
+textarea.addEventListener('input', () => {
+    const length = textarea.value.length;
+    charCount.textContent = `${length} / ${maxChars}`;
+
+    if (length >= maxChars) {
+        charCount.style.color = 'red';
+    } else {
+        charCount.style.color = '';
+    }
+});
+
+        // Función original para cargar classrooms
         async function loadClassrooms() {
             try {
                 // Obtener token de la sesión
@@ -370,6 +993,7 @@
 
                 const data = await response.json();
                 displayClassrooms(data.classrooms);
+                updateSidebarClassList(data.classrooms); // Nueva función para el sidebar
             } catch (error) {
                 console.error('Error cargando classrooms:', error);
                 document.getElementById('classroomsContent').innerHTML = `
@@ -381,135 +1005,143 @@
             }
         }
 
-        function displayClassrooms(classrooms) {
-            const container = document.getElementById('classroomsContent');
-            
-            if (!classrooms || classrooms.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No tienes classrooms aún</h3>
-                        <p>Crea tu primer classroom para empezar a compartir materiales con tus estudiantes.</p>
-                        <button class="btn-primary" onclick="openCreateClassroomModal()">
-                            Crear mi primer Classroom
-                        </button>
-                    </div>
-                `;
-                return;
-            }
+        // Función mejorada para mostrar classrooms con el nuevo diseño
+    function displayClassrooms(classrooms) {
+    const container = document.getElementById('classroomsContent');
+    
+    if (!classrooms || classrooms.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>No tienes classrooms aún</h3>
+                <p>Crea tu primer classroom para empezar a compartir materiales con tus estudiantes.</p>
+                <button class="btn-primary" onclick="openCreateClassroomModal()">
+                    Crear mi primer Classroom
+                </button>
+            </div>
+        `;
+        return;
+    }
 
-            container.innerHTML = `
-                <div class="classrooms-grid">
-                    ${classrooms.map(classroom => `
-                        <div class="classroom-card">
-                            <div class="classroom-header">
-                                <h3 class="classroom-title">${classroom.name}</h3>
-                                <span class="classroom-status">${classroom.is_active ? 'Activo' : 'Inactivo'}</span>
-                            </div>
-                            <div class="classroom-info">
-                                ${classroom.subject ? `<div class="classroom-subject">📚 ${classroom.subject}</div>` : ''}
-                                ${classroom.description ? `<div class="classroom-description">${classroom.description}</div>` : ''}
-                            </div>
-                            <div class="classroom-stats">
-                                <div class="stat-item">
-                                    <div class="stat-number">${classroom.classroom_enrollments[0]?.count || 0}</div>
-                                    <div class="stat-label">Estudiantes</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number">${classroom.classroom_materials[0]?.count || 0}</div>
-                                    <div class="stat-label">Materiales</div>
-                                </div>
-                            </div>
+    const colors = ['color-green', 'color-blue', 'color-purple', 'color-pink', 'color-orange'];
+    
+    container.innerHTML = `
+        <div class="classes-grid">
+            ${classrooms.map((classroom, index) => {
+                const letter = classroom.subject 
+                    ? classroom.subject.charAt(0).toUpperCase() 
+                    : classroom.name.charAt(0).toUpperCase();
+
+                return `
+                    <div class="class-card">
+                        <div class="class-card-header ${colors[index % colors.length]}">
+                            ${letter}
+                        </div>
+                        <div class="class-card-content">
+                            <h3 class="classroom-title">${classroom.name}</h3>
+                            <span class="classroom-status">
+                                ${classroom.is_active ? 'Activo' : 'Inactivo'}
+                            </span>
+                            
+                            ${classroom.subject ? `<div class="classroom-subject">📚 ${classroom.subject}</div>` : ''}
+                            ${classroom.description ? `<div class="classroom-description">${classroom.description}</div>` : ''}
+                              <div class="classroom-info"> 
+                          <div class="classroom-stats">
+                         
+    <div class="stat-item" onclick="openStudentsModal(${classroom.id})" style="cursor:pointer;">
+        <div class="stat-number">${classroom.classroom_enrollments[0]?.count || 0}</div>
+        <div class="stat-label">Estudiantes</div>
+    </div>
+</div>
+
+                            
                             <div style="margin-bottom: 16px;">
-                                <label style="font-size: 0.875rem; color: #666; margin-bottom: 4px; display: block;">Código de unión:</label>
+                                <label style="font-size: 0.875rem; color: #666; margin-bottom: 4px; display: block;">
+                                    Código de unión:
+                                </label>
                                 <div class="join-code">${classroom.join_code}</div>
                             </div>
+                            
+                             </div>
                             <div class="classroom-actions">
-                                <button class="btn-secondary" onclick="viewClassroom(${classroom.id})">Ver detalles</button>
-                                <button class="btn-secondary" onclick="manageMaterials(${classroom.id})">Materiales</button>
-                                <button class="btn-secondary" onclick="viewStudents(${classroom.id})">Estudiantes</button>
+                                <button class="btn-open" onclick="viewClassroom(${classroom.id})">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" 
+                                         stroke="currentColor" stroke-width="2">
+                                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                                    </svg>
+                                    Abrir
+                                </button>
+                                
+                                <!-- Botón salir -->
+                           <button class="btn-delete" 
+        onclick="openDeleteClassroomModal(${classroom.id}, '${classroom.join_code}')" 
+        title="Eliminar classroom">
+
+                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                            </svg>
+                                    
+                                </button>
                             </div>
                         </div>
-                    `).join('')}
-                </div>
-            `;
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+
+        // Nueva función para actualizar el sidebar
+        function updateSidebarClassList(classrooms) {
+            const container = document.getElementById('sidebarClassList');
+            const colors = ['#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#f97316'];
+            
+            if (!classrooms || classrooms.length === 0) {
+                container.innerHTML = '<li style="color: #94a3b8; font-size: 14px; padding: 12px;">No hay clases aún</li>';
+                return;
+            }
+            
+            container.innerHTML = classrooms.map((classroom, index) => `
+             <li class="class-item" onclick="viewClassroom(${classroom.id})">
+    <div class="class-info">
+        <div class="class-color" style="background-color: ${colors[index % colors.length]}"></div>
+        <span class="class-name">${classroom.name}</span>
+    </div>
+    ${(classroom.classroom_enrollments[0]?.count || 0) > 30 ? '<div class="notification-dot"></div>' : ''}
+</li>
+
+            `).join('');
         }
 
-                function openCreateClassroomModal() {
-          document.getElementById('createClassroomModal').style.display = 'block';
+      function selectClass(classId, event) {
+    // Quitar clase active de todos los elementos
+    document.querySelectorAll('.class-item').forEach(item => item.classList.remove('active'));
+
+    // Encontrar el li más cercano
+    const li = event.currentTarget || event.target.closest('.class-item');
+    if (li) li.classList.add('active');
+
+    // Aquí puedes cargar la clase seleccionada en el main content
+    console.log('Clase seleccionada:', classId);
+}
+
+
+        // FUNCIONES ORIGINALES MANTENIDAS
+        function openCreateClassroomModal() {
+            document.getElementById('createClassroomModal').style.display = 'block';
         }
 
         function closeCreateClassroomModal() {
-          document.getElementById('createClassroomModal').style.display = 'none';
-          document.getElementById('createClassroomForm').reset();
-        }
-        
-        // Event listener para el botón de abrir modal
-        const createButton = document.querySelector('.btn-primary');
-        if (createButton && createButton.textContent.includes('Crear')) {
-          createButton.addEventListener('click', function() {
-            openCreateClassroomModal();
-          });
-        }
-
-                // Event listener para el formulario de crear classroom
-        const createForm = document.getElementById('createClassroomForm');
-        if (createForm) {
-          createForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = {
-              name: document.getElementById('classroomName').value,
-              subject: document.getElementById('classroomSubject').value,
-              grade_level: document.getElementById('classroomGrade').value,
-              description: document.getElementById('classroomDescription').value
-            };
-
-            try {
-              console.log('Enviando datos:', formData);
-              
-              // Obtener token de la sesión
-              const session = localStorage.getItem('session');
-              const sessionData = session ? JSON.parse(session) : null;
-              const accessToken = sessionData ? sessionData.access_token : null;
-              
-              console.log('Token:', accessToken);
-              
-              if (!accessToken) {
-                throw new Error('No hay token de acceso. Por favor, inicia sesión nuevamente.');
-              }
-              
-              const response = await fetch('/api/classroom/create', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${accessToken}`
-                },
-                body: JSON.stringify(formData)
-              });
-
-              console.log('Respuesta del servidor:', response.status, response.statusText);
-
-              if (!response.ok) {
-                const errorData = await response.text();
-                console.error('Error del servidor:', errorData);
-                throw new Error(`Error ${response.status}: ${errorData}`);
-              }
-
-              const result = await response.json();
-              console.log('Resultado exitoso:', result);
-              closeCreateClassroomModal();
-              loadClassrooms();
-              alert('Classroom creado exitosamente');
-            } catch (error) {
-              console.error('Error creando classroom:', error);
-              alert(`Error creando classroom: ${error.message}`);
-            }
-          });
+            document.getElementById('createClassroomModal').style.display = 'none';
+            document.getElementById('createClassroomForm').reset();
         }
 
         function viewClassroom(classroomId) {
-            // Implementar vista detallada del classroom
-            alert('Funcionalidad en desarrollo');
+           if (!classroomId) return alert('ID de classroom no disponible');
+    // Redirige a estudiantesPage.html pasando el ID como parámetro
+    window.location.href = `/Pages/profesorPage.html?classroomId=${classroomId}`;
         }
 
         function manageMaterials(classroomId) {
@@ -522,30 +1154,246 @@
             alert('Funcionalidad en desarrollo');
         }
 
-                // Event listeners para cerrar modales
+        // Event listener para el botón de abrir modal (ORIGINAL)
+        const createButton = document.querySelector('.btn-primary');
+        if (createButton && createButton.textContent.includes('Crear')) {
+            createButton.addEventListener('click', function() {
+                openCreateClassroomModal();
+            });
+        }
+
+        // Event listener para el formulario de crear classroom (FUNCIONALIDAD ORIGINAL COMPLETA)
+        const createForm = document.getElementById('createClassroomForm');
+        if (createForm) {
+            createForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = {
+                    name: document.getElementById('classroomName').value,
+                    subject: document.getElementById('classroomSubject').value,
+                    grade_level: document.getElementById('classroomGrade').value,
+                    description: document.getElementById('classroomDescription').value
+                };
+
+                try {
+                    console.log('Enviando datos:', formData);
+                    
+                    // Obtener token de la sesión
+                    const session = localStorage.getItem('session');
+                    const sessionData = session ? JSON.parse(session) : null;
+                    const accessToken = sessionData ? sessionData.access_token : null;
+                    
+                    console.log('Token:', accessToken);
+                    
+                    if (!accessToken) {
+                        throw new Error('No hay token de acceso. Por favor, inicia sesión nuevamente.');
+                    }
+                    
+                    const response = await fetch('/api/classroom/create', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${accessToken}`
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    console.log('Respuesta del servidor:', response.status, response.statusText);
+
+                    if (!response.ok) {
+                        const errorData = await response.text();
+                        console.error('Error del servidor:', errorData);
+                        throw new Error(`Error ${response.status}: ${errorData}`);
+                    }
+
+                    const result = await response.json();
+                    console.log('Resultado exitoso:', result);
+                    closeCreateClassroomModal();
+                    loadClassrooms();
+                    alert('Classroom creado exitosamente');
+                } catch (error) {
+                    console.error('Error creando classroom:', error);
+                    alert(`Error creando classroom: ${error.message}`);
+                }
+            });
+        }
+
+        // Event listeners para cerrar modales (ORIGINALES)
         const createModal = document.getElementById('createClassroomModal');
         const closeBtn = document.querySelector('.close');
         const cancelBtn = document.querySelector('.btn-secondary');
         
         if (createModal) {
-          createModal.addEventListener('click', function(event) {
-            if (event.target === createModal) {
-              closeCreateClassroomModal();
-            }
-          });
+            createModal.addEventListener('click', function(event) {
+                if (event.target === createModal) {
+                    closeCreateClassroomModal();
+                }
+            });
         }
         
         if (closeBtn) {
-          closeBtn.addEventListener('click', function() {
-            closeCreateClassroomModal();
-          });
+            closeBtn.addEventListener('click', function() {
+                closeCreateClassroomModal();
+            });
         }
         
         if (cancelBtn) {
-          cancelBtn.addEventListener('click', function() {
-            closeCreateClassroomModal();
-          });
+            cancelBtn.addEventListener('click', function() {
+                closeCreateClassroomModal();
+            });
         }
-    </script>
+
+
+
+// Eliminar Classroom
+let classroomToDelete = null;
+let classroomJoinCode = null; // Código que se mostrará
+
+function openDeleteClassroomModal(classroomId, joinCode) {
+    classroomToDelete = classroomId;
+    classroomJoinCode = joinCode; // Guardamos el código
+    document.getElementById('deleteStep1').style.display = 'block';
+    document.getElementById('deleteStep2').style.display = 'none';
+
+    const modal = document.getElementById('deleteClassroomModal');
+    modal.style.display = 'block';
+    modal.querySelector('.modal-content').classList.remove('animate-fadeOut');
+    modal.querySelector('.modal-content').classList.add('animate-fadeIn');
+
+    const joinDisplay = document.getElementById('joinCodeDisplay');
+    joinDisplay.value = joinCode;
+    joinDisplay.addEventListener('click', () => {
+        navigator.clipboard.writeText(joinCode).then(() => alert('Código copiado al portapapeles'));
+    });
+
+    document.getElementById('confirmJoinCode').classList.remove('input-error');
+    document.getElementById('confirmJoinCode').value = '';
+}
+
+function closeDeleteClassroomModal() {
+    const modalContent = document.getElementById('deleteClassroomModal').querySelector('.modal-content');
+    modalContent.classList.remove('animate-fadeIn');
+    modalContent.classList.add('animate-fadeOut');
+    setTimeout(() => {
+        document.getElementById('deleteClassroomModal').style.display = 'none';
+        classroomToDelete = null;
+        classroomJoinCode = null;
+        document.getElementById('confirmJoinCode').value = '';
+        document.getElementById('confirmJoinCode').classList.remove('input-error');
+    }, 300);
+}
+
+function showDeleteStep2() {
+    document.getElementById('deleteStep1').style.display = 'none';
+    document.getElementById('deleteStep2').style.display = 'block';
+    document.getElementById('confirmJoinCode').focus();
+}
+
+async function confirmDeleteClassroom() {
+    const joinCodeInput = document.getElementById('confirmJoinCode');
+    const joinCode = joinCodeInput.value.trim();
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+
+    if (!joinCode || joinCode !== classroomJoinCode) {
+        joinCodeInput.classList.add('input-error');
+        return;
+    }
+
+    joinCodeInput.classList.remove('input-error');
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Eliminando...';
+
+    try {
+        const session = localStorage.getItem('session');
+        const accessToken = session ? JSON.parse(session).access_token : null;
+        if (!accessToken) throw new Error('No hay token de acceso.');
+
+        const response = await fetch(`/api/classroom/delete/${classroomToDelete}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({ join_code: joinCode })
+        });
+
+        if (!response.ok) throw new Error('Código incorrecto o error eliminando classroom');
+
+        alert('Classroom eliminado correctamente');
+        closeDeleteClassroomModal();
+        loadClassrooms();
+    } catch (error) {
+        console.error(error);
+        alert(`Error: ${error.message}`);
+    } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Eliminar';
+    }
+}
+
+document.getElementById('deleteClassroomModal').addEventListener('click', function(e){
+    if(e.target === this) closeDeleteClassroomModal();
+});
+
+
+// Función para generar color basado en un string (id del estudiante)
+function stringToColor(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const color = `hsl(${hash % 360}, 70%, 50%)`; // HSL para colores vivos
+    return color;
+}
+
+async function openStudentsModal(classroomId) {
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error("Sesión expirada");
+
+        const response = await fetch(`/api/classroom/${classroomId}/students`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+            }
+        });
+
+        if (!response.ok) throw new Error("Error al cargar estudiantes");
+        const students = await response.json();
+
+        const listContainer = document.getElementById('studentsModalList');
+
+        if (!students.length) {
+            listContainer.innerHTML = '<li>No hay estudiantes inscritos</li>';
+        } else {
+            listContainer.innerHTML = students
+                .map(s => {
+                    const color = stringToColor(s.id); // color basado en id
+                    return `
+                    <li>
+                        <div class="student-avatar" style="background-color: ${color};">
+                            ${s.name.charAt(0)}
+                        </div>
+                        <span>${s.name}</span>
+                    </li>
+                    `;
+                }).join('');
+        }
+
+        document.getElementById('studentsModal').style.display = 'block';
+    } catch (err) {
+        alert(err.message);
+    }
+}
+
+function closeStudentsModal() {
+    document.getElementById('studentsModal').style.display = 'none';
+}
+
+
+
+
+</script>
+
 </body>
-</html> 
+</html>

@@ -13,7 +13,7 @@ const studyRoutes = require('./routes/study');
 const notificationRoutes = require('./routes/notifications');
 const tasksRoutes = require('./routes/tasks');
 const classroomRoutes = require('./routes/classroom');
-
+const postsRoutes = require('./routes/posts');
 const app = express();
 const PORT = process.env.PORT || 5500;
 
@@ -31,36 +31,18 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          'https://cdn.jsdelivr.net',
-          'https://unpkg.com'
-        ],
-        scriptSrcAttr: ["'unsafe-inline'"],
-        styleSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          'https://fonts.googleapis.com',
-          'https://cdnjs.cloudflare.com',
-          'https://cdn.jsdelivr.net'
-        ],
-        fontSrc: [
-          "'self'",
-          'data:',
-          'https://fonts.gstatic.com',
-          'https://cdnjs.cloudflare.com',
-          'https://cdnjs.cloudflare.com'
-        ],
-        imgSrc: ["'self'", 'data:'],
-        connectSrc: [
-          "'self'",
-          'https://fqmpmseabhtvahzdavej.supabase.co'
-        ],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://unpkg.com"],
+        scriptSrcAttr: ["'unsafe-inline'"], // <-- esto permite onclick inline
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
+        fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+        imgSrc: ["'self'", "data:", "https://fqmpmseabhtvahzdavej.supabase.co"],
+        connectSrc: ["'self'", "https://fqmpmseabhtvahzdavej.supabase.co", "https://*.supabase.co"]
       }
     }
   })
 );
+
+
 // app.use(limiter); // Desactivado para desarrollo
 // Configurar JSON parsing solo para rutas que no sean de subida de archivos
 app.use((req, res, next) => {
@@ -83,7 +65,7 @@ app.use('/api/study', studyRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/tasks', tasksRoutes);
 app.use('/api/classroom', classroomRoutes);
-
+app.use('/api', postsRoutes);
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../Frontend'), { index: false }));
 
@@ -160,4 +142,5 @@ app.listen(PORT, () => {
   console.log(`📚 Plataforma Inteligente de Estudio Personalizado`);
   console.log(`🌐 http://localhost:${PORT}`);
 }); 
+
 
