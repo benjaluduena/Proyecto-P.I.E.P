@@ -2,6 +2,12 @@
 document.addEventListener('DOMContentLoaded', function () {
   // Poblar datos del usuario
   populateProfileFromUser();
+  
+  // Cargar información de suscripción
+  loadSubscriptionInfo();
+  
+  // Cargar estadísticas del usuario
+  loadUserStatistics();
 
   document.getElementById('btnBack').addEventListener('click', function () {
     window.location.href = 'index.html';
@@ -22,6 +28,19 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('btnCloseEditModal').addEventListener('click', closeEditModal);
   document.getElementById('btnSaveProfile').addEventListener('click', saveProfile);
   document.getElementById('btnCancelEdit').addEventListener('click', closeEditModal);
+  
+  document.getElementById('btnManageSubscriptionFromProfile').addEventListener('click', () => {
+    window.location.href = '/Pages/suscripciones.html';
+  });
+  
+  document.getElementById('btnSyncSubscriptionFromProfile').addEventListener('click', syncSubscriptionFromProfile);
+  document.getElementById('btnDiagnosticSubscription').addEventListener('click', showSubscriptionDiagnostic);
+  
+  // Verificar si el elemento de suscripción existe
+  const subscriptionStatusElement = document.getElementById('subscriptionStatusValue');
+  if (!subscriptionStatusElement) {
+    console.error('Elemento subscriptionStatusValue no encontrado en el DOM');
+  }
 });
 
 function toggleSetting(element) {
@@ -223,4 +242,324 @@ if (window.supabase && supabase.auth && typeof supabase.auth.onAuthStateChange =
       populateProfileFromUser();
     }
   });
+}
+
+// Funciones para suscripciones
+async function loadSubscriptionInfo() {
+  try {
+    const response = await apiCall('/api/payments/subscription/status');
+    const statusElement = document.getElementById('subscriptionStatusValue');
+    const nextPaymentElement = document.getElementById('nextPaymentValue');
+    
+    // Si no hay respuesta o no es exitosa, mostrar valores por defecto
+    if (!response || !response.ok) {
+      console.warn('No se pudo obtener la información de suscripción');
+      updateSubscriptionInfoUI({
+        status: 'inactive',
+        plan: 'gratis',
+        next_payment_date: null
+      });
+      return;
+    }
+    
+    const data = await response.json();
+    console.log('Datos de suscripción recibidos:', data);
+    updateSubscriptionInfoUI(data);
+  } catch (error) {
+    console.error('Error al cargar información de suscripción:', error);
+    // Mostrar valores por defecto en caso de error
+    updateSubscriptionInfoUI({
+      status: 'inactive',
+      plan: 'gratis',
+      next_payment_date: null
+    });
+  }
+}
+
+function updateSubscriptionInfoUI(data) {
+  const statusElement = document.getElementById('subscriptionStatusValue');
+  const nextPaymentElement = document.getElementById('nextPaymentValue');
+  
+  // Verificar que los elementos existen
+  if (!statusElement || !nextPaymentElement) {
+    console.error('No se encontraron los elementos de UI para la suscripción');
+    return;
+  }
+  
+  console.log('Actualizando UI con datos:', data);
+  
+  if (data.status === 'authorized') {
+    statusElement.textContent = 'Activa';
+    statusElement.className = 'setting-value status-active';
+    nextPaymentElement.textContent = data.next_payment_date 
+      ? new Date(data.next_payment_date).toLocaleDateString() 
+      : 'No disponible';
+  } else if (data.status === 'pending') {
+    statusElement.textContent = 'Pendiente';
+    statusElement.className = 'setting-value status-pending';
+    nextPaymentElement.textContent = data.next_payment_date 
+      ? new Date(data.next_payment_date).toLocaleDateString() 
+      : 'No disponible';
+  } else {
+    statusElement.textContent = 'Inactiva';
+    statusElement.className = 'setting-value status-inactive';
+    nextPaymentElement.textContent = '--';
+  }
+}
+
+// Función para sincronizar suscripción desde perfil
+async function syncSubscriptionFromProfile() {
+  try {
+    const response = await apiCall('/api/payments/subscription/sync', {
+      method: 'POST'
+    });
+    
+    if (response && response.ok) {
+      alert('Suscripción sincronizada correctamente');
+      await loadSubscriptionInfo(); // Recargar información
+    } else {
+      const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
+      alert('Error al sincronizar: ' + errorData.error);
+    }
+  } catch (error) {
+    console.error('Error al sincronizar:', error);
+    alert('Error de red al sincronizar la suscripción');
+  }
+}
+
+// Función para mostrar diagnóstico de suscripción
+async function showSubscriptionDiagnostic() {
+  try {
+    const response = await apiCall('/api/payments/subscription/diagnostic');
+    
+    if (response && response.ok) {
+      const diagnostic = await response.json();
+      showDiagnosticModal(diagnostic);
+    } else {
+      alert('Error al obtener diagnóstico de suscripción');
+    }
+  } catch (error) {
+    console.error('Error al obtener diagnóstico:', error);
+    alert('Error de red al obtener diagnóstico');
+  }
+}
+
+// Función para mostrar modal de diagnóstico
+function showDiagnosticModal(diagnostic) {
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.display = 'block';
+  
+  const formatValue = (value) => {
+    if (value === null || value === undefined) return 'null';
+    if (typeof value === 'object') return JSON.stringify(value, null, 2);
+    return String(value);
+  };
+  
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+      <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+      <h3>Diagnóstico de Suscripción</h3>
+      
+      <h4>Estado en Base de Datos:</h4>
+      <ul>
+        <li><strong>Existe:</strong> ${diagnostic.database.subscription_exists ? 'Sí' : 'No'}</li>
+        <li><strong>Estado:</strong> ${diagnostic.database.subscription_data?.status || 'N/A'}</li>
+        <li><strong>ID Mercado Pago:</strong> ${diagnostic.database.subscription_data?.mp_preapproval_id || 'N/A'}</li>
+        <li><strong>Próximo pago:</strong> ${diagnostic.database.subscription_data?.next_payment_date || 'N/A'}</li>
+      </ul>
+      
+      <h4>Estado en Mercado Pago:</h4>
+      <ul>
+        <li><strong>Estado:</strong> ${diagnostic.mercado_pago.mp_data?.status || 'N/A'}</li>
+        <li><strong>Estados coinciden:</strong> ${diagnostic.mercado_pago.status_match ? 'Sí' : 'No'}</li>
+        <li><strong>Error MP:</strong> ${diagnostic.mercado_pago.mp_error || 'Ninguno'}</li>
+      </ul>
+      
+      <h4>Recomendaciones:</h4>
+      <ul>
+        ${diagnostic.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+      </ul>
+      
+      <div style="margin-top: 20px;">
+        <button class="btn btn-secondary" onclick="this.parentElement.parentElement.parentElement.remove()">Cerrar</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+// Función para hacer llamadas a la API con autenticación
+async function apiCall(url, options = {}) {
+  const getAuthHeaders = () => {
+    const session = localStorage.getItem('session');
+    if (session) {
+      const sessionData = JSON.parse(session);
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': sessionData.access_token ? `Bearer ${sessionData.access_token}` : ''
+      };
+    }
+    return { 'Content-Type': 'application/json' };
+  };
+
+  const headers = getAuthHeaders();
+  let finalHeaders = { ...headers, ...options.headers };
+  
+  if (options.body instanceof FormData) {
+    delete finalHeaders['Content-Type'];
+  }
+
+  const config = {
+    ...options,
+    headers: finalHeaders
+  };
+
+  try {
+    const baseUrl = window.location.origin;
+    const response = await fetch(baseUrl + url, config);
+    
+    if (response.status === 401) {
+      localStorage.removeItem('session');
+      localStorage.removeItem('user');
+      localStorage.removeItem('access_token');
+      window.location.replace('/login.html');
+      return null;
+    }
+    
+    return response;
+  } catch (error) {
+    console.error('Error en API call:', error);
+    throw error;
+  }
+}
+
+// Cargar estadísticas del usuario
+async function loadUserStatistics() {
+  try {
+    console.log('📊 Cargando estadísticas del usuario...');
+    
+    // Cargar estadísticas del historial
+    const historialResponse = await apiCall('/api/ai/content/history');
+    let totalStudies = 0;
+    let totalPdfs = 0;
+    
+    if (historialResponse && historialResponse.ok) {
+      const historialData = await historialResponse.json();
+      if (historialData.success && historialData.data) {
+        totalStudies = historialData.data.length;
+        
+        // Contar PDFs únicos
+        const uniquePdfs = new Set();
+        historialData.data.forEach(item => {
+          if (item.pdf_id) {
+            uniquePdfs.add(item.pdf_id);
+          }
+        });
+        totalPdfs = uniquePdfs.size;
+      }
+    }
+    
+    // Cargar datos del perfil del usuario
+    const profileResponse = await apiCall('/api/user/profile');
+    let registrationDate = 'No disponible';
+    let studyDays = 0;
+    
+    if (profileResponse && profileResponse.ok) {
+      const profileData = await profileResponse.json();
+      if (profileData.success && profileData.user) {
+        // Calcular días desde el registro
+        if (profileData.user.created_at) {
+          const createdDate = new Date(profileData.user.created_at);
+          const now = new Date();
+          studyDays = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+          
+          // Formatear fecha de registro
+          registrationDate = createdDate.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
+        }
+        
+        // Actualizar información del perfil
+        if (profileData.user.name) {
+          document.getElementById('displayName').textContent = profileData.user.name;
+          document.getElementById('userName').textContent = profileData.user.name;
+        }
+        
+        if (profileData.user.email) {
+          document.getElementById('displayEmail').textContent = profileData.user.email;
+          document.getElementById('userEmail').textContent = profileData.user.email;
+        }
+        
+        if (profileData.user.role) {
+          const role = profileData.user.role.charAt(0).toUpperCase() + profileData.user.role.slice(1);
+          document.getElementById('displayRole').textContent = role;
+          document.getElementById('userRole').textContent = role;
+        }
+        
+        if (profileData.user.education_level) {
+          const education = profileData.user.education_level.charAt(0).toUpperCase() + profileData.user.education_level.slice(1);
+          document.getElementById('displayEducation').textContent = education;
+        }
+      }
+    }
+    
+    // Actualizar estadísticas en la UI
+    document.getElementById('totalStudies').textContent = totalStudies;
+    document.getElementById('totalPdfs').textContent = totalPdfs;
+    document.getElementById('studyTime').textContent = studyDays;
+    document.getElementById('registrationDate').textContent = registrationDate;
+    
+    // Último acceso (usando fecha actual como ejemplo)
+    const now = new Date();
+    const lastAccessText = now.toLocaleDateString('es-ES', {
+      weekday: 'long',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    document.getElementById('lastAccess').textContent = `Hoy, ${now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+    
+    console.log('✅ Estadísticas cargadas:', { totalStudies, totalPdfs, studyDays });
+    
+  } catch (error) {
+    console.error('❌ Error cargando estadísticas:', error);
+    
+    // Mostrar valores por defecto en caso de error
+    document.getElementById('totalStudies').textContent = '0';
+    document.getElementById('totalPdfs').textContent = '0';
+    document.getElementById('studyTime').textContent = '0';
+    document.getElementById('registrationDate').textContent = 'No disponible';
+    document.getElementById('lastAccess').textContent = 'No disponible';
+  }
+}
+
+// Mejorar la función populateProfileFromUser para datos dinámicos
+function populateProfileFromUser() {
+  try {
+    // Intentar cargar datos del localStorage
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      
+      // Poblar campos básicos si están disponibles
+      if (user.name) {
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('displayName').textContent = user.name;
+        
+        // Actualizar iniciales del avatar
+        const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        document.getElementById('avatarInitials').textContent = initials;
+      }
+      
+      if (user.email) {
+        document.getElementById('userEmail').textContent = user.email;
+        document.getElementById('displayEmail').textContent = user.email;
+      }
+    }
+  } catch (error) {
+    console.error('Error poblando perfil desde usuario:', error);
+  }
 }

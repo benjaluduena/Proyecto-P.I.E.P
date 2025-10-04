@@ -3,6 +3,42 @@ const router = express.Router();
 const supabase = require('../config/supabase');
 const { supabaseAuth } = require('../middleware/auth');
 
+<<<<<<< HEAD
+=======
+// Endpoint temporal para eliminar planes específicos
+router.delete('/delete-plan/:id', async (req, res) => {
+  try {
+    const planId = req.params.id;
+    
+    // Primero eliminar las tareas del plan
+    const { error: tasksError } = await supabase
+      .from('plan_tasks')
+      .delete()
+      .eq('plan_id', planId);
+    
+    if (tasksError) {
+      console.error('Error eliminando tareas:', tasksError);
+    }
+    
+    // Luego eliminar el plan
+    const { error: planError } = await supabase
+      .from('study_plans')
+      .delete()
+      .eq('id', planId);
+    
+    if (planError) {
+      console.error('Error eliminando plan:', planError);
+      return res.status(500).json({ error: 'Error al eliminar el plan' });
+    }
+    
+    res.json({ message: `Plan ${planId} eliminado correctamente` });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+>>>>>>> origin/feat-plan-estudio
 // Diagnóstico de suscripción para un usuario específico
 router.get('/subscription/diagnostic/:userId', async (req, res) => {
   try {
@@ -104,4 +140,57 @@ router.get('/subscription/diagnostic', supabaseAuth, async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
+=======
+// Diagnóstico completo del sistema
+router.get('/system/health', async (req, res) => {
+  try {
+    const health = {
+      timestamp: new Date().toISOString(),
+      database: {
+        connected: false,
+        tables: {}
+      },
+      mercadopago: {
+        configured: !!process.env.MP_ACCESS_TOKEN,
+        back_url: process.env.MP_BACK_URL || null
+      },
+      environment: {
+        node_env: process.env.NODE_ENV || 'development',
+        port: process.env.PORT || 5500
+      }
+    };
+
+    // Verificar conexión a BD y tablas
+    try {
+      // Verificar tabla subscriptions
+      const { data: subscriptions, error: subError } = await supabase
+        .from('subscriptions')
+        .select('user_id')
+        .limit(1);
+      
+      health.database.connected = true;
+      health.database.tables.subscriptions = !subError;
+      
+      // Verificar tabla profiles
+      const { data: profiles, error: profError } = await supabase
+        .from('profiles')
+        .select('id')
+        .limit(1);
+      
+      health.database.tables.profiles = !profError;
+      
+    } catch (dbError) {
+      health.database.connected = false;
+      health.database.error = dbError.message;
+    }
+
+    res.json(health);
+  } catch (error) {
+    console.error('Error en health check:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+>>>>>>> origin/feat-plan-estudio
 module.exports = router;

@@ -1,0 +1,142 @@
+@import url("Componentes/buttons.css");
+@import url("Componentes/scrollbar.css");
+
+@import url("General/base.css");
+@import url("General/titles.css");
+@import url("General/variables.css");
+@import url("General/animaciones.css");
+
+@import url("Secciones/cta-section.css");
+@import url("Secciones/demo-section.css");
+@import url("Secciones/nav-section.css");
+@import url("Secciones/features-section.css");
+@import url("Secciones/footer-section.css");
+@import url("Secciones/hero-section.css");
+@import url("Secciones/pricing-section.css");
+@import url("Secciones/pasos-section.css");
+@import url("Secciones/testimonial-section.css");
+
+
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1024px) {
+    .hero-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .hero-title {
+        font-size: 3rem;
+    }
+    
+    .step {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .step:nth-child(even) {
+        direction: ltr;
+    }
+    
+    .demo-content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .footer-content {
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+    }
+    
+    .nav-toggle {
+        display: flex;
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .hero-stats {
+        justify-content: center;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .testimonials-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .pricing-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .pricing-card.featured {
+        transform: none;
+    }
+    
+    .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .demo-screenshots {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 15px;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+    
+    .btn-large {
+        padding: 14px 24px;
+        font-size: 14px;
+    }
+    
+    .floating-card {
+        display: none;
+    }
+}
+
+/* ===== UTILIDADES ADICIONALES ===== */
+.text-center {
+    text-align: center;
+}
+
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+.mb-40 {
+    margin-bottom: 40px;
+}
+
+.hidden {
+    display: none;
+}

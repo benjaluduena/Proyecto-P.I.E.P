@@ -18,8 +18,8 @@ body {
     display: flex;
     flex-direction: column;
     padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Header Section */
@@ -202,223 +202,426 @@ body {
 
 
 
-/* Cards Section */
+/* Carousel Container */
+.carousel-container {
+    position: relative;
+    max-width: 900px;
+    margin: 2.2rem auto 0;
+    padding: 0 60px;
+}
+
+.carousel-wrapper {
+    overflow: hidden;
+    border-radius: 15px;
+}
+
+.carousel-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.carousel-track:active {
+    cursor: grabbing;
+}
+
+.carousel-slide {
+    min-width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 15px;
+}
+
+/* Para desktop: mostrar 2 tarjetas */
+@media (min-width: 769px) {
+    .carousel-track {
+        display: flex;
+        transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .carousel-slide {
+        min-width: 50%;
+        flex: 0 0 50%;
+    }
+}
+
+/* Para mobile: mostrar 1 tarjeta */
+@media (max-width: 768px) {
+    .carousel-slide {
+        min-width: 100%;
+        flex: 0 0 100%;
+    }
+}
+
+/* Carousel Buttons */
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 45px;
+    height: 45px;
+    background: white;
+    border: 2px solid #f1f1f1;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-btn:hover {
+    background: #a259fa;
+    border-color: #a259fa;
+    color: white;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-btn-prev {
+    left: 10px;
+}
+
+.carousel-btn-next {
+    right: 10px;
+}
+
+.carousel-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Carousel Indicators */
+.carousel-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 25px;
+}
+
+.indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: none;
+    background: #e0e0e0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.indicator.active {
+    background: #a259fa;
+    transform: scale(1.2);
+}
+
+.indicator:hover {
+    background: #a259fa;
+    opacity: 0.7;
+}
+
+/* ====== CARDS MINIMALISTAS ====== */
+
+/* Cards Container */
 .cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 40px;
+    gap: 24px;
     max-width: 900px;
     margin: 0 auto;
     margin-top: 2.2rem;
 }
 
+/* Card Base - Diseño Minimalista Limpio */
 .card {
-    background: white;
-    border: 2px solid #f1f1f1;
-    border-radius: 15px;
-    padding: 25px 20px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
+    /* Layout y dimensiones */
+    width: 280px;
+    height: 340px;
+    padding: 24px;
+    margin: 0 auto;
+    
+    /* Estilo visual minimalista */
+    background: #ffffff;
+    border: 1px solid #f0f0f0;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    
+    /* Interacción sutil */
     cursor: pointer;
-    text-align: center;
-    width: 220px;
-    height: 250px;
-
-    /* CSS Grid para contenido interno */
-    display: grid;
-    grid-template-rows:
-        auto
-        /* badge (posición absoluta, no afecta) */
-        60px
-        /* icono - altura fija */
-        1fr
-        /* título - se adapta al contenido */
-        2fr
-        /* descripción - ocupa más espacio */
-        auto;
-    /* stats - altura mínima necesaria */
-
-    grid-template-areas:
-        "badge"
-        "icon"
-        "title"
-        "description"
-        "stats";
-
+    position: relative;
+    transition: all 0.2s ease;
+    
+    /* Layout interno */
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-items: center;
+    text-align: center;
 }
 
+/* Card active state - clickeable */
+.card:not(.disabled) {
+    cursor: pointer;
+}
+
+.card:not(.disabled):active {
+    transform: translateY(-2px) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+/* Card Hover Effects - Minimalista */
 .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
     border-color: #e0e0e0;
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
 
 .card.active:hover {
-    border-color: #a259fa;
+    border-color: #e0e0e0;
 }
 
+/* Card Focus State para Accesibilidad */
+.card:focus {
+    outline: 2px solid #a259fa;
+    outline-offset: 2px;
+}
+
+/* Card Badge - Minimalista */
 .container-card-badge {
     position: absolute;
-    top: -10px;
-    right: -10px;
-    grid-area: badge;
+    top: 16px;
+    right: 16px;
+    z-index: 2;
 }
 
 .card-badge {
-    background: #f2edfe;
-    color: #a259fa;
+    background: #a259fa;
+    color: white;
     padding: 4px 8px;
-    border-radius: 8px;
-    font-size: 9px;
+    border-radius: 12px;
+    font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
 }
 
 .card-badge.nuevo {
-    background: #e8f5e8;
-    color: #4caf50;
+    background: #4caf50;
 }
 
+.card:hover .card-badge {
+    /* Sin efectos en hover para mantener minimalismo */
+}
+
+/* Card Icon - Minimalista Limpio */
 .card-icon {
-    grid-area: icon;
+    /* Layout y posición */
     width: 60px;
     height: 60px;
-    background: #fff3e0;
-    border-radius: 50%;
+    margin: 0 0 20px 0;
+    flex-shrink: 0;
+    
+    /* Estilo visual limpio con mejor contraste */
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    color: #ff9f43;
-    transition: all 0.3s ease;
-    align-self: center;
-    /* Centra verticalmente en su área */
+    
+    /* Transición suave */
+    transition: all 0.2s ease;
 }
 
+/* Imagen dentro del ícono */
+.card-icon img {
+    width: 32px;
+    height: 32px;
+    transition: all 0.2s ease;
+    /* Asegurar colores sólidos y visibles */
+    opacity: 1;
+    filter: none;
+}
+
+/* Hover effects del ícono - Sin cambio de color */
 .card:hover .card-icon {
-    background: #f2edfe;
-    color: #a259fa;
-    transform: scale(1.1);
+    transform: translateY(-2px);
+    background: #ffffff;
+    border-color: #d0d0d0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.card:hover .card-icon img {
+    /* Mantener colores originales y sólidos */
+    opacity: 1;
+    filter: none;
+}
+
+/* Card Content - Minimalista */
 .card-content {
-    grid-area: title / title / stats / stats;
-    /* Ocupa desde title hasta stats */
-    display: grid;
-    grid-template-rows: subgrid;
-    /* Hereda las filas del padre */
-    width: 100%;
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    flex-grow: 1;
+    text-align: center;
 }
 
+/* Card Title - Tipografía Limpia */
 .card-title {
-    grid-area: title;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 8px 0;
+    text-align: center;
+    line-height: 1.3;
+    transition: all 0.2s ease;
+}
+
+.card:hover .card-title {
     color: #333;
-    margin: 0;
-    align-self: end;
-    /* Alinea al final de su área */
 }
 
+/* Card Description - Texto Simple */
 .card-description {
-    grid-area: description;
-    font-size: 12px;
+    font-size: 14px;
     color: #666;
-    line-height: 1.4;
+    line-height: 1.5;
     font-weight: 400;
-    margin: 0;
-    align-self: center;
-    /* Centra verticalmente en su área */
-    padding: 0 5px;
+    margin: 0 0 20px 0;
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
 }
 
+/* Card Stats - Estilo Limpio */
 .card-stats {
-    grid-area: stats;
-    align-self: start;
-    /* Alinea al inicio de su área */
     margin: 0;
+    text-align: center;
+    flex-shrink: 0;
 }
 
 .usage-count {
-    font-size: 10px;
+    font-size: 11px;
     color: #999;
     font-weight: 500;
+    padding: 4px 8px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    transition: all 0.2s ease;
 }
 
+.card:hover .usage-count {
+    background: #eee;
+}
+
+/* Card Overlay - Minimalista Limpio */
 .card-overlay {
-    height: 60px;
     position: absolute;
-    top: 10;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(162, 89, 250, 0.95);
+    background: rgba(255, 255, 255, 0.95);
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: all 0.3s ease;
-    border-radius: 0px;
+    transition: all 0.2s ease;
+    border-radius: 16px;
 }
 
 .card:hover .card-overlay {
     opacity: 1;
 }
 
+/* Card Action Button - Botón Minimalista */
 .card-action-btn {
-    background: white;
-    color: #a259fa;
-    border: none;
-    padding: 8px 16px;
+    /* Layout */
+    padding: 12px 24px;
+    border: 2px solid #e0e0e0;
     border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    font-family: 'Poppins', Arial, sans-serif;
+    
+    /* Tipografía */
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: normal;
+    
+    /* Estilo visual minimalista */
+    background: #ffffff;
+    color: #333;
+    transition: all 0.2s ease;
 }
 
 .card-action-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+    background: #f5f5f5;
+    border-color: #ccc;
+    color: #000;
 }
 
-/*Card Disabled*/
+.card-action-btn:active {
+    background: #eee;
+    transform: translateY(1px);
+}
+
+/* Card Disabled - Estado Minimalista */
 .card.disabled {
-    pointer-events: none;
-    /* Desactiva interacciones */
-    opacity: 0.5;
-    /* Visualmente desactivada */
-    filter: grayscale(80%);
-    /* Tono gris para reforzar estado inactivo */
+    pointer-events: auto; /* Permitir clicks para mostrar mensaje */
     cursor: not-allowed;
-    /* Cursor bloqueado */
-    transition: all 0.3s ease;
+    opacity: 0.5;
+    background: #f8f9fa;
+    border-color: #e0e0e0;
 }
 
 .card.disabled:hover {
     transform: none;
-    /* Desactiva animaciones de hover */
     box-shadow: none;
-    border-color: #f1f1f1;
-    /* Color base del borde */
 }
 
 .card.disabled .card-icon {
-    background: #f9f9f9;
-    /* Color más tenue para el ícono */
+    background: #ffffff;
+    border-color: #e0e0e0;
+    /* Mantener fondo blanco para mejor contraste */
+}
+
+.card.disabled .card-icon img {
+    opacity: 0.8; /* Reducir solo ligeramente la opacidad en lugar de 0.5 */
+    filter: grayscale(0); /* No aplicar filtro gris para mantener colores */
+}
+
+.card.disabled .card-title {
+    color: #999;
+}
+
+.card.disabled .card-description {
     color: #ccc;
-    transform: none;
+}
+
+.card.disabled .usage-count {
+    background: #f0f0f0;
+    color: #aaa;
 }
 
 .card.disabled .card-overlay {
     opacity: 0 !important;
-    /* No mostrar overlay en estado desactivado */
+}
+
+.card.disabled .card-badge {
+    opacity: 0.4;
 }
 
 /* File selected state */
@@ -737,6 +940,128 @@ body {
     right: 10px;
     left: 10px;
     max-width: none;
+  }
+
+  /* Carousel responsive */
+  .carousel-container {
+    padding: 0 40px;
+  }
+  
+  .carousel-btn {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .carousel-btn-prev {
+    left: 5px;
+  }
+  
+  .carousel-btn-next {
+    right: 5px;
+  }
+  
+  .carousel-slide {
+    padding: 10px;
+  }
+  
+  /* Cards responsive para tablets */
+  .card {
+    width: 260px;
+    height: 340px;
+  }
+  
+  .card-icon {
+    width: 70px;
+    height: 70px;
+    margin: 30px auto 20px;
+  }
+  
+  .card-icon img {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .card-content {
+    padding: 0 20px;
+  }
+  
+  .card-title {
+    font-size: 18px;
+    margin: 0 0 10px 0;
+  }
+  
+  .card-description {
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0 0 20px 0;
+  }
+  
+  .card-action-btn {
+    padding: 12px 24px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-container {
+    padding: 0 25px;
+  }
+  
+  .carousel-btn {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .carousel-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  /* Cards responsive para móviles */
+  .card {
+    width: 240px;
+    height: 320px;
+  }
+  
+  .card-icon {
+    width: 60px;
+    height: 60px;
+    margin: 25px auto 15px;
+  }
+  
+  .card-icon img {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .card-content {
+    padding: 0 16px;
+  }
+  
+  .card-title {
+    font-size: 16px;
+    margin: 0 0 8px 0;
+  }
+  
+  .card-description {
+    font-size: 12px;
+    line-height: 1.4;
+    margin: 0 0 16px 0;
+  }
+  
+  .card-action-btn {
+    padding: 10px 20px;
+    font-size: 11px;
+  }
+  
+  .card-badge {
+    padding: 6px 10px;
+    font-size: 9px;
+  }
+  
+  .usage-count {
+    font-size: 10px;
+    padding: 4px 8px;
   }
 }
 

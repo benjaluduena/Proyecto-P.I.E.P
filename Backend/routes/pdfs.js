@@ -3,7 +3,29 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
 const supabase = require('../config/supabase');
-const { supabaseAuth } = require('../middleware/auth');
+const { supabaseAuth, devAuth } = require('../middleware/auth');
+
+// Usar devAuth en desarrollo, authMiddleware en producción
+const authMiddleware = process.env.NODE_ENV === 'development' ? devAuth : supabaseAuth;
+
+// Función para validar y normalizar rutas de archivos
+function sanitizeFilePath(filePath, baseDir) {
+  try {
+    // Normalizar el path y resolver rutas relativas
+    const normalizedPath = path.normalize(filePath);
+    const resolvedPath = path.resolve(baseDir, normalizedPath);
+    const resolvedBaseDir = path.resolve(baseDir);
+    
+    // Verificar que el path resuelto esté dentro del directorio base
+    if (!resolvedPath.startsWith(resolvedBaseDir)) {
+      throw new Error('Path traversal detectado');
+    }
+    
+    return resolvedPath;
+  } catch (error) {
+    throw new Error('Ruta de archivo inválida');
+  }
+}
 
 const router = express.Router();
 
@@ -42,7 +64,7 @@ const upload = multer({
 });
 
 // Subir PDF
-router.post('/upload', supabaseAuth, upload.single('pdf'), async (req, res) => {
+router.post('/upload', authMiddleware, upload.single('pdf'), async (req, res) => {
   try {
     if (!req.user || !req.user.id) {
       return res.status(401).json({ error: 'No autenticado' });
@@ -106,7 +128,7 @@ router.post('/upload', supabaseAuth, upload.single('pdf'), async (req, res) => {
 });
 
 // Listar PDFs del usuario
-router.get('/my-pdfs', supabaseAuth, async (req, res) => {
+router.get('/my-pdfs', authMiddleware, async (req, res) => {
   try {
     const s = req.supabase || supabase;
     const { data: pdfs, error } = await s
@@ -135,7 +157,7 @@ router.get('/my-pdfs', supabaseAuth, async (req, res) => {
 });
 
 // Obtener PDF específico
-router.get('/:id', supabaseAuth, async (req, res) => {
+router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -172,7 +194,7 @@ router.get('/:id', supabaseAuth, async (req, res) => {
 });
 
 // Actualizar título del PDF
-router.put('/:id', supabaseAuth, async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const { title } = req.body;
@@ -206,7 +228,7 @@ router.put('/:id', supabaseAuth, async (req, res) => {
 });
 
 // Eliminar PDF
-router.delete('/:id', supabaseAuth, async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -235,10 +257,11 @@ router.delete('/:id', supabaseAuth, async (req, res) => {
       return res.status(500).json({ error: 'Error al eliminar el archivo' });
     }
 
-    // Eliminar archivo físico
+    // Eliminar archivo físico con validación de path
     try {
-      const filePath = path.join(__dirname, '..', pdf.file_url);
-      await fs.unlink(filePath);
+      const baseDir = path.join(__dirname, '..');
+      const safePath = sanitizeFilePath(pdf.file_url, baseDir);
+      await fs.unlink(safePath);
     } catch (fileError) {
       console.warn('No se pudo eliminar el archivo físico:', fileError);
     }
@@ -252,10 +275,14 @@ router.delete('/:id', supabaseAuth, async (req, res) => {
 });
 
 // Servir archivos PDF
-router.get('/file/:filename', supabaseAuth, async (req, res) => {
+router.get('/file/:filename', authMiddleware, async (req, res) => {
   try {
     const { filename } = req.params;
-    const filePath = path.join(__dirname, '../uploads', filename);
+    
+    // Validar filename para prevenir path traversal
+    if (!filename || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+      return res.status(400).json({ error: 'Nombre de archivo inválido' });
+    }
 
     // Verificar que el archivo existe y pertenece al usuario
     const s = req.supabase || supabase;
@@ -270,10 +297,115 @@ router.get('/file/:filename', supabaseAuth, async (req, res) => {
       return res.status(404).json({ error: 'Archivo no encontrado' });
     }
 
-    res.sendFile(filePath);
+    // Construir ruta segura
+    const uploadsDir = path.join(__dirname, '../uploads');
+    const safePath = sanitizeFilePath(filename, uploadsDir);
+    
+    res.sendFile(safePath);
 
   } catch (error) {
     console.error('Error al servir archivo:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Endpoint de prueba para crear datos de test (solo en desarrollo)
+router.post('/create-test', authMiddleware, async (req, res) => {
+  if (process.env.NODE_ENV !== 'development') {
+    return res.status(403).json({ error: 'Endpoint solo disponible en desarrollo' });
+  }
+
+  try {
+    const { title = 'PDF de Prueba', content = 'Contenido de prueba' } = req.body;
+    
+    // Crear PDF de prueba en la BD
+    const { data: pdf, error: pdfError } = await supabase
+      .from('pdf_uploads')
+      .insert([{
+        user_id: req.user.id,
+        file_name: `${title.toLowerCase().replace(/\s+/g, '-')}.pdf`,
+        title: title,
+        file_url: '/uploads/test-file.pdf'
+      }])
+      .select('*')
+      .single();
+
+    if (pdfError) {
+      console.error('Error creando PDF de prueba:', pdfError);
+      return res.status(500).json({ error: 'Error creando PDF de prueba' });
+    }
+
+    // Crear contenido de estudio de prueba
+    const studyTypes = ['resumen', 'multiple_choice', 'verdadero_falso'];
+    const studyOutputs = [];
+
+    for (const type of studyTypes) {
+      let testContent;
+      
+      if (type === 'resumen') {
+        testContent = {
+          resumen_general: 'Este es un resumen de prueba generado automáticamente.',
+          conceptos_clave: ['Concepto 1', 'Concepto 2', 'Concepto 3'],
+          aplicaciones_practicas: ['Aplicación 1', 'Aplicación 2'],
+          conclusiones: 'Conclusiones de prueba.'
+        };
+      } else if (type === 'multiple_choice') {
+        testContent = {
+          preguntas: [
+            {
+              enunciado: '¿Cuál es la respuesta correcta?',
+              opciones: ['Opción A', 'Opción B', 'Opción C', 'Opción D'],
+              respuesta: 1,
+              explicacion: 'La opción B es correcta porque...'
+            },
+            {
+              enunciado: '¿Qué significa "prueba"?',
+              opciones: ['Test', 'Examen', 'Evaluación', 'Todas las anteriores'],
+              respuesta: 3,
+              explicacion: 'Todas las opciones son sinónimos de prueba.'
+            }
+          ]
+        };
+      } else if (type === 'verdadero_falso') {
+        testContent = {
+          preguntas: [
+            {
+              enunciado: 'Este es un sistema de prueba.',
+              respuesta: 'verdadero',
+              explicacion: 'Efectivamente, este es un sistema para testing.'
+            },
+            {
+              enunciado: 'Los datos de prueba no son útiles.',
+              respuesta: 'falso',
+              explicacion: 'Los datos de prueba son muy útiles para desarrollo.'
+            }
+          ]
+        };
+      }
+
+      const { data: output, error: outputError } = await supabase
+        .from('study_outputs')
+        .insert([{
+          pdf_id: pdf.id,
+          type: type,
+          content: testContent
+        }])
+        .select('*')
+        .single();
+
+      if (!outputError) {
+        studyOutputs.push(output);
+      }
+    }
+
+    res.status(201).json({
+      message: 'Datos de prueba creados exitosamente',
+      pdf: pdf,
+      studyOutputs: studyOutputs
+    });
+
+  } catch (error) {
+    console.error('Error creando datos de prueba:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

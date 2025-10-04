@@ -1,0 +1,170 @@
+<!-- Calendario - StudyAI -->
+<div class="calendario-container">
+  <!-- Header del calendario -->
+  <div class="calendario-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <svg class="title-icon">
+          <use href="/Assets/sprite.svg#icon-calendar"></use>
+        </svg>
+        Mi Calendario de Estudio
+      </h1>
+      <p class="page-subtitle">Organiza tus sesiones de estudio y mantén un seguimiento de tu progreso</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-action btn-primary" id="btnNuevoEvento">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6z"/>
+        </svg>
+        Nuevo Evento
+      </button>
+      <button class="btn-action btn-secondary" id="btnHoy">Hoy</button>
+    </div>
+  </div>
+
+  <!-- Navegación del calendario -->
+  <div class="calendario-nav">
+    <div class="nav-controls">
+      <button class="nav-btn" id="btnAnterior">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+        </svg>
+      </button>
+      <h2 class="current-month" id="currentMonth">Noviembre 2024</h2>
+      <button class="nav-btn" id="btnSiguiente">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="view-toggles">
+      <button class="view-btn active" data-view="month">Mes</button>
+      <button class="view-btn" data-view="week">Semana</button>
+      <button class="view-btn" data-view="day">Día</button>
+    </div>
+  </div>
+
+  <!-- Vista del calendario -->
+  <div class="calendario-grid-container">
+    <!-- Headers de días de la semana -->
+    <div class="calendar-weekdays">
+      <div class="weekday">Dom</div>
+      <div class="weekday">Lun</div>
+      <div class="weekday">Mar</div>
+      <div class="weekday">Mié</div>
+      <div class="weekday">Jue</div>
+      <div class="weekday">Vie</div>
+      <div class="weekday">Sáb</div>
+    </div>
+
+    <!-- Grid del calendario -->
+    <div class="calendar-grid" id="calendarGrid">
+      <!-- Los días se generarán dinámicamente con JavaScript -->
+    </div>
+  </div>
+
+  <!-- Panel lateral de eventos -->
+  <div class="sidebar-eventos" id="sidebarEventos">
+    <div class="sidebar-header">
+      <h3>Eventos del día</h3>
+      <span class="fecha-seleccionada" id="fechaSeleccionada">Selecciona un día</span>
+    </div>
+    <div class="eventos-lista" id="eventosLista">
+      <div class="no-eventos">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" opacity="0.3">
+          <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+        </svg>
+        <p>No hay eventos programados</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para crear/editar eventos -->
+<div class="modal-overlay" id="modalEvento">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">Nuevo Evento de Estudio</h3>
+      <button class="modal-close" id="btnCerrarModal">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+    </div>
+    <form class="modal-form" id="formEvento">
+      <div class="form-group">
+        <label for="eventoTitulo">Título del evento</label>
+        <input type="text" id="eventoTitulo" name="titulo" placeholder="Ej: Estudio de Matemáticas" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="eventoTipo">Tipo de actividad</label>
+        <select id="eventoTipo" name="tipo" required>
+          <option value="">Seleccionar tipo</option>
+          <option value="estudio">📚 Sesión de Estudio</option>
+          <option value="examen">📝 Examen</option>
+          <option value="tarea">📋 Tarea/Proyecto</option>
+          <option value="revision">🔍 Revisión</option>
+          <option value="descanso">☕ Descanso</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="eventoFecha">Fecha</label>
+          <input type="date" id="eventoFecha" name="fecha" required>
+        </div>
+        <div class="form-group">
+          <label for="eventoDuracion">Duración (minutos)</label>
+          <input type="number" id="eventoDuracion" name="duracion" min="15" max="480" value="60" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="eventoHoraInicio">Hora de inicio</label>
+          <input type="time" id="eventoHoraInicio" name="horaInicio" required>
+        </div>
+        <div class="form-group">
+          <label for="eventoPrioridad">Prioridad</label>
+          <select id="eventoPrioridad" name="prioridad" required>
+            <option value="baja">🟢 Baja</option>
+            <option value="media" selected>🟡 Media</option>
+            <option value="alta">🔴 Alta</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="eventoDescripcion">Descripción (opcional)</label>
+        <textarea id="eventoDescripcion" name="descripcion" placeholder="Detalles adicionales del evento..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="eventoRecordatorio" name="recordatorio">
+          <span class="checkmark"></span>
+          Recordatorio 15 minutos antes
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="btnCancelar">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar Evento</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay" style="display: none;">
+  <div class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Cargando calendario...</p>
+  </div>
+</div>
+
+<script>
+// El calendario se inicializa automáticamente desde calendario.js
+console.log('Página del calendario cargada');
+</script>

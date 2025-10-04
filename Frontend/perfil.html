@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/Css/perfil.css">
   <script src="lib/supabase.js"></script>
   <script src="/JS/config.js"></script>
+  <script src="/JS/supabase-init.js"></script>
   <script src="/JS/auth-check.js"></script>
 </head>
 
@@ -60,16 +61,16 @@
 
         <div class="profile-stats">
           <div class="stat-item">
-            <span class="stat-number">24</span>
-            <span class="stat-label">Estudios</span>
+            <span class="stat-number" id="totalStudies">-</span>
+            <span class="stat-label">Contenidos IA</span>
           </div>
           <div class="stat-item">
-            <span class="stat-number">156</span>
-            <span class="stat-label">Preguntas</span>
+            <span class="stat-number" id="totalPdfs">-</span>
+            <span class="stat-label">PDFs Subidos</span>
           </div>
           <div class="stat-item">
-            <span class="stat-number">89%</span>
-            <span class="stat-label">Precisión</span>
+            <span class="stat-number" id="studyTime">-</span>
+            <span class="stat-label">Días Activo</span>
           </div>
         </div>
       </div>
@@ -96,13 +97,33 @@
           </div>
           <div class="info-item">
             <label class="info-label">Fecha de Registro</label>
-            <div class="info-value">15 de Marzo, 2024</div>
+            <div class="info-value" id="registrationDate">Cargando...</div>
           </div>
           <div class="info-item">
             <label class="info-label">Último Acceso</label>
-            <div class="info-value">Hoy, 14:30</div>
+            <div class="info-value" id="lastAccess">Cargando...</div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Subscription Section -->
+    <div class="settings-section">
+      <h3 class="section-title">Suscripción</h3>
+      <div class="settings-grid">
+        <div class="setting-item">
+          <span class="setting-label">Estado de Suscripción</span>
+          <span class="setting-value" id="subscriptionStatusValue">Cargando...</span>
+        </div>
+        <div class="setting-item">
+          <span class="setting-label">Próximo Pago</span>
+          <span class="setting-value" id="nextPaymentValue">--</span>
+        </div>
+      </div>
+      <div class="subscription-actions">
+        <button class="btn btn-primary" id="btnManageSubscriptionFromProfile">Gestionar Suscripción</button>
+        <button class="btn btn-secondary" id="btnSyncSubscriptionFromProfile">Sincronizar</button>
+        <button class="btn btn-secondary" id="btnDiagnosticSubscription">Diagnóstico</button>
       </div>
     </div>
 

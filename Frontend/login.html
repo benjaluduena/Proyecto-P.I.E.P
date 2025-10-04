@@ -4,77 +4,56 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Iniciar Sesión / Registrarse</title>
-  <link rel="stylesheet" href="/Css/login.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <title>Iniciar Sesión - P.I.E.P.</title>
+  <link rel="stylesheet" href="Css/Login-Register/login-register.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
 </head>
 
 <body>
-  <div class="image-placeholder">
-    <img src="Assets/Imagenes/background.png" alt="background" />
-  </div>
+  <div class="container">
+    <div class="form-container">
+      <h2 class="form-title">Iniciar Sesión</h2>
+      <p class="form-subtitle">Bienvenido de vuelta a tu plataforma de estudio inteligente</p>
 
-  <div class="form-container">
-    <img src="Assets/Imagenes/Logo.png" alt="Logo" class="logo" />
-    <h2 id="form-title">Iniciar Sesión</h2>
+      <form id="login-form">
+        <div class="input-group">
+          <label for="email">Correo electrónico</label>
+          <input type="email" id="email" placeholder="tucorreo@ejemplo.com" required />
+        </div>
 
-    <div class="form-toggle">
-      <button type="button" class="toggle-btn active" id="login-toggle">Iniciar Sesión</button>
-      <button type="button" class="toggle-btn" id="register-toggle">Registrarse</button>
-    </div>
+        <div class="input-group">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" placeholder="********" required />
+        </div>
 
-    <form id="auth-form">
-      <!-- Campos de registro (ocultos inicialmente) -->
-      <div class="input-group hidden" id="name-group">
-        <label for="name">Nombre completo</label>
-        <input type="text" id="name" placeholder="Tu nombre completo" />
-      </div>
+        <div class="form-options">
+          <label class="checkbox-container">
+            <input type="checkbox" id="remember-me">
+            <span class="checkmark"></span>
+            Recordarme
+          </label>
+          <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+        </div>
 
-      <!-- Campo de email (siempre visible) -->
-      <div class="input-group">
-        <label for="email">Correo electrónico</label>
-        <input type="email" id="email" placeholder="tucorreo@ejemplo.com" required />
-      </div>
+        <button type="submit" class="submit-button">
+          <i class="fas fa-sign-in-alt"></i>
+          Iniciar Sesión
+        </button>
 
-      <!-- Campo de contraseña (siempre visible) -->
-      <div class="input-group">
-        <label for="password">Contraseña</label>
-        <input type="password" id="password" placeholder="********" required />
-      </div>
+        <div class="divider">
+          <span>o continúa con</span>
+        </div>
 
-      <!-- Campos de registro adicionales (ocultos inicialmente) -->
-      <div class="input-group hidden" id="role-group">
-        <label for="role">Rol</label>
-        <select id="role" required>
-          <option value="">Selecciona tu rol</option>
-          <option value="estudiante">Estudiante</option>
-          <option value="docente">Docente</option>
-        </select>
-      </div>
-
-      <div class="input-group hidden" id="education-group">
-        <label for="education_level">Nivel educativo</label>
-        <select id="education_level">
-          <option value="">Selecciona tu nivel educativo</option>
-          <option value="secundario">Secundario</option>
-          <option value="terciario">Terciario</option>
-          <option value="universitario">Universitario</option>
-          <option value="posgrado">Posgrado</option>
-        </select>
-      </div>
-
-      <button type="submit" class="submit-button" id="submit-btn">Entrar</button>
-      <div class="google-auth-container">
         <button type="button" class="google-btn" id="google-auth-btn">
           <img src="Assets/Icons/google.svg" alt="Google" class="google-icon" />
-          <span id="google-btn-text">Iniciar con Google</span>
+          <span>Iniciar Sesión con Google</span>
         </button>
-      </div>
 
-      <div class="extra" id="login-extra">
-        <a href="#">¿Olvidaste tu contraseña?</a>
-      </div>
-    </form>
+        <div class="register-link">
+          <p>¿No tienes una cuenta? <a href="register.html">Regístrate aquí</a></p>
+        </div>
+      </form>
+    </div>
   </div>
 
   <div class="verify-email-container" id="verify-email-container" style="display:none;">
@@ -86,8 +65,7 @@
   </div>
 
   <script src="/lib/supabase.js"></script>
-  <script src="/JS/config.js"></script>
-  <script src="/JS/login.js"></script>
+  <script src="/JS/simple-login.js"></script>
 </body>
 
 </html>

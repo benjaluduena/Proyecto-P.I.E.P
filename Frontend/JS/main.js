@@ -1,6 +1,7 @@
 let isDropdownOpen = false;
-// Carga inicial
+// Función de carga de sección que delega al sistema modular
 function cargarSeccion(nombre) {
+<<<<<<< HEAD
   console.log(`Cargando sección: ${nombre}`);
   
   const contenedor = document.getElementById('contenido');
@@ -9,6 +10,60 @@ function cargarSeccion(nombre) {
     return;
   }
 
+=======
+  console.log(`cargarSeccion llamado con: ${nombre}`);
+  
+  // Si el sistema modular está disponible, usarlo
+  if (window.app && window.app.loadSection) {
+    console.log('Usando sistema modular para cargar sección');
+    window.app.loadSection(nombre);
+    return;
+  }
+  
+  // Fallback al sistema legacy si el modular no está disponible
+  console.log('Usando sistema legacy para cargar sección');
+  loadSectionLegacy(nombre);
+}
+
+// Sistema legacy de carga (backup)
+function loadSectionLegacy(nombre) {
+  // Ocultar cualquier loading activo antes de comenzar
+  if (window.app && window.app.uiModule) {
+    window.app.uiModule.hideLoading();
+  }
+  
+  // Limpiar recursos de la sección anterior
+  if (window.cleanupHistorial && document.getElementById('historialContainer')) {
+    console.log('Limpiando recursos de historial antes de cargar nueva sección');
+    window.cleanupHistorial();
+  }
+  
+  if (window.cleanupCambiarPlan && document.querySelector('.cambiar-plan-container')) {
+    console.log('Limpiando recursos de cambiar plan antes de cargar nueva sección');
+    window.cleanupCambiarPlan();
+  }
+  
+  // Eliminar scripts anteriores para evitar duplicados
+  const oldScripts = document.querySelectorAll('script[data-section]');
+  oldScripts.forEach(script => {
+    if (script.parentNode) {
+      script.parentNode.removeChild(script);
+    }
+  });
+
+  // Eliminar cualquier script de la misma sección previamente insertado por otros sistemas
+  const dupScripts = Array.from(document.querySelectorAll('script[src]')).filter(s => {
+    const src = s.getAttribute('src') || '';
+    return src.includes(`/JS/${nombre}.js`);
+  });
+  dupScripts.forEach(s => {
+    if (s.parentNode) {
+      s.parentNode.removeChild(s);
+      console.log(`🗑️ Script duplicado eliminado (legacy): ${s.src}`);
+    }
+  });
+  
+>>>>>>> origin/feat-plan-estudio
   fetch(`Pages/${nombre}.html`)
     .then(res => {
       if (!res.ok) {
@@ -25,10 +80,20 @@ function cargarSeccion(nombre) {
       script.src = `/JS/${nombre}.js`;
       script.type = 'text/javascript';
       script.defer = true;
+<<<<<<< HEAD
       
       // Manejar errores del script
       script.onerror = () => {
         console.warn(`Script ${nombre}.js no encontrado, continuando sin él`);
+=======
+      script.setAttribute('data-section', nombre);
+      
+      script.onload = function() {
+        console.log(`Script ${nombre}.js cargado correctamente`);
+      };
+      script.onerror = function() {
+        console.error(`Error al cargar el script ${nombre}.js`);
+>>>>>>> origin/feat-plan-estudio
       };
       
       document.body.appendChild(script);
@@ -36,6 +101,7 @@ function cargarSeccion(nombre) {
       // Reasignar logout por si la sección cambia el DOM
       asignarLogout();
       
+<<<<<<< HEAD
       // Volver a poblar información del usuario después de cargar la sección
       setTimeout(() => {
         populateUserInfo();
@@ -52,13 +118,67 @@ function cargarSeccion(nombre) {
           </button>
         </div>
       `;
+=======
+      // Inicializaciones específicas por sección
+      if (nombre === 'home' && window.initializeHomeIfNeeded) {
+        console.log('Inicializando home después de cargar HTML...');
+        setTimeout(() => {
+          if (window.initializeHomeIfNeeded) {
+            window.initializeHomeIfNeeded();
+            console.log('Home inicializado correctamente');
+          } else {
+            console.error('Error: initializeHomeIfNeeded no está disponible');
+          }
+        }, 300);
+      }
+      
+      if (nombre === 'historial' && window.initializeHistorial) {
+        setTimeout(() => window.initializeHistorial(), 200);
+      }
+      
+      if (nombre === 'cambiar-plan' && window.initializeCambiarPlan) {
+        setTimeout(() => window.initializeCambiarPlan(), 200);
+      }
+      
+      if (nombre === 'planes-estudio' && window.initializeStudyPlans) {
+        setTimeout(() => {
+          console.log('Inicializando planes de estudio...');
+          window.initializeStudyPlans();
+        }, 300);
+      }
+    })
+    .catch(err => {
+      console.error('Error al cargar sección:', err);
+      document.getElementById('contenido').innerHTML = `<p>Error al cargar ${nombre}</p>`;
+>>>>>>> origin/feat-plan-estudio
     });
 }
 
 // Carga inicial
 window.onload = () => {
+<<<<<<< HEAD
   console.log('Página cargada, iniciando aplicación...');
   cargarSeccion('home');
+=======
+  console.log('Evento window.onload disparado');
+  // Verificar que supabase esté disponible antes de cargar la sección home
+  if (window.supabase) {
+    console.log('Supabase disponible, cargando sección home');
+    cargarSeccion('home');
+  } else {
+    console.error('Supabase no disponible, esperando...');
+    // Esperar a que supabase esté disponible
+    setTimeout(() => {
+      if (window.supabase) {
+        console.log('Supabase disponible después de espera, cargando sección home');
+        cargarSeccion('home');
+      } else {
+        console.error('Supabase no disponible después de espera, cargando sección home de todos modos');
+        cargarSeccion('home');
+      }
+    }, 500);
+  }
+>>>>>>> origin/feat-plan-estudio
 };
 
 // Función de logout mejorada
@@ -129,6 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnCerrarSesion.addEventListener("click", logout);
   }
 
+<<<<<<< HEAD
   // Event listeners para los botones del menú
   const homeBtn = document.getElementById('homeBtn');
   const classroomBtn = document.getElementById('classroomBtn');
@@ -153,6 +274,17 @@ document.addEventListener("DOMContentLoaded", () => {
         window.openClassroomPage();
       } else {
         console.error('Función openClassroomPage no está disponible');
+=======
+  // Botón Cambiar plan
+  const btnCambiarPlan = document.getElementById('btnCambiarPlan');
+  if (btnCambiarPlan) {
+    btnCambiarPlan.addEventListener('click', async () => {
+      try {
+        // Ajusta el monto al mínimo permitido por tu cuenta/región en MP
+        await PIEP.startSubscription({ amount: 1500, currency: 'ARS' });
+      } catch (e) {
+        alert('No se pudo iniciar el cambio de plan. Intenta de nuevo.');
+>>>>>>> origin/feat-plan-estudio
       }
     });
   }
@@ -252,6 +384,14 @@ function openSettings() {
 
 // Asignar logout al botón 'Salir' de forma robusta
 function asignarLogout() {
+  // Buscar botón "Cambiar plan"
+  const btnCambiarPlan = document.getElementById('btnCambiarPlan');
+  if (btnCambiarPlan) {
+    btnCambiarPlan.removeEventListener('click', handleCambiarPlan);
+    btnCambiarPlan.addEventListener('click', handleCambiarPlan);
+    console.log('Botón Cambiar plan listo');
+  }
+  
   // Busca el botón por el icono de logout
   const botones = document.querySelectorAll('.sidebar-footer .menu-item');
   for (let btn of botones) {
@@ -263,6 +403,13 @@ function asignarLogout() {
       break;
     }
   }
+}
+
+// Función para manejar clic en "Cambiar plan"
+function handleCambiarPlan(e) {
+  e.preventDefault();
+  console.log('Cargando sección cambiar-plan...');
+  cargarSeccion('cambiar-plan');
 }
 
 // Ejecutar al cargar el DOM y tras cargar secciones
@@ -375,17 +522,32 @@ async function populateUserInfo() {
   }
 }
 
-// Actualizar UI si cambia el estado de autenticación
-if (window.supabase && supabase.auth && typeof supabase.auth.onAuthStateChange === 'function') {
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (session && session.user) {
-      try {
-        localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(session.user));
-        localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
-      } catch (_) {}
-      populateUserInfo();
+// Actualizar UI si cambia el estado de autenticación (solo para index.html)
+async function setupAuthStateListenerForMain() {
+  try {
+    const supabase = await window.waitForSupabase();
+    if (supabase && supabase.auth && typeof supabase.auth.onAuthStateChange === 'function') {
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session && session.user) {
+          try {
+            localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(session.user));
+            localStorage.setItem(CONFIG.STORAGE_KEYS.SESSION, JSON.stringify(session));
+            populateUserInfo();
+          } catch (_) {}
+        } else if (event === 'SIGNED_OUT') {
+          clearSession();
+          redirectToLogin();
+        }
+      });
     }
-  });
+  } catch (error) {
+    console.error('Error configurando listener de auth en main:', error);
+  }
+}
+
+// Solo configurar el listener si estamos en index.html
+if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
+  document.addEventListener('supabaseReady', setupAuthStateListenerForMain);
 }
 
 function isTruncated(element) {

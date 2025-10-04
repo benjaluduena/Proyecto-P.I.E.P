@@ -1,7 +1,11 @@
 const express = require('express');
 const OpenAI = require('openai');
 const supabase = require('../config/supabase');
-const { supabaseAuth } = require('../middleware/auth');
+const { supabaseAuth, devAuth } = require('../middleware/auth');
+
+// Usar devAuth en desarrollo, authMiddleware en producción
+const authMiddleware = process.env.NODE_ENV === 'development' ? devAuth : supabaseAuth;
+const { validate, aiSchemas, uuidParam, pdfIdParam } = require('../middleware/validation');
 const fs = require('fs');
 const path = require('path');
 const pdfParse = require('pdf-parse');
@@ -53,16 +57,6 @@ const generateEducationalContent = async (pdfText, contentType, educationLevel, 
   const prompts = {
     resumen: `A partir del siguiente texto, genera un resumen educativo en formato JSON ESTRICTAMENTE con la siguiente estructura y sin ningún texto adicional fuera del JSON:\n\n{\n  "resumen_general": "Texto del resumen general aquí.",\n  "conceptos_clave": ["Concepto 1", "Concepto 2", "Concepto 3"],\n  "aplicaciones_practicas": ["Aplicación 1", "Aplicación 2", "Aplicación 3"],\n  "conclusiones": "Texto de las conclusiones aquí."\n}\n\n- Si algún campo no puede generarse, déjalo vacío pero siempre incluye todos los campos.\n- No expliques nada fuera del JSON.\n- Responde solo en español.\n\nTexto a resumir:\n${pdfText}`,
 
-    recomendacion_video: `Basándote en el siguiente texto, sugiere 3-5 videos educativos relacionados.
-    Nivel educativo: ${educationLevel}.
-    Para cada video incluye:
-    - Título sugerido
-    - Descripción del contenido
-    - Plataforma recomendada (YouTube, Khan Academy, etc.)
-    - Duración estimada
-    - Por qué es relevante
-    
-    Texto: ${pdfText}`,
 
     recomendacion_texto: `Basándote en el siguiente texto, sugiere 3-5 textos complementarios.
     Nivel educativo: ${educationLevel}.
@@ -126,7 +120,16 @@ const generateEducationalContent = async (pdfText, contentType, educationLevel, 
     - Solución
     - Explicación del proceso
     
-    Texto: ${pdfText}`
+    Texto: ${pdfText}`,
+
+    chat_qa: `Eres un asistente educativo especializado. Tu tarea es responder preguntas sobre el contenido del siguiente documento de manera clara y educativa.
+    
+    Nivel educativo: ${educationLevel}.
+    
+    Documento de referencia:
+    ${pdfText}
+    
+    Responde ÚNICAMENTE basándote en el contenido del documento proporcionado. Si la pregunta no puede responderse con la información disponible, indica claramente que no hay suficiente información en el documento.`
     ,
     mapa_mental: `A partir del siguiente texto, genera UN mapa mental en formato Markdown compatible con Markmap, y devuelve ESTRICTAMENTE un JSON con esta estructura SIN texto adicional:
     {
@@ -280,7 +283,7 @@ const generateEducationalContent = async (pdfText, contentType, educationLevel, 
 };
 
 // Generar contenido educativo
-router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
+router.post('/generate/:pdfId', authMiddleware, validate(pdfIdParam, 'params'), validate(aiSchemas.generateContent), async (req, res) => {
   try {
     const { pdfId } = req.params;
     const { type } = req.body;
@@ -290,7 +293,7 @@ router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
 
     // Validar tipo de contenido
     const validTypes = [
-      'resumen', 'recomendacion_video', 'recomendacion_texto', 
+      'resumen', 'recomendacion_texto', 
       'multiple_choice', 'verdadero_falso', 'flashcards', 'problema', 'mapa_mental'
     ];
 
@@ -345,15 +348,31 @@ router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
       });
     }
 
-    // Extraer texto real del PDF
+    // Extraer texto real del PDF con validación de path
     let pdfText = '';
     if (pdf && pdf.file_url) {
-      // Normalizar a ruta relativa dentro del proyecto (Backend/uploads/...)
-      const relativeFileUrl = pdf.file_url.replace(/^\//, '');
-      const pdfPath = path.join(__dirname, '..', relativeFileUrl);
-      pdfText = await extractTextFromPDF(pdfPath);
-      if (!pdfText) {
-        return res.status(500).json({ error: 'No se pudo extraer texto del PDF.' });
+      try {
+        // Validar que la URL del archivo es segura
+        const relativeFileUrl = pdf.file_url.replace(/^\//, '');
+        if (relativeFileUrl.includes('..') || !relativeFileUrl.startsWith('uploads/')) {
+          return res.status(400).json({ error: 'Ruta de archivo inválida.' });
+        }
+        
+        const baseDir = path.join(__dirname, '..');
+        const safePath = path.resolve(baseDir, relativeFileUrl);
+        
+        // Verificar que el path está dentro del directorio esperado
+        if (!safePath.startsWith(path.resolve(baseDir, 'uploads'))) {
+          return res.status(400).json({ error: 'Acceso a archivo no permitido.' });
+        }
+        
+        pdfText = await extractTextFromPDF(safePath);
+        if (!pdfText) {
+          return res.status(500).json({ error: 'No se pudo extraer texto del PDF.' });
+        }
+      } catch (error) {
+        console.error('Error validando ruta del PDF:', error);
+        return res.status(500).json({ error: 'Error al procesar el archivo PDF.' });
       }
     } else {
       return res.status(404).json({ error: 'PDF no encontrado o sin ruta válida.' });
@@ -416,7 +435,7 @@ router.post('/generate/:pdfId', supabaseAuth, async (req, res) => {
 });
 
 // Obtener contenido generado
-router.get('/content/:outputId', supabaseAuth, async (req, res) => {
+router.get('/content/:outputId', authMiddleware, async (req, res) => {
   try {
     const { outputId } = req.params;
     const s = req.supabase || supabase;
@@ -462,7 +481,7 @@ router.get('/content/:outputId', supabaseAuth, async (req, res) => {
 });
 
 // Listar todo el contenido generado para un PDF
-router.get('/pdf/:pdfId', supabaseAuth, async (req, res) => {
+router.get('/pdf/:pdfId', authMiddleware, validate(pdfIdParam, 'params'), async (req, res) => {
   try {
     const { pdfId } = req.params;
     const s = req.supabase || supabase;
@@ -499,7 +518,7 @@ router.get('/pdf/:pdfId', supabaseAuth, async (req, res) => {
 });
 
 // Regenerar contenido (eliminar y crear nuevo)
-router.post('/regenerate/:outputId', supabaseAuth, async (req, res) => {
+router.post('/regenerate/:outputId', authMiddleware, async (req, res) => {
   try {
     const { outputId } = req.params;
 
@@ -535,9 +554,21 @@ router.post('/regenerate/:outputId', supabaseAuth, async (req, res) => {
       return res.status(404).json({ error: 'PDF no encontrado para regeneración' });
     }
 
+    // Validar y construir ruta segura para regeneración
     const relativeFileUrl = (pdfRecord.file_url || '').replace(/^\//, '');
-    const pdfPath = path.join(__dirname, '..', relativeFileUrl);
-    const pdfText = await extractTextFromPDF(pdfPath);
+    if (relativeFileUrl.includes('..') || !relativeFileUrl.startsWith('uploads/')) {
+      return res.status(400).json({ error: 'Ruta de archivo inválida para regeneración.' });
+    }
+    
+    const baseDir = path.join(__dirname, '..');
+    const safePath = path.resolve(baseDir, relativeFileUrl);
+    
+    // Verificar que el path está dentro del directorio esperado
+    if (!safePath.startsWith(path.resolve(baseDir, 'uploads'))) {
+      return res.status(400).json({ error: 'Acceso a archivo no permitido para regeneración.' });
+    }
+    
+    const pdfText = await extractTextFromPDF(safePath);
 
     // Generar nuevo contenido
     const isMindmapAlias = existingOutput.type === 'flashcards' && existingOutput.content && existingOutput.content.__type === 'mapa_mental';
@@ -579,7 +610,7 @@ router.post('/regenerate/:outputId', supabaseAuth, async (req, res) => {
 });
 
 // Eliminar contenido generado
-router.delete('/content/:outputId', supabaseAuth, async (req, res) => {
+router.delete('/content/:outputId', authMiddleware, async (req, res) => {
   try {
     const { outputId } = req.params;
 
@@ -619,6 +650,7 @@ router.delete('/content/:outputId', supabaseAuth, async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 // Obtener todos los materiales de IA del docente
 router.get('/teacher/materials', supabaseAuth, async (req, res) => {
   try {
@@ -696,4 +728,111 @@ function getTypeDisplayName(type) {
   return typeNames[type] || type;
 }
 
+=======
+// Chat Q&A con PDF
+router.post('/chat/:pdfId', authMiddleware, validate(pdfIdParam, 'params'), async (req, res) => {
+  try {
+    const { pdfId } = req.params;
+    const { question } = req.body;
+
+    console.log('Chat Q&A request - PDF ID:', pdfId, 'User:', req.user?.id);
+
+    // Validar PDF ID
+    if (!pdfId || isNaN(parseInt(pdfId))) {
+      return res.status(400).json({ error: 'ID de PDF inválido' });
+    }
+
+    if (!question || question.trim().length === 0) {
+      return res.status(400).json({ error: 'La pregunta es requerida' });
+    }
+
+    // Verificar que el PDF pertenece al usuario
+    const s = req.supabase || supabase;
+    const { data: pdf, error: pdfError } = await s
+      .from('pdf_uploads')
+      .select('*')
+      .eq('id', parseInt(pdfId))
+      .eq('user_id', req.user.id)
+      .single();
+
+    if (pdfError) console.log('PDF query error:', pdfError);
+
+    if (pdfError || !pdf) {
+      return res.status(404).json({ error: 'PDF no encontrado' });
+    }
+
+    // Extraer texto del PDF
+    let pdfText = '';
+    if (pdf && pdf.file_url) {
+      try {
+        const relativeFileUrl = pdf.file_url.replace(/^\//, '');
+        if (relativeFileUrl.includes('..') || !relativeFileUrl.startsWith('uploads/')) {
+          return res.status(400).json({ error: 'Ruta de archivo inválida.' });
+        }
+        
+        const baseDir = path.join(__dirname, '..');
+        const safePath = path.resolve(baseDir, relativeFileUrl);
+        
+        if (!safePath.startsWith(path.resolve(baseDir, 'uploads'))) {
+          return res.status(400).json({ error: 'Acceso a archivo no permitido.' });
+        }
+        
+        pdfText = await extractTextFromPDF(safePath);
+        if (!pdfText) {
+          return res.status(500).json({ error: 'No se pudo extraer texto del PDF.' });
+        }
+      } catch (error) {
+        console.error('Error al procesar PDF:', error);
+        return res.status(500).json({ error: 'Error al procesar el archivo PDF.' });
+      }
+    }
+
+    // Generar respuesta con IA
+    try {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `Eres un asistente educativo especializado. Responde preguntas sobre el documento proporcionado de manera clara y educativa. Nivel educativo: ${req.user.education_level || 'universitario'}. 
+
+Documento de referencia:
+${pdfText.substring(0, 12000)}
+
+Instrucciones:
+- Responde ÚNICAMENTE basándote en el contenido del documento
+- Si no hay información suficiente, indica claramente que no está disponible en el documento
+- Usa un lenguaje apropiado para el nivel educativo del usuario
+- Proporciona explicaciones claras y ejemplos cuando sea posible`
+          },
+          {
+            role: 'user',
+            content: question
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      });
+
+      const answer = completion.choices?.[0]?.message?.content || 'No se pudo generar una respuesta.';
+
+      res.json({
+        question,
+        answer,
+        pdfTitle: pdf.title,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (aiError) {
+      console.error('Error con OpenAI:', aiError);
+      res.status(500).json({ error: 'Error al generar respuesta con IA' });
+    }
+
+  } catch (error) {
+    console.error('Error en chat Q&A:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+>>>>>>> origin/feat-plan-estudio
 module.exports = router; 

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tarjetas de Estudio - StudyAI</title>
+  <link rel="stylesheet" href="/Css/styles.css">
+  <link rel="stylesheet" href="/Css/flashcards.css">
+</head>
+<body>
+  <main class="flashcards-container">
+    <!-- Header -->
+    <header class="flashcards-header">
+      <div class="flashcards-header-content">
+        <div class="flashcards-header-left">
+          <button class="back-btn-modern" aria-label="Volver">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+            </svg>
+            Volver al inicio
+          </button>
+          <div class="flashcards-title-section">
+            <h1 class="flashcards-title">📚 Tarjetas de Estudio</h1>
+            <div id="flashcardsMeta" class="flashcards-meta">Estudia de manera interactiva</div>
+          </div>
+        </div>
+        <div class="flashcards-header-right">
+          <div class="flashcards-stats-container">
+            <div class="flashcards-stat-item">
+              <span class="flashcards-stat-number" id="cardCount">0</span>
+              <span class="flashcards-stat-label">Tarjetas</span>
+            </div>
+            <div class="flashcards-stat-item">
+              <span class="flashcards-stat-number" id="currentCardNumber">1</span>
+              <span class="flashcards-stat-label">Actual</span>
+            </div>
+            <div class="flashcards-stat-item">
+              <span class="flashcards-stat-number" id="correctCount">0</span>
+              <span class="flashcards-stat-label">Correctas</span>
+            </div>
+          </div>
+          <div class="flashcards-actions">
+            <button id="shuffleBtn" class="btn-modern btn-secondary-modern" title="Mezclar tarjetas">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
+              </svg>
+              Mezclar
+            </button>
+            <button id="resetBtn" class="btn-modern btn-secondary-modern" title="Reiniciar sesión">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+              </svg>
+              Reiniciar
+            </button>
+            <button id="downloadBtn" class="btn-modern btn-primary-modern" title="Descargar tarjetas">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
+              </svg>
+              Descargar
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text" id="progressText">0 / 0</div>
+    </div>
+
+    <!-- Flashcard Container -->
+    <div class="flashcard-study-area">
+      <div class="flashcard-wrapper">
+        <div class="flashcard" id="flashcard">
+          <div class="flashcard-inner">
+            <div class="flashcard-front">
+              <div class="flashcard-content">
+                <div class="flashcard-type">Pregunta</div>
+                <div class="flashcard-text" id="questionText">
+                  Cargando tarjeta...
+                </div>
+              </div>
+              <div class="flashcard-flip-hint">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                Clic para voltear
+              </div>
+            </div>
+            <div class="flashcard-back">
+              <div class="flashcard-content">
+                <div class="flashcard-type">Respuesta</div>
+                <div class="flashcard-text" id="answerText">
+                  Respuesta aparecerá aquí
+                </div>
+              </div>
+              <div class="flashcard-flip-hint">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                Clic para voltear
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Study Controls -->
+      <div class="study-controls" id="studyControls" style="display: none;">
+        <div class="difficulty-question">
+          <h3>¿Qué tan difícil fue esta tarjeta?</h3>
+          <p>Esto nos ayuda a personalizar tu experiencia de estudio</p>
+        </div>
+        <div class="difficulty-buttons">
+          <button class="difficulty-btn easy" data-difficulty="easy">
+            <div class="btn-emoji">😊</div>
+            <div class="btn-text">Fácil</div>
+            <div class="btn-description">La sabía bien</div>
+          </button>
+          <button class="difficulty-btn medium" data-difficulty="medium">
+            <div class="btn-emoji">🤔</div>
+            <div class="btn-text">Medio</div>
+            <div class="btn-description">Tuve que pensar</div>
+          </button>
+          <button class="difficulty-btn hard" data-difficulty="hard">
+            <div class="btn-emoji">😅</div>
+            <div class="btn-text">Difícil</div>
+            <div class="btn-description">No la sabía</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Controls -->
+      <div class="navigation-controls">
+        <button class="nav-btn prev-btn" id="prevBtn" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+          </svg>
+          Anterior
+        </button>
+        
+        <div class="card-indicator">
+          <span id="cardIndicator">1 / 1</span>
+        </div>
+
+        <button class="nav-btn next-btn" id="nextBtn">
+          Siguiente
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Study Summary -->
+    <div class="study-summary" id="studySummary" style="display: none;">
+      <div class="summary-header">
+        <h2>🎉 ¡Sesión completada!</h2>
+        <p>Has terminado de estudiar todas las tarjetas</p>
+      </div>
+      
+      <div class="summary-stats">
+        <div class="summary-stat">
+          <div class="stat-number" id="totalStudied">0</div>
+          <div class="stat-label">Tarjetas estudiadas</div>
+        </div>
+        <div class="summary-stat">
+          <div class="stat-number" id="easyCards">0</div>
+          <div class="stat-label">Fáciles</div>
+        </div>
+        <div class="summary-stat">
+          <div class="stat-number" id="mediumCards">0</div>
+          <div class="stat-label">Medias</div>
+        </div>
+        <div class="summary-stat">
+          <div class="stat-number" id="hardCards">0</div>
+          <div class="stat-label">Difíciles</div>
+        </div>
+      </div>
+
+      <div class="summary-actions">
+        <button class="btn-modern btn-secondary-modern" id="studyAgainBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+          </svg>
+          Estudiar de nuevo
+        </button>
+        <button class="btn-modern btn-primary-modern" id="backToHistoryBtn">
+          Volver al historial
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" id="loadingState">
+      <div class="loading-spinner"></div>
+      <p>Cargando tarjetas de estudio...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-state" id="errorState" style="display: none;">
+      <div class="error-icon">⚠️</div>
+      <h3>Error al cargar las tarjetas</h3>
+      <p>No se pudieron cargar las tarjetas de estudio. Por favor, inténtalo de nuevo.</p>
+      <button class="btn-modern btn-primary-modern" id="retryBtn">Reintentar</button>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState" style="display: none;">
+      <div class="empty-icon">📚</div>
+      <h3>No hay tarjetas disponibles</h3>
+      <p>No se encontraron tarjetas de estudio en este contenido.</p>
+      <button class="btn-modern btn-primary-modern" id="backToHistoryFromEmpty">Volver al historial</button>
+    </div>
+  </main>
+
+  <script src="/lib/supabase.js"></script>
+  <script src="/JS/config.js"></script>
+  <script src="/JS/auth-demo.js"></script>
+  <script src="/JS/flashcards.js"></script>
+</body>
+</html>

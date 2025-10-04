@@ -1,0 +1,229 @@
+<!-- Cambiar Plan - StudyAI -->
+<div class="cambiar-plan-container">
+  <!-- Header -->
+  <div class="plan-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        <svg class="title-icon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+        Cambiar Plan de Suscripción
+      </h1>
+      <p class="page-subtitle">Elige el plan que mejor se adapte a tus necesidades de estudio</p>
+    </div>
+  </div>
+
+  <!-- Plan Actual -->
+  <div class="current-plan-section" id="currentPlanSection">
+    <div class="current-plan-card">
+      <div class="current-plan-badge">Plan Actual</div>
+      <div class="current-plan-content">
+        <h3 id="currentPlanName">Plan Básico</h3>
+        <p id="currentPlanStatus">Activo hasta el 15 de Septiembre, 2024</p>
+        <div class="current-plan-features">
+          <span class="feature-item">✅ 10 PDFs por mes</span>
+          <span class="feature-item">✅ Contenido IA básico</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Planes Disponibles -->
+  <div class="plans-section">
+    <div class="plans-grid">
+      
+      <!-- Plan Básico -->
+      <div class="plan-card plan-basico" data-plan="basico">
+        <div class="plan-header-card">
+          <div class="plan-icon">📚</div>
+          <h3 class="plan-name">Básico</h3>
+          <div class="plan-price">
+            <span class="currency">$</span>
+            <span class="amount">0</span>
+            <span class="period">/mes</span>
+          </div>
+        </div>
+        
+        <div class="plan-features">
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            5 PDFs por mes
+          </div>
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            Resúmenes básicos
+          </div>
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            Preguntas simples
+          </div>
+        </div>
+        
+        <button class="plan-btn plan-btn-current" data-plan="basico">
+          Plan Actual
+        </button>
+      </div>
+
+      <!-- Plan Premium -->
+      <div class="plan-card plan-premium popular" data-plan="premium">
+        <div class="plan-badge">Más Popular</div>
+        <div class="plan-header-card">
+          <div class="plan-icon">⭐</div>
+          <h3 class="plan-name">Premium</h3>
+          <div class="plan-price">
+            <span class="currency">$</span>
+            <span class="amount">2,999</span>
+            <span class="period">/mes</span>
+          </div>
+        </div>
+        
+        <div class="plan-features">
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            50 PDFs por mes
+          </div>
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            IA avanzada
+          </div>
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            Mapas mentales
+          </div>
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            Chat Q&A ilimitado
+          </div>
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            Soporte prioritario
+          </div>
+        </div>
+        
+        <button class="plan-btn plan-btn-upgrade" data-plan="premium">
+          Actualizar a Premium
+        </button>
+      </div>
+
+      <!-- Plan Pro -->
+      <div class="plan-card plan-pro" data-plan="pro">
+        <div class="plan-header-card">
+          <div class="plan-icon">🚀</div>
+          <h3 class="plan-name">Pro</h3>
+          <div class="plan-price">
+            <span class="currency">$</span>
+            <span class="amount">4,999</span>
+            <span class="period">/mes</span>
+          </div>
+        </div>
+        
+        <div class="plan-features">
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            PDFs ilimitados
+          </div>
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            IA de última generación
+          </div>
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            Análisis de contenido avanzado
+          </div>
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            Colaboración en equipo
+          </div>
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            Exportación a múltiples formatos
+          </div>
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            Soporte 24/7
+          </div>
+        </div>
+        
+        <button class="plan-btn plan-btn-upgrade" data-plan="pro">
+          Actualizar a Pro
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Información adicional -->
+  <div class="plan-info">
+    <div class="info-cards">
+      <div class="info-card">
+        <div class="info-icon">🔒</div>
+        <h4>Seguro y Confiable</h4>
+        <p>Todos los pagos son procesados de forma segura a través de MercadoPago</p>
+      </div>
+      <div class="info-card">
+        <div class="info-icon">↩️</div>
+        <h4>Cancela en Cualquier Momento</h4>
+        <p>Puedes cancelar tu suscripción cuando quieras sin penalizaciones</p>
+      </div>
+      <div class="info-card">
+        <div class="info-icon">📞</div>
+        <h4>Soporte Dedicado</h4>
+        <p>Nuestro equipo está disponible para ayudarte con cualquier pregunta</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="faq-section">
+    <h3 class="faq-title">Preguntas Frecuentes</h3>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-question">¿Puedo cambiar de plan en cualquier momento?</div>
+        <div class="faq-answer">Sí, puedes actualizar o degradar tu plan en cualquier momento. Los cambios se aplican en tu próximo ciclo de facturación.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">¿Qué pasa si excedo mi límite de PDFs?</div>
+        <div class="faq-answer">Si excedes tu límite, te sugeriremos actualizar tu plan. Mientras tanto, podrás esperar al próximo mes o actualizar inmediatamente.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">¿Los datos de mis PDFs están seguros?</div>
+        <div class="faq-answer">Absolutamente. Todos tus documentos están encriptados y almacenados de forma segura. Solo tú tienes acceso a tu contenido.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="planLoadingOverlay" style="display: none;">
+  <div class="loading-spinner"></div>
+  <p id="loadingMessage">Procesando cambio de plan...</p>
+</div>
+
+<script src="/JS/cambiar-plan.js"></script>

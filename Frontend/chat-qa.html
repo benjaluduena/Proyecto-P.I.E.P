@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Q&A - P.I.E.P</title>
+    <link rel="stylesheet" href="/Css/styles.css">
+    <link rel="stylesheet" href="/Css/chat-qa-modern.css">
+    <style>
+        /* Estilos inline removidos - ahora en CSS externo */
+    </style>
+</head>
+<body>
+    <!-- Chat Container Moderno -->
+    <div class="qa-container-modern">
+        <!-- Header -->
+        <header class="qa-header-modern">
+            <div class="qa-header-content">
+                <button class="qa-back-btn" onclick="history.back()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                    </svg>
+                    Volver al inicio
+                </button>
+                <div class="qa-title-section">
+                    <h1 class="qa-title">Chat Inteligente</h1>
+                    <p class="qa-subtitle">Conversa con tu documento PDF</p>
+                </div>
+                <div class="qa-pdf-info" id="pdfInfo">
+                    <div class="qa-pdf-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+                        </svg>
+                    </div>
+                    <div class="qa-pdf-details">
+                        <strong id="pdfTitle">Cargando información del PDF...</strong>
+                        <small id="pdfPages">Preparando chat...</small>
+                    </div>
+                    <div class="qa-status-indicator" id="qaStatus">
+                        <div class="qa-status-dot"></div>
+                        <span>Conectado</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Messages Container -->
+        <div class="qa-messages-container">
+            <div class="qa-messages" id="chatMessages">
+                <!-- Welcome Message -->
+                <div class="qa-welcome">
+                    <div class="qa-welcome-avatar">
+                        <img src="/Assets/Imagenes/Zorro-IA.png" alt="AI Assistant" width="64" height="64">
+                    </div>
+                    <div class="qa-welcome-content">
+                        <h3>¡Hola! Soy tu asistente de estudio 🦊</h3>
+                        <p>Puedes hacerme cualquier pregunta sobre el contenido de tu PDF. Estoy aquí para ayudarte a entender mejor el material.</p>
+                        <div class="qa-suggestions">
+                            <button class="qa-suggestion-chip" data-suggestion="¿Cuál es el tema principal del documento?">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                ¿Cuál es el tema principal?
+                            </button>
+                            <button class="qa-suggestion-chip" data-suggestion="¿Puedes resumir los puntos más importantes?">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M14 17H4v2h10v-2zm6-8H4v2h16V9zM4 15h16v-2H4v2zM4 5v2h16V5H4z"/>
+                                </svg>
+                                Resumir puntos clave
+                            </button>
+                            <button class="qa-suggestion-chip" data-suggestion="¿Qué conceptos son más difíciles de entender?">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                                Conceptos complejos
+                            </button>
+                            <button class="qa-suggestion-chip" data-suggestion="¿Puedes crear preguntas para practicar?">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                                Crear preguntas de práctica
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div class="qa-typing-indicator" id="typingIndicator" style="display: none;">
+                <div class="qa-message-avatar qa-avatar-ai">
+                    <img src="/Assets/Imagenes/Zorro-IA.png" alt="AI" width="32" height="32">
+                </div>
+                <div class="qa-typing-content">
+                    <div class="qa-typing-text">El asistente está pensando...</div>
+                    <div class="qa-typing-animation">
+                        <div class="qa-typing-dot"></div>
+                        <div class="qa-typing-dot"></div>
+                        <div class="qa-typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Container -->
+        <div class="qa-input-container">
+            <div class="qa-input-wrapper">
+                <input 
+                    type="text" 
+                    class="qa-input" 
+                    id="chatInput"
+                    placeholder="Escribe tu pregunta sobre el documento..."
+                    autocomplete="off"
+                />
+                <button class="qa-send-btn" id="sendButton">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="qa-input-footer">
+                <div class="qa-input-hint">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                    </svg>
+                    Presiona Enter para enviar, Shift + Enter para nueva línea
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/lib/supabase.js"></script>
+    <script src="/JS/config.js"></script>
+    <script src="/JS/chat-qa.js"></script>
+</body>
+</html>
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: #3498db;
+        }
+
+        .message.ai .message-avatar {
+            background: #2c3e50;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 25px;
+            outline: none;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            border-color: #3498db;
+        }
+
+        .send-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: #2980b9;
+        }
+
+        .send-button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .back-button {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            align-self: flex-start;
+        }
+
+        .back-button:hover {
+            background: #7f8c8d;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            max-width: 70%;
+            margin-bottom: 20px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #7f8c8d;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.6;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .suggestion-chip {
+            background: #ecf0f1;
+            color: #2c3e50;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+
+        .suggestion-chip:hover {
+            background: #d5dbdb;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <button class="back-button" onclick="history.back()">← Volver</button>
+        
+        <div class="header-section">
+            <h1>Chat con tu PDF</h1>
+            <p>Haz preguntas sobre el contenido de tu documento y obtén respuestas inteligentes</p>
+            <div class="pdf-info" id="pdfInfo">
+                <strong id="pdfTitle">Cargando información del PDF...</strong>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <img src="/Assets/Imagenes/Zorro-IA.png" alt="AI Assistant" width="60" style="margin-bottom: 15px;">
+                <p>¡Hola! Soy tu asistente de estudio. Puedes hacerme cualquier pregunta sobre el contenido de tu PDF.</p>
+                <div class="suggestions">
+                    <div class="suggestion-chip" data-suggestion="¿Cuál es el tema principal del documento?">
+                        ¿Cuál es el tema principal?
+                    </div>
+                    <div class="suggestion-chip" data-suggestion="¿Puedes resumir los puntos más importantes?">
+                        Resumir puntos clave
+                    </div>
+                    <div class="suggestion-chip" data-suggestion="¿Qué conceptos son más difíciles de entender?">
+                        Conceptos complejos
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="message-avatar">
+                <span>🤖</span>
+            </div>
+            <div>
+                <span>El asistente está escribiendo</span>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <input 
+                type="text" 
+                class="chat-input" 
+                id="messageInput" 
+                placeholder="Escribe tu pregunta aquí..."
+                maxlength="500"
+            >
+            <button class="send-button" id="sendButton">
+                <span>Enviar</span>
+                <span>📤</span>
+            </button>
+        </div>
+
+        <div id="errorContainer"></div>
+    </div>
+
+    <script src="/JS/config.js"></script>
+    <script src="/JS/chat-qa.js"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Planes de Estudio</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .loading { color: blue; }
+        .error { color: red; }
+        .success { color: green; }
+        .plan-card { border: 1px solid #ccc; margin: 10px 0; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Test Planes de Estudio</h1>
+    <div id="status">Inicializando...</div>
+    <div id="plans-container"></div>
+    
+    <script>
+        async function testPlansAPI() {
+            const statusDiv = document.getElementById('status');
+            const plansContainer = document.getElementById('plans-container');
+            
+            try {
+                statusDiv.innerHTML = '<span class="loading">Cargando planes...</span>';
+                
+                console.log('Iniciando petición a la API...');
+                console.log('URL:', 'http://localhost:5500/api/study/plans');
+                
+                // Hacer petición directa a la API
+                const response = await fetch('http://localhost:5500/api/study/plans', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response statusText:', response.statusText);
+                console.log('Response ok:', response.ok);
+                
+                // Leer el texto de la respuesta para debug
+                const responseText = await response.text();
+                console.log('Response text:', responseText);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}\nResponse: ${responseText}`);
+                }
+                
+                // Parsear JSON
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    throw new Error(`Error parsing JSON: ${parseError.message}\nResponse: ${responseText}`);
+                }
+                
+                console.log('Data received:', data);
+                
+                statusDiv.innerHTML = '<span class="success">Planes cargados exitosamente</span>';
+                
+                // Mostrar planes
+                const plans = data.plans || data || [];
+                console.log('Plans array:', plans);
+                console.log('Plans length:', plans.length);
+                
+                if (plans.length === 0) {
+                    plansContainer.innerHTML = '<p>No hay planes de estudio en la base de datos</p>';
+                } else {
+                    plansContainer.innerHTML = plans.map(plan => 
+                        `<div class="plan-card">
+                            <h3>${plan.title || 'Sin título'}</h3>
+                            <p>${plan.description || 'Sin descripción'}</p>
+                            <p>Estado: ${plan.status || 'N/A'}</p>
+                            <p>ID: ${plan.id || 'N/A'}</p>
+                            <p>Usuario: ${plan.user_id || 'N/A'}</p>
+                        </div>`
+                    ).join('');
+                }
+                
+            } catch (error) {
+                console.error('Error completo:', error);
+                statusDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                plansContainer.innerHTML = `<pre style="color: red; font-size: 12px;">${error.stack || error.message}</pre>`;
+            }
+        }
+        
+        // Ejecutar test cuando la página cargue
+        document.addEventListener('DOMContentLoaded', testPlansAPI);
+    </script>
+</body>
+</html>

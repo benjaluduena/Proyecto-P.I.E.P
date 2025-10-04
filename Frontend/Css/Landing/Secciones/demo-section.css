@@ -1,0 +1,271 @@
+@import url("General/variables.css");
+
+/* ===== DEMO SECTION ===== */
+.demo {
+  padding: 100px 0;
+  background: var(--white);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+.demo-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+/* DEMO - TITULOS Y TEXTOS */
+.demo-text h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: var(--text-dark);
+}
+
+.demo-text p {
+  font-size: 1.1rem;
+  color: var(--text-light);
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+
+/* DEMO - LISTA DE FUNCIONALIDADES */
+.demo-features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.demo-feature {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.demo-feature i {
+  color: var(--primary-color);
+  font-size: 1.2rem;
+}
+
+/* ===== CARRUSEL 3D ===== */
+.carousel-3d-container {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  perspective: 1000px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-3d {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.carousel-item {
+  position: absolute;
+  width: 200px;
+  height: 250px;
+  left: 50%;
+  top: 50%;
+  transform-origin: center center;
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: 0.6;
+  filter: blur(2px);
+}
+
+/* Posiciones del carrusel horizontal */
+.carousel-item[data-index="0"] {
+  transform: translate(-50%, -50%) translateX(0px) scale(1);
+  z-index: 4;
+}
+
+.carousel-item[data-index="1"] {
+  transform: translate(-50%, -50%) translateX(150px) scale(0.8);
+  opacity: 0.4;
+  filter: blur(3px);
+  z-index: 3;
+}
+
+.carousel-item[data-index="2"] {
+  transform: translate(-50%, -50%) translateX(0px) scale(0.6);
+  opacity: 0.2;
+  filter: blur(5px);
+  z-index: 1;
+}
+
+.carousel-item[data-index="3"] {
+  transform: translate(-50%, -50%) translateX(-150px) scale(0.8);
+  opacity: 0.4;
+  filter: blur(3px);
+  z-index: 2;
+}
+
+/* Tarjeta activa (al frente) */
+.carousel-item.active {
+  opacity: 1;
+  filter: blur(0px);
+  z-index: 10;
+  transform: translate(-50%, -50%) translateX(0px) scale(1.1);
+}
+
+.screenshot-container {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  border: 1px solid var(--bg-lighter);
+}
+
+.carousel-item.active .screenshot-container {
+  border-color: var(--bg-lighter);
+}
+
+.screenshot-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.carousel-item.active .screenshot-container::before {
+  opacity: 1;
+}
+
+.screenshot {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%);
+  border-radius: 10px;
+}
+
+.screenshot-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  color: var(--text-dark);
+  padding: 20px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.9), transparent);
+  z-index: 2;
+}
+
+/* ===== INDICADORES ===== */
+.carousel-indicators {
+  display: flex;
+  gap: 12px;
+  margin-top: 40px;
+  justify-content: center;
+}
+
+.indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(162, 89, 250, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.indicator.active {
+  background: var(--primary-color);
+  transform: scale(1.2);
+}
+
+.indicator:hover {
+  background: rgba(162, 89, 250, 0.6);
+  transform: scale(1.1);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .demo-content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    text-align: center;
+  }
+
+  .demo-text h2 {
+    font-size: 2rem;
+  }
+
+  .carousel-3d-container {
+    height: 350px;
+  }
+
+  .carousel-3d {
+    width: 250px;
+    height: 250px;
+  }
+
+  .carousel-item {
+    width: 180px;
+    height: 220px;
+  }
+
+  /* Ajustando posiciones para móvil sin rotación 3D */
+  .carousel-item[data-index="0"] {
+    transform: translate(-50%, -50%) translateX(0px) scale(1);
+  }
+
+  .carousel-item[data-index="1"] {
+    transform: translate(-50%, -50%) translateX(120px) scale(0.8);
+  }
+
+  .carousel-item[data-index="2"] {
+    transform: translate(-50%, -50%) translateX(0px) scale(0.6);
+  }
+
+  .carousel-item[data-index="3"] {
+    transform: translate(-50%, -50%) translateX(-120px) scale(0.8);
+  }
+
+  .carousel-item.active {
+    transform: translate(-50%, -50%) translateX(0px) scale(1.05);
+  }
+}
+
+/* Animación de entrada */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.demo-text {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.carousel-3d-container {
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
