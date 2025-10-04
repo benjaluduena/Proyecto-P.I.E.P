@@ -69,6 +69,18 @@ const supabase = {
         }
 
         const data = await response.json();
+        
+        // Guardar la sesión en localStorage
+        if (data.access_token) {
+          localStorage.setItem('supabase.auth.token', JSON.stringify(data));
+          localStorage.setItem('session', JSON.stringify(data));
+          
+          // También guardar información del usuario si está disponible
+          if (data.user) {
+            localStorage.setItem('user', JSON.stringify(data.user));
+          }
+        }
+        
         return { data, error: null };
       } catch (error) {
         return { data: null, error };
@@ -98,8 +110,21 @@ const supabase = {
       }
     },
 
-    getUser: async (token) => {
+    getUser: async () => {
       try {
+        // Obtener el token del localStorage
+        const session = localStorage.getItem('supabase.auth.token');
+        if (!session) {
+          return { data: { user: null }, error: null };
+        }
+
+        const sessionData = JSON.parse(session);
+        const token = sessionData.access_token;
+
+        if (!token) {
+          return { data: { user: null }, error: null };
+        }
+
         const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
           method: 'GET',
           headers: {
@@ -110,12 +135,20 @@ const supabase = {
         });
 
         if (!response.ok) {
-          throw new Error('Token inválido');
+          // Si el token es inválido, limpiar el localStorage
+          localStorage.removeItem('supabase.auth.token');
+          localStorage.removeItem('session');
+          localStorage.removeItem('user');
+          return { data: { user: null }, error: new Error('Token inválido') };
         }
 
         const userData = await response.json();
         return { data: { user: userData }, error: null };
       } catch (error) {
+        // En caso de error, limpiar el localStorage
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('session');
+        localStorage.removeItem('user');
         return { data: { user: null }, error };
       }
     },
@@ -145,6 +178,53 @@ const supabase = {
         data: { subscription: { unsubscribe: () => {} } }
       };
     }
+  },
+
+  // Funciones para consultas de base de datos
+  from: (table) => {
+    return {
+      select: (columns = '*') => {
+        return {
+          eq: (column, value) => {
+            return {
+              single: async () => {
+                try {
+                  const session = localStorage.getItem('supabase.auth.token');
+                  if (!session) {
+                    return { data: null, error: new Error('No hay sesión activa') };
+                  }
+
+                  const sessionData = JSON.parse(session);
+                  const token = sessionData.access_token;
+
+                  const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${column}=eq.${value}&select=${columns}`, {
+                    method: 'GET',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'apikey': SUPABASE_ANON_KEY,
+                      'Authorization': `Bearer ${token}`,
+                      'Range': '0-0'
+                    }
+                  });
+
+                  if (!response.ok) {
+                    throw new Error(`Error en la consulta: ${response.status}`);
+                  }
+
+                  const data = await response.json();
+                  return { 
+                    data: data.length > 0 ? data[0] : null, 
+                    error: null 
+                  };
+                } catch (error) {
+                  return { data: null, error };
+                }
+              }
+            };
+          }
+        };
+      }
+    };
   }
 };
 

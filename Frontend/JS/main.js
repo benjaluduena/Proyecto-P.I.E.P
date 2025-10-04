@@ -146,15 +146,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   
   if (classroomBtn) {
+    console.log('🔧 Configurando event listener para botón Classroom...');
     classroomBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      console.log('Botón de Classroom clickeado');
+      e.stopPropagation();
+      console.log('🎯 Botón de Classroom clickeado - ejecutando openClassroomPage');
       if (typeof window.openClassroomPage === 'function') {
+        console.log('✅ Función openClassroomPage encontrada, ejecutando...');
         window.openClassroomPage();
       } else {
-        console.error('Función openClassroomPage no está disponible');
+        console.error('❌ Función openClassroomPage no está disponible');
       }
     });
+    console.log('✅ Event listener del botón Classroom configurado correctamente');
+  } else {
+    console.error('❌ Botón classroomBtn no encontrado en el DOM');
   }
 
   // Rellenar información del usuario en el sidebar
@@ -174,45 +180,72 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Función para abrir la página de classroom según el rol del usuario
 window.openClassroomPage = async function() {
-  console.log('Función openClassroomPage ejecutada');
+  console.log('=== INICIANDO VERIFICACIÓN DE CLASSROOM ===');
   
   try {
-    // Verificar si Supabase está disponible
-    if (typeof supabase === 'undefined') {
+    // Esperar a que Supabase esté disponible
+    let supabaseClient;
+    if (typeof window.waitForSupabase === 'function') {
+      console.log('Esperando inicialización de Supabase...');
+      supabaseClient = await window.waitForSupabase();
+    } else if (typeof supabase !== 'undefined') {
+      supabaseClient = supabase;
+    } else {
       console.error('Supabase no está disponible');
+      alert('Error: Sistema de autenticación no disponible');
       return;
     }
     
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) {
       console.log('No hay usuario autenticado, redirigiendo a login');
       window.location.href = '/login.html';
       return;
     }
 
-    console.log('Usuario autenticado:', user.email);
+    console.log('✅ Usuario autenticado:', user.email);
+    console.log('🔑 ID del usuario:', user.id);
 
     // Verificar el rol del usuario
-    const { data: profile } = await supabase
+    console.log('🔍 Consultando perfil en la tabla profiles...');
+    const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
 
-    console.log('Perfil del usuario:', profile);
+    console.log('📊 Respuesta de la consulta:');
+    console.log('- Data:', profile);
+    console.log('- Error:', profileError);
+
+    if (profileError) {
+      console.error('❌ Error obteniendo perfil:', profileError);
+      alert('Error al obtener el perfil del usuario. Por favor, asegúrate de tener un perfil creado.');
+      return;
+    }
+
+    if (!profile) {
+      console.error('❌ Perfil no encontrado para el usuario:', user.id);
+      alert('Perfil no encontrado. Por favor, contacta al administrador.');
+      return;
+    }
+
+    console.log('✅ Perfil encontrado:', profile);
+    console.log('👤 Rol del usuario:', profile.role);
 
     if (profile && profile.role === 'docente') {
-      console.log('Redirigiendo a classroom de docente');
+      console.log('🎓 Redirigiendo a classroom-teacher.html');
       window.location.href = '/classroom-teacher.html';
     } else if (profile && profile.role === 'estudiante') {
-      console.log('Redirigiendo a classroom de estudiante');
+      console.log('📚 Redirigiendo a classroom-student.html');
       window.location.href = '/classroom-student.html';
     } else {
-      console.log('Rol no válido:', profile?.role);
-      console.error('Rol de usuario no válido');
+      console.error('❌ Rol no válido:', profile?.role);
+      alert('Rol de usuario no válido. Por favor, contacta al administrador para asignar tu rol.');
     }
   } catch (error) {
-    console.error('Error verificando rol:', error);
+    console.error('💥 Error verificando rol:', error);
+    alert('Error al verificar el rol del usuario');
   }
 };
 

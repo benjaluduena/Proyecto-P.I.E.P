@@ -95,7 +95,6 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-<<<<<<< HEAD
         scriptSrc: [
           "'self'",
           "'unsafe-inline'",
