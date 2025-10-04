@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="/Css/calendario.css">
   <!-- historial.css eliminado; el historial usa su propia página y estilos unificados -->
   <link rel="stylesheet" href="/Css/cambiar-plan.css">
+  <link rel="stylesheet" href="/Css/planes-estudio.css">
   <script src="lib/supabase.js"></script>
   <script src="/JS/config.js"></script>
   <script src="/JS/auth-demo.js"></script>
@@ -77,6 +78,15 @@
               </svg>
             </span>
             Historial
+          </button>
+
+          <button onclick="cargarSeccion('planes-estudio')" type="button" class="menu-item">
+            <span class="sidebar-ico">
+              <svg>
+                <use href="/Assets/sprite.svg#icon-study-plan"></use>
+              </svg>
+            </span>
+            Planes de Estudio
           </button>
 
         </nav>

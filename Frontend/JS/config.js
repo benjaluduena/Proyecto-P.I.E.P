@@ -10,6 +10,7 @@ if (typeof CONFIG === 'undefined') {
   
   // URLs de la API
   API: {
+    // Usar el mismo origen del servidor que sirve el frontend
     BASE_URL: window.location.origin,
     LOGIN: '/api/auth/login',
     REGISTER: '/api/auth/register',
@@ -70,10 +71,12 @@ function getAccessToken() {
 // Función para obtener headers de autorización
 function getAuthHeaders() {
   const token = getAccessToken();
-  return {
-    'Content-Type': 'application/json',
-    'Authorization': token ? `Bearer ${token}` : ''
+  // Sólo incluir Authorization si hay token
+  const headers = {
+    'Content-Type': 'application/json'
   };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
 }
 
 // Variables para evitar múltiples redirecciones

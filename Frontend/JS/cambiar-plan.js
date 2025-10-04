@@ -25,9 +25,11 @@ async function apiCall(url, options = {}) {
     const session = localStorage.getItem('session');
     if (session) {
       const sessionData = JSON.parse(session);
+      const token = sessionData.access_token;
       return {
         'Content-Type': 'application/json',
-        'Authorization': sessionData.access_token ? `Bearer ${sessionData.access_token}` : ''
+        // Solo incluir Authorization si existe token
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
       };
     }
     return { 'Content-Type': 'application/json' };

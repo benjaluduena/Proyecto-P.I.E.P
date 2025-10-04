@@ -445,7 +445,8 @@ async function uploadPdf() {
     method: 'POST',
     body: formData,
     headers: {
-      'Authorization': getAuthHeaders().Authorization
+      // Evitar pasar Authorization vacío; usar el helper centralizado
+      ...(getAuthHeaders().Authorization ? { 'Authorization': getAuthHeaders().Authorization } : {})
     }
   });
 
