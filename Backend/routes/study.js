@@ -918,6 +918,11 @@ router.post('/plans/:planId/content', authMiddleware, async (req, res) => {
 
     const sb = process.env.NODE_ENV === 'development' ? supabase : (req.supabase || supabase);
 
+    // Normalizar contenido: asegurar cadena o JSON serializado
+    const normalizedContent = (typeof content === 'string') ? content : JSON.stringify(content || {});
+    // Evitar títulos extremadamente largos que puedan violar restricciones
+    const normalizedTitle = (title || '').toString().slice(0, 180);
+
     // Verificar que el plan pertenece al usuario
     const { data: plan, error: planError } = await sb
       .from('study_plans')
@@ -947,32 +952,79 @@ router.post('/plans/:planId/content', authMiddleware, async (req, res) => {
       }
     }
 
-    // Crear el contenido generado
-    const { data: generatedContent, error: contentError } = await sb
-      .from('plan_generated_content')
-      .insert([{
-        plan_id: planId,
-        task_id: taskId || null,
-        content_type: contentType,
-        title,
-        description: description || null,
-        content,
-        source_pdf_id: sourcePdfId || null,
-        is_extra: isExtra || false,
-        extra_group_name: extraGroupName || null,
-        created_by: req.user.id
-      }])
-      .select('*')
+    // Fallback: almacenar en study_outputs y vincular mediante plan_tasks
+    let contentJson;
+    try {
+      contentJson = typeof normalizedContent === 'object' ? normalizedContent : JSON.parse(normalizedContent);
+    } catch (_) {
+      contentJson = { text: String(normalizedContent || '') };
+    }
+
+    if (!sourcePdfId) {
+      return res.status(400).json({ error: 'Falta el PDF de origen (sourcePdfId) para adjuntar contenido' });
+    }
+
+    // 1) Crear output
+    const { data: newOutput, error: outputError } = await sb
+      .from('study_outputs')
+      .insert([{ pdf_id: sourcePdfId, type: contentType, content: contentJson }])
+      .select('id, type, content, created_at, pdf_id')
       .single();
 
-    if (contentError) {
-      console.error('Error al crear contenido generado:', contentError);
+    if (outputError || !newOutput) {
+      console.error('Error al crear output:', outputError);
       return res.status(500).json({ error: 'Error al guardar el contenido' });
     }
 
+    // 2) Vincular a tarea
+    let taskRecord = null;
+    if (taskId) {
+      const { data: updatedTask, error: taskUpdateError } = await sb
+        .from('plan_tasks')
+        .update({ output_id: newOutput.id })
+        .eq('id', taskId)
+        .select('id, title, created_at')
+        .single();
+
+      if (taskUpdateError) {
+        console.error('Error actualizando tarea con output:', taskUpdateError);
+        return res.status(500).json({ error: 'Error al vincular contenido con la tarea' });
+      }
+      taskRecord = updatedTask;
+    } else {
+      const { data: newTask, error: taskInsertError } = await sb
+        .from('plan_tasks')
+        .insert([{ 
+          plan_id: planId,
+          title: normalizedTitle,
+          description: description || null,
+          due_date: null,
+          completed: false,
+          priority: 'medium',
+          output_id: newOutput.id
+        }])
+        .select('id, title, created_at')
+        .single();
+
+      if (taskInsertError || !newTask) {
+        console.error('Error creando tarea para contenido:', taskInsertError);
+        return res.status(500).json({ error: 'Error al guardar el contenido' });
+      }
+      taskRecord = newTask;
+    }
+
+    // 3) Respuesta con formato compatible
     res.status(201).json({
       message: 'Contenido añadido exitosamente al plan',
-      content: generatedContent
+      content: {
+        id: taskRecord.id,
+        content_type: newOutput.type,
+        title: taskRecord.title,
+        description: description || null,
+        created_at: taskRecord.created_at || newOutput.created_at,
+        plan_tasks: { id: taskRecord.id, title: taskRecord.title },
+        pdf_uploads: { id: sourcePdfId }
+      }
     });
 
   } catch (error) {
@@ -1004,49 +1056,49 @@ router.get('/plans/:planId/content', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'No tienes permisos para ver este plan' });
     }
 
-    // Construir query con filtros opcionales
-    let query = sb
-      .from('plan_generated_content')
+    // Fallback: construir contenido desde plan_tasks + study_outputs
+    const { data: tasksWithOutputs, error: contentsError } = await sb
+      .from('plan_tasks')
       .select(`
-        *,
-        plan_tasks (
+        id,
+        title,
+        created_at,
+        study_outputs:output_id (
           id,
-          title
-        ),
-        pdf_uploads (
-          id,
-          title,
-          file_name
+          type,
+          content,
+          created_at,
+          pdf_uploads:pdf_id (
+            id,
+            title,
+            file_name
+          )
         )
       `)
       .eq('plan_id', planId)
       .order('created_at', { ascending: false });
 
-    // Aplicar filtros opcionales
-    if (taskId) {
-      query = query.eq('task_id', taskId);
-    }
-    if (contentType) {
-      query = query.eq('content_type', contentType);
-    }
-    if (isExtra !== undefined) {
-      query = query.eq('is_extra', isExtra === 'true');
-    }
-    if (extraGroupName) {
-      query = query.eq('extra_group_name', extraGroupName);
-    }
-
-    const { data: contents, error: contentsError } = await query;
-
     if (contentsError) {
       console.error('Error al obtener contenido:', contentsError);
-      return res.status(500).json({ error: 'Error al obtener el contenido' });
+      return res.status(500).json({ error: 'Error al obtener el contenido del plan' });
     }
 
-    res.json({
-      planId: parseInt(planId),
-      contents: contents || []
-    });
+    let contents = (tasksWithOutputs || [])
+      .filter(item => item.study_outputs)
+      .map(item => ({
+        id: item.id,
+        content_type: item.study_outputs.type,
+        title: item.title || (item.study_outputs?.pdf_uploads?.title) || 'Sin título',
+        created_at: item.created_at || item.study_outputs.created_at,
+        plan_tasks: { id: item.id, title: item.title },
+        pdf_uploads: item.study_outputs?.pdf_uploads || null
+      }));
+
+    if (contentType) {
+      contents = contents.filter(c => c.content_type === contentType);
+    }
+
+    res.json(contents);
 
   } catch (error) {
     console.error('Error GET /plans/:planId/content:', error);

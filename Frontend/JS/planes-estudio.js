@@ -256,6 +256,23 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         return `${day}/${month}/${year}`;
     }
 
+    // Persistencia de pestaña activa por plan
+    getPersistedTab(planId) {
+        try {
+            return localStorage.getItem(`planTab:${planId}`) || null;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    setPersistedTab(planId, tabName) {
+        try {
+            localStorage.setItem(`planTab:${planId}`, tabName);
+        } catch (_) {
+            // ignorar errores de almacenamiento
+        }
+    }
+
     setupExpandedTabs(cardElement, plan) {
         const tabBtns = cardElement.querySelectorAll('.tab-btn');
         const tabPanels = cardElement.querySelectorAll('.tab-panel');
@@ -276,6 +293,9 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                     targetPanel.classList.add('active');
                 }
                 
+                // Persistir pestaña activa para este plan
+                this.setPersistedTab(plan.id, targetTab);
+
                 // Cargar contenido específico de la pestaña
                 this.loadTabContent(cardElement, plan, targetTab);
             });
@@ -374,15 +394,21 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         const contentContainer = cardElement.querySelector('.content-list-expanded') || cardElement.querySelector('.content-list');
         if (!contentContainer) return;
 
-        contentContainer.innerHTML = `<div class="content-loading">Cargando contenido...</div>`;
+        contentContainer.innerHTML = `
+            <div class="content-loading">
+                <div class="skeleton-item"></div>
+                <div class="skeleton-item"></div>
+                <div class="skeleton-item"></div>
+            </div>
+        `;
 
         const token = this.getAuthToken();
         const base = this.getBaseUrl();
 
-        // Botón para agregar contenido
+        // Botón para agregar contenido: abrir selector desde historial
         const addContentBtn = cardElement.querySelector('.add-content-btn');
         if (addContentBtn) {
-            addContentBtn.onclick = () => this.openAddContentForm(cardElement, plan);
+            addContentBtn.onclick = () => this.openHistoryPicker(cardElement, plan);
         }
 
         fetch(`${base}/api/study/plans/${plan.id}/content`, {
@@ -394,7 +420,14 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         .then(data => {
             const items = Array.isArray(data) ? data : (data && data.contents) ? data.contents : [];
             if (!items.length) {
-                contentContainer.innerHTML = `<div class="content-empty">No hay contenido generado aún para este plan</div>`;
+                contentContainer.innerHTML = `
+                    <div class="content-empty">
+                        No hay contenido en este plan aún.
+                        <button class="btn primary btn-sm inline-add-content">Agregar desde historial</button>
+                    </div>
+                `;
+                const inlineBtn = contentContainer.querySelector('.inline-add-content');
+                if (inlineBtn) inlineBtn.onclick = () => this.openHistoryPicker(cardElement, plan);
                 return;
             }
 
@@ -404,21 +437,15 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 const pdfTitle = item.pdf_uploads?.title || '';
                 const title = item.title || taskTitle || pdfTitle || 'Sin título';
                 const created = item.created_at ? new Date(item.created_at).toLocaleString() : '';
-                const extra = item.is_extra ? ` • Extra${item.extra_group_name ? ` (${item.extra_group_name})` : ''}` : '';
-
                 return `
-                    <div class="content-item">
-                        <div class="content-item-header">
-                            <span class="content-type badge">${type}${extra}</span>
-                            ${created ? `<span class="content-date">${created}</span>` : ''}
+                    <div class="content-card">
+                        <div class="content-card-main">
+                            <span class="badge type">${type}</span>
+                            <div class="title">${title}</div>
+                            ${created ? `<div class="meta">${created}</div>` : ''}
                         </div>
-                        <div class="content-item-body">
-                            <div class="content-title">${title}</div>
-                            ${taskTitle ? `<div class="content-related">Tarea: ${taskTitle}</div>` : ''}
-                            ${pdfTitle ? `<div class="content-related">PDF: ${pdfTitle}</div>` : ''}
-                        </div>
-                        <div class="content-item-actions">
-                            <button class="btn btn-secondary btn-sm view-content-btn" data-content-id="${item.id}">Ver</button>
+                        <div class="content-card-actions">
+                            <button class="btn secondary btn-sm view-content-btn" data-content-id="${item.id}">Abrir</button>
                         </div>
                     </div>
                 `;
@@ -436,8 +463,191 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         })
         .catch(err => {
             console.error('Error cargando contenido del plan:', err);
-            contentContainer.innerHTML = `<div class="content-error">Error al cargar el contenido del plan</div>`;
+            // En caso de error de carga, mostrar un estado amistoso con acción
+            contentContainer.innerHTML = `
+                <div class="content-empty">
+                    No pudimos cargar el contenido ahora.
+                    <button class="btn primary btn-sm inline-add-content">Agregar desde historial</button>
+                </div>
+            `;
+            const inlineBtn = contentContainer.querySelector('.inline-add-content');
+            if (inlineBtn) inlineBtn.onclick = () => this.openHistoryPicker(cardElement, plan);
         });
+    }
+
+    // Selector inline para elegir contenido desde historial del usuario y adjuntarlo al plan
+    openHistoryPicker(cardElement, plan) {
+        const contentContainer = cardElement.querySelector('.content-list-expanded') || cardElement.querySelector('.content-list');
+        if (!contentContainer) return;
+
+        // Si ya hay un selector abierto, ciérralo
+        const existing = contentContainer.querySelector('.history-picker-inline');
+        if (existing) existing.remove();
+
+        const picker = document.createElement('div');
+        picker.className = 'history-picker-inline';
+        picker.innerHTML = `
+            <div class="picker-header">Agregar desde tu historial</div>
+            <div class="picker-filters">
+                <input type="text" id="historySearch" placeholder="Buscar por título o contenido" />
+            </div>
+            <div class="picker-list">
+                <div class="content-loading">
+                    <div class="skeleton-item"></div>
+                    <div class="skeleton-item"></div>
+                    <div class="skeleton-item"></div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn secondary" id="cancelPickHistoryBtn">Cancelar</button>
+            </div>
+        `;
+
+        contentContainer.prepend(picker);
+
+        const cancelBtn = picker.querySelector('#cancelPickHistoryBtn');
+        if (cancelBtn) cancelBtn.onclick = () => picker.remove();
+
+        const token = this.getAuthToken();
+        const base = this.getBaseUrl();
+
+        fetch(`${base}/api/study/outputs?limit=50`, {
+            headers: {
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            }
+        })
+        .then(res => res.ok ? res.json() : Promise.reject(res))
+        .then(outputs => {
+            const listEl = picker.querySelector('.picker-list');
+            if (!Array.isArray(outputs) || !outputs.length) {
+                listEl.innerHTML = `<div class="content-empty">No tienes contenido en tu historial aún</div>`;
+                return;
+            }
+
+            let all = outputs;
+
+            const render = (items) => {
+                listEl.innerHTML = items.map(o => {
+                    const title = o.pdf_title || `Contenido ${o.type}`;
+                    const created = o.created_at ? new Date(o.created_at).toLocaleString() : '';
+                    const snippet = typeof o.content === 'string' ? o.content.slice(0, 120) : JSON.stringify(o.content).slice(0, 120);
+                    return `
+                        <div class="history-item" data-output-id="${o.id}">
+                            <div class="history-item-body">
+                                <div class="history-title">${title}</div>
+                                <div class="history-meta"><span class="badge">${o.type}</span>${created ? ` • ${created}` : ''}</div>
+                                <div class="history-snippet">${snippet}${snippet.length >= 120 ? '…' : ''}</div>
+                            </div>
+                            <div class="history-actions">
+                                <button class="btn primary btn-sm attach-output-btn" data-output-id="${o.id}">Agregar</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Wire up attach buttons
+                listEl.querySelectorAll('.attach-output-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        const outputId = btn.getAttribute('data-output-id');
+                        await this.attachHistoryOutputToPlan(cardElement, plan, outputId, picker, btn);
+                    });
+                });
+            };
+
+            // Initial render
+            render(all);
+
+            // Filtro simple (solo búsqueda)
+            const searchInput = picker.querySelector('#historySearch');
+            const applyFilters = () => {
+                const q = (searchInput.value || '').toLowerCase();
+                const filtered = all.filter(o => {
+                    const title = (o.pdf_title || '').toLowerCase();
+                    const typeStr = (o.type || '').toLowerCase();
+                    const contentStr = typeof o.content === 'string' ? o.content.toLowerCase() : JSON.stringify(o.content).toLowerCase();
+                    return !q || title.includes(q) || typeStr.includes(q) || contentStr.includes(q);
+                });
+                render(filtered);
+            };
+            searchInput.addEventListener('input', applyFilters);
+        })
+        .catch(err => {
+            console.error('Error cargando historial:', err);
+            const listEl = picker.querySelector('.picker-list');
+            listEl.innerHTML = `<div class="content-error">Error al cargar tu historial</div>`;
+        });
+    }
+
+    async attachHistoryOutputToPlan(cardElement, plan, outputId, pickerEl, btnEl) {
+        try {
+            if (btnEl) this.setButtonLoading(btnEl, true, 'Agregando...');
+            const token = this.getAuthToken();
+            const base = this.getBaseUrl();
+
+            // Obtener el output completo para tener su contenido y metadatos
+            const outRes = await fetch(`${base}/api/study/outputs/${outputId}`, {
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                }
+            });
+            const outData = await outRes.json();
+            if (!outRes.ok) throw new Error(outData?.error || 'No se pudo obtener el contenido del historial');
+
+            const output = outData;
+            // Asegurar tipos válidos para el backend
+            const allowedTypes = ['resumen', 'multiple_choice', 'verdadero_falso', 'flashcards'];
+            const safeType = allowedTypes.includes(output.type) ? output.type : 'resumen';
+
+            // El backend puede esperar texto en la columna `content`.
+            // Si recibimos un objeto, lo serializamos para evitar errores de inserción.
+            const contentPayload = (typeof output.content === 'string')
+                ? output.content
+                : JSON.stringify(output.content || {});
+
+            // Títulos muy largos pueden fallar si la columna es limitada.
+            // Limitamos a 180 caracteres para mayor seguridad.
+            const safeTitle = (output.pdf_title
+                ? `${output.pdf_title} (${safeType})`
+                : `Contenido ${safeType}`).slice(0, 180);
+
+            const payload = {
+                contentType: safeType,
+                title: safeTitle,
+                description: null,
+                content: contentPayload,
+                sourcePdfId: output.pdf_id || null,
+                isExtra: false,
+                extraGroupName: null
+            };
+
+            const postRes = await fetch(`${base}/api/study/plans/${plan.id}/content`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const postData = await postRes.json();
+            if (!postRes.ok) {
+                // Mensaje amigable si el tipo no es válido u otros errores
+                const msg = postData?.error || 'No se pudo adjuntar el contenido al plan';
+                throw new Error(msg);
+            }
+
+            // Cerrar picker y recargar pestaña
+            if (pickerEl) pickerEl.remove();
+            this.loadContentTab(cardElement, plan);
+            const suffix = (safeType !== (output.type || '')) ? ' (guardado como resumen)' : '';
+            this.showSuccess(`Contenido del historial agregado al plan${suffix}`);
+        } catch (error) {
+            console.error('Error adjuntando contenido desde historial:', error);
+            this.showError(error.message || 'Error al agregar contenido');
+        } finally {
+            if (btnEl) this.setButtonLoading(btnEl, false);
+        }
     }
 
     loadEditTab(cardElement, plan) {
@@ -482,6 +692,8 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 const overviewPanel = cardElement.querySelector('.tab-panel[data-panel="overview"]');
                 if (overviewBtn) overviewBtn.classList.add('active');
                 if (overviewPanel) overviewPanel.classList.add('active');
+                // Persistir cambio a Resumen
+                this.setPersistedTab(plan.id, 'overview');
             });
         }
 
@@ -502,6 +714,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         const startDateInput = cardElement.querySelector('.edit-start-date');
         const endDateInput = cardElement.querySelector('.edit-end-date');
         const statusSelect = cardElement.querySelector('.edit-status');
+        const saveBtn = cardElement.querySelector('.save-edit');
 
         const updatedData = {
             title: titleInput?.value || plan.title,
@@ -512,6 +725,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         };
 
         try {
+            if (saveBtn) this.setButtonLoading(saveBtn, true, 'Guardando...');
             const base = this.getBaseUrl();
             const response = await fetch(`${base}/api/study/plans/${plan.id}`, {
                 method: 'PUT',
@@ -531,6 +745,8 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         } catch (error) {
             console.error('Error:', error);
             this.showError('Error al actualizar el plan');
+        } finally {
+            if (saveBtn) this.setButtonLoading(saveBtn, false);
         }
     }
 
@@ -740,14 +956,14 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
             // Actualizar datos de la vista expandida
             this.populateExpandedView(cardElement, plan);
             
-            // Activar la primera pestaña por defecto
-            const firstTab = cardElement.querySelector('.tab-btn');
-            const firstPanel = cardElement.querySelector('.tab-panel');
-            if (firstTab && firstPanel) {
-                firstTab.classList.add('active');
-                firstPanel.classList.add('active');
-                // Cargar contenido de la primera pestaña
-                this.loadTabContent(cardElement, plan, firstTab.getAttribute('data-tab'));
+            // Activar pestaña persistida o la primera por defecto
+            const persistedTab = this.getPersistedTab(plan.id) || 'overview';
+            const targetBtn = cardElement.querySelector(`.tab-btn[data-tab="${persistedTab}"]`) || cardElement.querySelector('.tab-btn');
+            const targetPanel = cardElement.querySelector(`.tab-panel[data-panel="${persistedTab}"]`) || cardElement.querySelector('.tab-panel');
+            if (targetBtn && targetPanel) {
+                targetBtn.classList.add('active');
+                targetPanel.classList.add('active');
+                this.loadTabContent(cardElement, plan, targetBtn.getAttribute('data-tab'));
             }
         }, 100);
     }
@@ -1258,6 +1474,8 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                     }
                 }
             }
+            const taskBtn = document.querySelector(`.task-item[data-task-id="${taskId}"] .btn-toggle-task`);
+            if (taskBtn) this.setButtonLoading(taskBtn, true, currentCompleted ? 'Desmarcando...' : 'Completando...');
 
             const token = this.getAuthToken();
             const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
@@ -1279,6 +1497,9 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         } catch (error) {
             console.error('Error actualizando tarea:', error);
             this.showError('Error al actualizar la tarea');
+        } finally {
+            const taskBtn = document.querySelector(`.task-item[data-task-id="${taskId}"] .btn-toggle-task`);
+            if (taskBtn) this.setButtonLoading(taskBtn, false);
         }
     }
 
@@ -1334,6 +1555,8 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         }
         
         try {
+            const deleteBtn = document.querySelector(`.task-item[data-task-id="${taskId}"] .btn-delete-task`);
+            if (deleteBtn) this.setButtonLoading(deleteBtn, true, 'Eliminando...');
             const token = this.getAuthToken();
             const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
             const response = await fetch(`${base}/api/tasks/${taskId}`, {
@@ -1356,6 +1579,9 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         } catch (error) {
             console.error('Error eliminando tarea:', error);
             this.showError('Error al eliminar la tarea');
+        } finally {
+            const deleteBtn = document.querySelector(`.task-item[data-task-id="${taskId}"] .btn-delete-task`);
+            if (deleteBtn) this.setButtonLoading(deleteBtn, false);
         }
     }
 
@@ -1392,6 +1618,22 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         if (saveBtn) saveBtn.disabled = loading;
         if (saveBtnText) saveBtnText.style.display = loading ? 'none' : 'inline';
         if (spinner) spinner.style.display = loading ? 'inline-block' : 'none';
+    }
+
+    // Estado de carga para botones individuales
+    setButtonLoading(buttonEl, loading, loadingText = 'Procesando...') {
+        if (!buttonEl) return;
+        if (loading) {
+            buttonEl.dataset.originalText = buttonEl.textContent || '';
+            buttonEl.textContent = loadingText;
+            buttonEl.classList.add('btn-loading');
+            buttonEl.disabled = true;
+        } else {
+            const original = buttonEl.dataset.originalText || '';
+            if (original) buttonEl.textContent = original;
+            buttonEl.classList.remove('btn-loading');
+            buttonEl.disabled = false;
+        }
     }
 
     showLoading(show) {
@@ -1567,6 +1809,8 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         }
 
         try {
+            const saveBtn = form.querySelector('#saveNewTaskBtn');
+            if (saveBtn) this.setButtonLoading(saveBtn, true, 'Guardando...');
             const token = this.getAuthToken();
             const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
             const res = await fetch(`${base}/api/study/plans/${plan.id}/tasks`, {
@@ -1596,88 +1840,19 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         } catch (error) {
             console.error('Error creando tarea:', error);
             this.showError(error.message || 'Error al crear la tarea');
+        } finally {
+            const saveBtn = form.querySelector('#saveNewTaskBtn');
+            if (saveBtn) this.setButtonLoading(saveBtn, false);
         }
     }
 
+    // El flujo de agregar contenido manual fue retirado.
+    // Abrimos directamente el selector desde historial para una UX más simple.
     openAddContentForm(cardElement, plan) {
-        const contentContainer = cardElement.querySelector('.content-list-expanded') || cardElement.querySelector('.content-list');
-        if (!contentContainer) return;
-
-        const form = document.createElement('div');
-        form.className = 'content-form-inline';
-        form.innerHTML = `
-            <div class="form-grid">
-                <div class="form-field">
-                    <label>Tipo</label>
-                    <select id="newContentType">
-                        <option value="resumen" selected>Resumen</option>
-                        <option value="flashcards">Flashcards</option>
-                        <option value="multiple_choice">Multiple Choice</option>
-                        <option value="verdadero_falso">Verdadero/Falso</option>
-                        <option value="chat_qa">Chat Q&A</option>
-                    </select>
-                </div>
-                <div class="form-field">
-                    <label>Título</label>
-                    <input type="text" id="newContentTitle" placeholder="Ej. Resumen capítulo 3" />
-                </div>
-                <div class="form-field">
-                    <label>Contenido</label>
-                    <textarea id="newContentBody" placeholder="Texto del contenido generado"></textarea>
-                </div>
-                <div class="form-field">
-                    <label>Extra (opcional)</label>
-                    <input type="text" id="newExtraGroupName" placeholder="Nombre de grupo extra" />
-                </div>
-            </div>
-            <div class="form-actions">
-                <button class="btn primary" id="saveNewContentBtn">Guardar</button>
-                <button class="btn secondary" id="cancelNewContentBtn">Cancelar</button>
-            </div>
-        `;
-
-        contentContainer.prepend(form);
-
-        form.querySelector('#cancelNewContentBtn').onclick = () => form.remove();
-        form.querySelector('#saveNewContentBtn').onclick = () => this.saveNewContent(cardElement, plan, form);
+        this.openHistoryPicker(cardElement, plan);
     }
 
-    async saveNewContent(cardElement, plan, form) {
-        const contentType = form.querySelector('#newContentType')?.value || 'resumen';
-        const title = form.querySelector('#newContentTitle')?.value?.trim();
-        const content = form.querySelector('#newContentBody')?.value?.trim();
-        const extraGroupName = form.querySelector('#newExtraGroupName')?.value?.trim();
-
-        if (!title || !content) {
-            this.showError('Título y contenido son requeridos.');
-            return;
-        }
-
-        try {
-            const token = this.getAuthToken();
-            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
-            const res = await fetch(`${base}/api/study/plans/${plan.id}/content`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                },
-                body: JSON.stringify({ contentType, title, content, extraGroupName })
-            });
-
-            const data = await res.json();
-            if (!res.ok) {
-                throw new Error(data?.error || 'No se pudo crear el contenido');
-            }
-
-            form.remove();
-            this.loadContentTab(cardElement, plan);
-            this.showSuccess('Contenido añadido correctamente');
-        } catch (error) {
-            console.error('Error creando contenido:', error);
-            this.showError(error.message || 'Error al crear el contenido');
-        }
-    }
+    // Guardado manual de contenido retirado; el agregado se realiza desde historial.
 }
 
 // Instancia global como singleton
