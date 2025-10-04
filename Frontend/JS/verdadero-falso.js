@@ -751,7 +751,7 @@ function showResults() {
     
     const resultsHTML = `
         <div class="vf-results">
-            <h2>¡Quiz Completado!</h2>
+            <img width="80" src="/Assets/Imagenes/zorro-celebracion.png" alt="">
             <p class="vf-score">Puntuación: ${score}/${totalQuestions} (${percentage.toFixed(1)}%)</p>
             <p class="vf-message" style="color: ${color}">${message}</p>
             <div class="vf-results-actions">
