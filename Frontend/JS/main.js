@@ -141,6 +141,9 @@ async function logout() {
 
 // Función para inicializar los event listeners
 document.addEventListener("DOMContentLoaded", () => {
+  // Inicializar navegación móvil
+  initializeMobileNavigation();
+  
   // Dropdown de perfil
   const userProfile = document.getElementById("userProfile");
   const profileDropdown = document.getElementById("profileDropdown");
@@ -396,4 +399,93 @@ function updateUserProfileTitles() {
       emailEl.removeAttribute('title');
     }
   }
+}
+
+// Funciones para navegación móvil
+function initializeMobileNavigation() {
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const mobileHeader = document.getElementById('mobileHeader');
+
+  // Solo inicializar en dispositivos móviles
+  if (!hamburgerBtn || !sidebar || !sidebarOverlay) return;
+
+  // Mostrar/ocultar header móvil según el tamaño de pantalla
+  function toggleMobileHeader() {
+    if (window.innerWidth <= 768) {
+      mobileHeader.style.display = 'flex';
+    } else {
+      mobileHeader.style.display = 'none';
+    }
+  }
+
+  // Inicializar visibilidad del header móvil
+  toggleMobileHeader();
+
+  // Toggle del menú hamburguesa
+  hamburgerBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMobileSidebar();
+  });
+
+  // Cerrar sidebar al hacer clic en el overlay
+  sidebarOverlay.addEventListener('click', closeMobileSidebar);
+
+  // Cerrar sidebar al hacer clic en un enlace del menú
+  const menuItems = sidebar.querySelectorAll('.menu-item');
+  menuItems.forEach(item => {
+    item.addEventListener('click', () => {
+      setTimeout(closeMobileSidebar, 300); // Delay para permitir la navegación
+    });
+  });
+
+  // Cerrar sidebar al redimensionar la ventana a desktop
+  window.addEventListener('resize', () => {
+    toggleMobileHeader();
+    if (window.innerWidth > 768) {
+      closeMobileSidebar();
+    }
+  });
+
+  // Cerrar sidebar al hacer scroll (opcional)
+  window.addEventListener('scroll', closeMobileSidebar);
+}
+
+function toggleMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+
+  if (sidebar.classList.contains('open')) {
+    closeMobileSidebar();
+  } else {
+    openMobileSidebar();
+  }
+}
+
+function openMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+
+  sidebar.classList.add('open');
+  sidebarOverlay.classList.add('show');
+  hamburgerBtn.classList.add('active');
+  
+  // Prevenir scroll del body
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+
+  sidebar.classList.remove('open');
+  sidebarOverlay.classList.remove('show');
+  hamburgerBtn.classList.remove('active');
+  
+  // Restaurar scroll del body
+  document.body.style.overflow = '';
 }

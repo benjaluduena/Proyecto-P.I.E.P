@@ -6,8 +6,8 @@ let carouselInstance = null; // Variable para almacenar la instancia del carouse
 function getHomeElements() {
   console.log('Obteniendo referencias DOM...');
   uploadBox = document.querySelector('.upload-box');
-  uploadText = document.querySelector('.upload-text');
-  fileInput = document.querySelector('.file-input');
+  uploadText = document.getElementById('uploadText');
+  fileInput = document.getElementById('fileInput');
   loadingOverlay = document.getElementById("loadingOverlay");
   cardActionBtns = document.querySelectorAll('.card-action-btn');
   cards = document.querySelectorAll('.card');
@@ -90,6 +90,9 @@ function cleanupEventListeners() {
     const newUploadBox = uploadBox.cloneNode(true);
     uploadBox.parentNode.replaceChild(newUploadBox, uploadBox);
     uploadBox = newUploadBox;
+    
+    // Actualizar la referencia al uploadText después del clonado
+    uploadText = document.getElementById('uploadText');
   }
   
   if (fileInput) {
@@ -112,7 +115,8 @@ function setupEventListenersSimple() {
   
   // Volver a obtener referencias después de la limpieza
   uploadBox = document.querySelector('.upload-box');
-  fileInput = document.querySelector('.file-input');
+  fileInput = document.getElementById('fileInput');
+  uploadText = document.getElementById('uploadText');
 
   // Event listeners para drag & drop
   uploadBox.addEventListener('dragover', handleDragOver);
@@ -284,8 +288,23 @@ function handleFileChange() {
   if (files.length) {
     mostrarArchivos(files);
   } else {
-    if (uploadText) uploadText.textContent = "Ningún archivo válido";
+    if (uploadText) {
+      uploadText.textContent = "Ningún archivo válido";
+      uploadText.classList.remove('file-loaded');
+    }
     if (cards) cards.forEach(card => card.classList.add('disabled'));
+    
+    // Restaurar el icono original
+    const fileIcon = document.querySelector('.file-icon');
+    if (fileIcon) {
+      fileIcon.innerHTML = `
+        <svg width="30px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 12.5858L16.2426 16.8284L14.8284 18.2426L13 16.415V22H11V16.413L9.17157 18.2426L7.75736 16.8284L12 12.5858ZM12 2C15.5934 2 18.5544 4.70761 18.9541 8.19395C21.2858 8.83154 23 10.9656 23 13.5C23 16.3688 20.8036 18.7246 18.0006 18.9776L18.0009 16.9644C19.6966 16.7214 21 15.2629 21 13.5C21 11.567 19.433 10 17.5 10C17.2912 10 17.0867 10.0183 16.8887 10.054C16.9616 9.7142 17 9.36158 17 9C17 6.23858 14.7614 4 12 4C9.23858 4 7 6.23858 7 9C7 9.36158 7.03838 9.7142 7.11205 10.0533C6.91331 10.0183 6.70879 10 6.5 10C4.567 10 3 11.567 3 13.5C3 15.2003 4.21241 16.6174 5.81986 16.934L6.00005 16.9646L6.00039 18.9776C3.19696 18.7252 1 16.3692 1 13.5C1 10.9656 2.71424 8.83154 5.04648 8.19411C5.44561 4.70761 8.40661 2 12 2Z">
+        </path>
+      </svg>
+    `;
+      fileIcon.classList.remove('file-loaded');
+    }
   }
 }
 
@@ -362,37 +381,58 @@ if (document.readyState === 'loading') {
 
 function resetFileInput() {
   if (fileInput) fileInput.value = '';
-  if (uploadedFilesContainer) uploadedFilesContainer.innerHTML = '';
-  if (uploadText) uploadText.textContent = "Ningún archivo seleccionado";
+  if (uploadText) {
+    uploadText.textContent = "Ningún archivo seleccionado";
+    uploadText.classList.remove('file-loaded');
+  }
   if (cards) cards.forEach(card => card.classList.add('disabled'));
+  
+  // Restaurar el icono original
+  const fileIcon = document.querySelector('.file-icon');
+  if (fileIcon) {
+    fileIcon.innerHTML = `
+      <svg width="30px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 12.5858L16.2426 16.8284L14.8284 18.2426L13 16.415V22H11V16.413L9.17157 18.2426L7.75736 16.8284L12 12.5858ZM12 2C15.5934 2 18.5544 4.70761 18.9541 8.19395C21.2858 8.83154 23 10.9656 23 13.5C23 16.3688 20.8036 18.7246 18.0006 18.9776L18.0009 16.9644C19.6966 16.7214 21 15.2629 21 13.5C21 11.567 19.433 10 17.5 10C17.2912 10 17.0867 10.0183 16.8887 10.054C16.9616 9.7142 17 9.36158 17 9C17 6.23858 14.7614 4 12 4C9.23858 4 7 6.23858 7 9C7 9.36158 7.03838 9.7142 7.11205 10.0533C6.91331 10.0183 6.70879 10 6.5 10C4.567 10 3 11.567 3 13.5C3 15.2003 4.21241 16.6174 5.81986 16.934L6.00005 16.9646L6.00039 18.9776C3.19696 18.7252 1 16.3692 1 13.5C1 10.9656 2.71424 8.83154 5.04648 8.19411C5.44561 4.70761 8.40661 2 12 2Z">
+      </path>
+    </svg>
+  `;
+    fileIcon.classList.remove('file-loaded');
+  }
 }
 
 
 // Mostrar archivos
 function mostrarArchivos(files) {
   if (uploadedFilesContainer) uploadedFilesContainer.innerHTML = '';
-  if (uploadText) uploadText.textContent = `${files.length} archivo(s) cargado(s)`;
+  
+  // Mostrar el nombre del archivo en el texto principal
+  // Volver a obtener la referencia para asegurarnos de que existe
+  const uploadTextElement = document.getElementById('uploadText');
+  
+  if (uploadTextElement && files.length > 0) {
+    const fileName = files[0].name;
+    // Truncar el nombre si es muy largo
+    const displayName = fileName.length > 30 ? fileName.substring(0, 30) + '...' : fileName;
+    uploadTextElement.textContent = displayName;
+    uploadTextElement.classList.add('file-loaded');
+    
+    // Actualizar también la variable global
+    uploadText = uploadTextElement;
+  }
+  
   if (cards) cards.forEach(card => card.classList.remove('disabled'));
 
-  [...files].forEach((file, index) => {
-    const fileDiv = document.createElement('div');
-    fileDiv.className = 'uploaded-file';
-    fileDiv.innerHTML = `
-      <span title="${file.name}">${file.name} <small>(${file.type || 'desconocido'})</small></span>
-      <button class="remove-btn" data-index="${index}">❌</button>
+  // Cambiar el icono cuando se carga un archivo
+  const fileIcon = document.querySelector('.file-icon');
+  if (fileIcon && files.length > 0) {
+    fileIcon.innerHTML = `
+    <svg width="30px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M15 4H5V20H19V8H15V4ZM3 2.9918C3 2.44405 3.44749 2 3.9985 2H16L20.9997 7L21 20.9925C21 21.5489 20.5551 22 20.0066 22H3.9934C3.44476 22 3 21.5447 3 21.0082V2.9918ZM13 12V16H11V12H8L12 8L16 12H13Z"></path>
+    </svg>
     `;
-    if (uploadedFilesContainer) uploadedFilesContainer.appendChild(fileDiv);
-  });
+    fileIcon.classList.add('file-loaded');
+  }
 
-  // Manejar eliminar archivo (esto borra todo porque input.files es readonly)
-  document.querySelectorAll('.remove-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (fileInput) fileInput.value = '';
-      if (uploadedFilesContainer) uploadedFilesContainer.innerHTML = '';
-      if (uploadText) uploadText.textContent = "Ningún archivo seleccionado";
-      if (cards) cards.forEach(card => card.classList.add('disabled'));
-    });
-  });
 }
 
 
@@ -810,7 +850,8 @@ class Carousel {
   }
   
   getSlidesPerView() {
-    return window.innerWidth > 768 ? 2 : 1;
+    if (window.innerWidth >= 769) return 2;
+    return 1;
   }
   
   init() {
@@ -968,12 +1009,14 @@ class Carousel {
     let isDragging = false;
     let startTime = 0;
     
-    // Eventos táctiles
+    // Eventos táctiles mejorados
     this.track.addEventListener('touchstart', (e) => {
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
       startTime = Date.now();
       isDragging = true;
+      moveX = 0;
+      moveY = 0;
       
       // Pausar transición durante el drag
       this.track.style.transition = 'none';
@@ -986,7 +1029,7 @@ class Carousel {
       moveY = e.touches[0].clientY - startY;
       
       // Solo hacer drag horizontal si el movimiento es más horizontal que vertical
-      if (Math.abs(moveX) > Math.abs(moveY) && Math.abs(moveX) > 10) {
+      if (Math.abs(moveX) > Math.abs(moveY) && Math.abs(moveX) > 15) {
         e.preventDefault();
         
         // Aplicar transformación en tiempo real durante el drag
@@ -1009,7 +1052,7 @@ class Carousel {
       const endTime = Date.now();
       const timeDiff = endTime - startTime;
       const distance = Math.abs(moveX);
-      const velocity = distance / timeDiff;
+      const velocity = timeDiff > 0 ? distance / timeDiff : 0;
       
       // Determinar si cambiar de slide basado en distancia y velocidad
       const threshold = this.track.clientWidth * 0.25; // 25% del ancho
@@ -1145,3 +1188,4 @@ class Carousel {
     }
   }
 }
+
