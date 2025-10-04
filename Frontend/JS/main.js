@@ -40,6 +40,18 @@ function loadSectionLegacy(nombre) {
       script.parentNode.removeChild(script);
     }
   });
+
+  // Eliminar cualquier script de la misma sección previamente insertado por otros sistemas
+  const dupScripts = Array.from(document.querySelectorAll('script[src]')).filter(s => {
+    const src = s.getAttribute('src') || '';
+    return src.includes(`/JS/${nombre}.js`);
+  });
+  dupScripts.forEach(s => {
+    if (s.parentNode) {
+      s.parentNode.removeChild(s);
+      console.log(`🗑️ Script duplicado eliminado (legacy): ${s.src}`);
+    }
+  });
   
   fetch(`Pages/${nombre}.html`)
     .then(res => res.text())

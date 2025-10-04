@@ -1,5 +1,5 @@
 // Planes de Estudio - Lógica principal
-class StudyPlansManager {
+window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
     constructor() {
         this.currentUser = null;
         this.studyPlans = [];
@@ -11,186 +11,549 @@ class StudyPlansManager {
         this.init();
     }
 
-    async init() {
-        try {
-            console.log('Inicializando planes de estudio...');
-            
-            // Configurar usuario de desarrollo
-            this.currentUser = { id: '550e8400-e29b-41d4-a716-446655440000', email: 'dev@localhost' };
-            
-            this.setupEventListeners();
-            await this.loadStudyPlans();
-        } catch (error) {
-            console.error('Error inicializando planes de estudio:', error);
-            this.showError('Error al cargar la aplicación');
-        }
-    }
+    init() {
+        // Evitar listeners duplicados si la instancia se reusa
+        if (this._inited) return;
+        this._inited = true;
+        // Inicializar módulos si están disponibles
+        this.authModule = window.authModule || this.authModule;
+        this.apiModule = window.apiModule || this.apiModule;
 
-    // Esperar a que la aplicación esté inicializada
-    async waitForApp() {
-        let attempts = 0;
-        const maxAttempts = 50; // 5 segundos máximo
-        
-        while (attempts < maxAttempts) {
-            if (window.app && window.app.authModule && window.app.isInitialized) {
+        // Listeners del modal de creación/edición
+        const createBtn = document.getElementById('createPlanBtn');
+        if (createBtn) createBtn.addEventListener('click', () => this.openCreateModal());
+
+        const createFirstBtn = document.getElementById('createFirstPlanBtn');
+        if (createFirstBtn) createFirstBtn.addEventListener('click', () => this.openCreateModal());
+
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        if (addTaskBtn) addTaskBtn.addEventListener('click', () => this.addTaskToForm());
+
+        const cancelBtn = document.getElementById('cancelBtn');
+        if (cancelBtn) cancelBtn.addEventListener('click', () => this.closeModal());
+
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        if (closeModalBtn) closeModalBtn.addEventListener('click', () => this.closeModal());
+
+        const form = document.getElementById('studyPlanForm');
+        if (form) form.addEventListener('submit', (e) => this.handleFormSubmit(e));
+
+        // Listeners de filtros y búsqueda
+        const resetFiltersBtn = document.getElementById('resetFilters');
+        if (resetFiltersBtn) resetFiltersBtn.addEventListener('click', () => this.resetAllFilters());
+
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.addEventListener('input', () => this.applyFilters());
+
+        const statusFilter = document.getElementById('statusFilter');
+        if (statusFilter) statusFilter.addEventListener('change', () => this.applyFilters());
+
+        const priorityFilter = document.getElementById('priorityFilter');
+        if (priorityFilter) priorityFilter.addEventListener('change', () => this.applyFilters());
+
+        const sortBy = document.getElementById('sortBy');
+        if (sortBy) sortBy.addEventListener('change', () => this.applyFilters());
+
+        // Listeners del modal de detalles
+        const closeDetailsBtn = document.getElementById('closeDetailsBtn');
+        if (closeDetailsBtn) closeDetailsBtn.addEventListener('click', () => this.closeDetailsModal());
+
+        const editPlanBtn = document.getElementById('editPlanBtn');
+        if (editPlanBtn) editPlanBtn.addEventListener('click', () => this.editCurrentPlan());
+
+        const deletePlanBtn = document.getElementById('deletePlanBtn');
+        if (deletePlanBtn) deletePlanBtn.addEventListener('click', () => this.deleteCurrentPlan());
+
+        // Delegación de eventos global para garantizar funcionamiento de botones dinámicos
+        document.addEventListener('click', (e) => {
+            // Ver detalles de tarjeta (expandir)
+            const viewBtn = e.target.closest('.view-btn');
+            if (viewBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                const card = viewBtn.closest('.study-plan-card');
+                const planId = card?.getAttribute('data-plan-id');
+                const plan = this.studyPlans.find(p => String(p.id) === String(planId));
+                if (card && plan) {
+                    this.expandCard(card, plan);
+                    return;
+                }
+            }
+
+            // Acciones de tareas en vista expandida
+            const editTaskBtn = e.target.closest('.btn-edit-task');
+            if (editTaskBtn) {
+                e.preventDefault();
+                const taskItem = editTaskBtn.closest('.task-item');
+                const taskId = taskItem?.getAttribute('data-task-id');
+                if (taskId) this.editTask(taskId);
                 return;
             }
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-        }
-        
-        throw new Error('La aplicación no se inicializó correctamente');
+
+            const toggleTaskBtn = e.target.closest('.btn-toggle-task');
+            if (toggleTaskBtn) {
+                e.preventDefault();
+                const taskItem = toggleTaskBtn.closest('.task-item');
+                const taskId = taskItem?.getAttribute('data-task-id');
+                if (taskId) this.toggleTaskCompletion(taskId);
+                return;
+            }
+
+            const deleteTaskBtn = e.target.closest('.btn-delete-task');
+            if (deleteTaskBtn) {
+                e.preventDefault();
+                const taskItem = deleteTaskBtn.closest('.task-item');
+                const taskId = taskItem?.getAttribute('data-task-id');
+                if (taskId) this.deleteTask(taskId);
+                return;
+            }
+
+            const viewTaskBtn = e.target.closest('.btn-view-task');
+            if (viewTaskBtn) {
+                e.preventDefault();
+                const card = viewTaskBtn.closest('.study-plan-card');
+                const planId = card?.getAttribute('data-plan-id');
+                if (planId) this.viewPlanDetails(planId);
+                return;
+            }
+
+            // Cerrar vista expandida
+            const closeExpandedBtn = e.target.closest('.close-expanded-btn');
+            if (closeExpandedBtn) {
+                e.preventDefault();
+                const card = closeExpandedBtn.closest('.study-plan-card');
+                if (card) this.collapseCard(card);
+                return;
+            }
+
+            // Tabs dentro de la vista expandida (delegado)
+            const tabBtn = e.target.closest('.tab-btn');
+            if (tabBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                const card = tabBtn.closest('.study-plan-card');
+                const planId = card?.getAttribute('data-plan-id');
+                const plan = this.studyPlans.find(p => String(p.id) === String(planId));
+                if (!card || !plan) return;
+
+                const targetTab = tabBtn.getAttribute('data-tab');
+                const tabBtns = card.querySelectorAll('.tab-btn');
+                const tabPanels = card.querySelectorAll('.tab-panel');
+
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabPanels.forEach(p => p.classList.remove('active'));
+                tabBtn.classList.add('active');
+                const targetPanel = card.querySelector(`[data-panel="${targetTab}"]`);
+                if (targetPanel) targetPanel.classList.add('active');
+
+                this.loadTabContent(card, plan, targetTab);
+                return;
+            }
+
+            // Guardar cambios desde pestaña Editar (delegado)
+            const saveEditBtn = e.target.closest('.save-edit');
+            if (saveEditBtn) {
+                e.preventDefault();
+                const card = saveEditBtn.closest('.study-plan-card');
+                const planId = card?.getAttribute('data-plan-id');
+                const plan = this.studyPlans.find(p => String(p.id) === String(planId));
+                if (card && plan) this.saveExpandedPlan(card, plan);
+                return;
+            }
+
+            // Cancelar edición y volver a Resumen (delegado)
+            const cancelEditBtn = e.target.closest('.cancel-edit');
+            if (cancelEditBtn) {
+                e.preventDefault();
+                const card = cancelEditBtn.closest('.study-plan-card');
+                const planId = card?.getAttribute('data-plan-id');
+                const plan = this.studyPlans.find(p => String(p.id) === String(planId));
+                if (!card || !plan) return;
+
+                // Restablecer valores del formulario de edición
+                this.populateEditForm(card, plan);
+
+                // Cambiar pestaña activa a Resumen
+                const tabBtns = card.querySelectorAll('.tab-btn');
+                const tabPanels = card.querySelectorAll('.tab-panel');
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabPanels.forEach(p => p.classList.remove('active'));
+                const overviewBtn = card.querySelector('.tab-btn[data-tab="overview"]');
+                const overviewPanel = card.querySelector('.tab-panel[data-panel="overview"]');
+                if (overviewBtn) overviewBtn.classList.add('active');
+                if (overviewPanel) overviewPanel.classList.add('active');
+                return;
+            }
+
+            // Acciones para agregar tarea/contenido (delegado)
+            const addTaskBtnDelegated = e.target.closest('.add-task-btn');
+            if (addTaskBtnDelegated) {
+                e.preventDefault();
+                const card = addTaskBtnDelegated.closest('.study-plan-card');
+                const planId = card?.getAttribute('data-plan-id');
+                const plan = this.studyPlans.find(p => String(p.id) === String(planId));
+                if (card && plan) this.openAddTaskForm(card, plan);
+                return;
+            }
+
+            const addContentBtnDelegated = e.target.closest('.add-content-btn');
+            if (addContentBtnDelegated) {
+                e.preventDefault();
+                const card = addContentBtnDelegated.closest('.study-plan-card');
+                const planId = card?.getAttribute('data-plan-id');
+                const plan = this.studyPlans.find(p => String(p.id) === String(planId));
+                if (card && plan) this.openAddContentForm(card, plan);
+                return;
+            }
+        });
+
+        // Delegación para cambios de estado del plan (select)
+        document.addEventListener('change', (e) => {
+            const statusSelect = e.target.closest('.status-select');
+            if (statusSelect) {
+                e.stopPropagation();
+                const card = statusSelect.closest('.study-plan-card');
+                const planId = card?.getAttribute('data-plan-id');
+                const newStatus = statusSelect.value;
+                if (planId && newStatus) this.setPlanStatus(planId, newStatus);
+            }
+        });
+
+        // Cargar planes inicialmente
+        this.loadStudyPlans().catch(err => {
+            console.error('Error cargando planes:', err);
+            this.showError('No se pudieron cargar los planes');
+        });
     }
 
-    getCurrentUser() {
+    getBaseUrl() {
         try {
-            return this.authModule?.getCurrentUser() || null;
-        } catch (error) {
-            console.error('Error obteniendo usuario:', error);
-            return null;
+            const cfg = window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL;
+            return cfg || window.location.origin;
+        } catch {
+            return window.location.origin;
         }
     }
 
-    setupEventListeners() {
-        // Botón crear plan
-        const createBtn = document.getElementById('createPlanBtn');
-        if (createBtn) {
-            createBtn.addEventListener('click', () => this.openCreateModal());
-        }
-
-        // Búsqueda
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => this.filterPlans(e.target.value));
-        }
-
-        // Filtros
-        const statusFilter = document.getElementById('statusFilter');
-        const sortBy = document.getElementById('sortBy');
-        
-        if (statusFilter) {
-            statusFilter.addEventListener('change', () => this.applyFilters());
-        }
-        
-        if (sortBy) {
-            sortBy.addEventListener('change', () => this.applyFilters());
-        }
-
-        // Modal eventos
-        this.setupModalEvents();
-        
-        // Formulario de plan
-        this.setupFormEvents();
+    calculateDaysRemaining(dateStr) {
+        if (!dateStr) return 0;
+        const end = new Date(dateStr);
+        const today = new Date();
+        end.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+        const diffMs = end.getTime() - today.getTime();
+        const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        return Math.max(days, 0);
     }
 
-    setupModalEvents() {
-        // Modal crear/editar plan
-        const modal = document.getElementById('studyPlanModal');
-        const closeBtn = document.getElementById('closeModalBtn');
-        const cancelBtn = document.getElementById('cancelBtn');
-        
-        if (closeBtn) closeBtn.addEventListener('click', () => this.closeModal());
-        if (cancelBtn) cancelBtn.addEventListener('click', () => this.closeModal());
-        
-        // Modal detalles
-        const detailsModal = document.getElementById('planDetailsModal');
-        const closeDetailsBtn = document.getElementById('closeDetailsModal');
-        const closeDetailsBtn2 = document.getElementById('closeDetailsBtn');
-        const editPlanBtn = document.getElementById('editPlanBtn');
-        const deletePlanBtn = document.getElementById('deletePlanBtn');
-        
-        if (closeDetailsBtn) closeDetailsBtn.addEventListener('click', () => this.closeDetailsModal());
-        if (closeDetailsBtn2) closeDetailsBtn2.addEventListener('click', () => this.closeDetailsModal());
-        if (editPlanBtn) editPlanBtn.addEventListener('click', () => this.editCurrentPlan());
-        if (deletePlanBtn) deletePlanBtn.addEventListener('click', () => this.deleteCurrentPlan());
-        
-        // Botones del modal de detalles
-        const closeDetailsBtn3 = document.getElementById('closeDetailsBtn');
-        if (closeDetailsBtn3) {
-            closeDetailsBtn3.addEventListener('click', () => this.closeDetailsModal());
-        }
-        
-        const closeDetailsModal = document.getElementById('closeDetailsModal');
-        if (closeDetailsModal) {
-            closeDetailsModal.addEventListener('click', () => this.closeDetailsModal());
-        }
-        
-        const editPlanBtn2 = document.getElementById('editPlanBtn');
-        if (editPlanBtn2) {
-            editPlanBtn2.addEventListener('click', () => this.editCurrentPlan());
-        }
-        
-        const deletePlanBtn2 = document.getElementById('deletePlanBtn');
-        if (deletePlanBtn2) {
-            deletePlanBtn2.addEventListener('click', () => this.deleteCurrentPlan());
-        }
+    formatDate(dateStr) {
+        if (!dateStr) return '-';
+        const d = new Date(dateStr);
+        if (Number.isNaN(d.getTime())) return dateStr;
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
 
-        // Cerrar modal al hacer clic fuera
-        if (modal) {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) this.closeModal();
+    setupExpandedTabs(cardElement, plan) {
+        const tabBtns = cardElement.querySelectorAll('.tab-btn');
+        const tabPanels = cardElement.querySelectorAll('.tab-panel');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const targetTab = btn.getAttribute('data-tab');
+                
+                // Remover clase active de todos los botones y paneles
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabPanels.forEach(p => p.classList.remove('active'));
+                
+                // Activar el botón y panel seleccionado
+                btn.classList.add('active');
+                const targetPanel = cardElement.querySelector(`[data-panel="${targetTab}"]`);
+                if (targetPanel) {
+                    targetPanel.classList.add('active');
+                }
+                
+                // Cargar contenido específico de la pestaña
+                this.loadTabContent(cardElement, plan, targetTab);
             });
-        }
+        });
+    }
+
+    populateExpandedView(cardElement, plan) {
+        // Estadísticas del resumen
+        const tasksTotal = cardElement.querySelector('.tasks-total');
+        const tasksCompleted = cardElement.querySelector('.tasks-completed');
+        const tasksPending = cardElement.querySelector('.tasks-pending');
+        const daysRemaining = cardElement.querySelector('.days-remaining');
+
+        const totalTasks = plan.plan_tasks ? plan.plan_tasks.length : 0;
+        const completedTasks = plan.plan_tasks ? plan.plan_tasks.filter(task => task.completed).length : 0;
+        const pendingTasks = totalTasks - completedTasks;
+        const daysLeft = this.calculateDaysRemaining(plan.end_date);
+
+        if (tasksTotal) tasksTotal.textContent = totalTasks;
+        if (tasksCompleted) tasksCompleted.textContent = completedTasks;
+        if (tasksPending) tasksPending.textContent = pendingTasks;
+        if (daysRemaining) daysRemaining.textContent = daysLeft;
+
+        // Barra de progreso grande
+        const progressFillLarge = cardElement.querySelector('.progress-fill-large');
+        const progressTextLarge = cardElement.querySelector('.progress-text-large');
         
-        if (detailsModal) {
-            detailsModal.addEventListener('click', (e) => {
-                if (e.target === detailsModal) this.closeDetailsModal();
-            });
+        if (progressFillLarge) progressFillLarge.style.width = `${plan.progress || 0}%`;
+        if (progressTextLarge) progressTextLarge.textContent = `${plan.progress || 0}% Completado`;
+
+        // Formulario de edición
+        this.populateEditForm(cardElement, plan);
+    }
+
+    loadTabContent(cardElement, plan, tabName) {
+        switch (tabName) {
+            case 'tasks':
+                this.loadTasksTab(cardElement, plan);
+                break;
+            case 'content':
+                this.loadContentTab(cardElement, plan);
+                break;
+            case 'edit':
+                this.loadEditTab(cardElement, plan);
+                break;
+            default:
+                // Recalcular y repintar resumen al volver a la pestaña
+                this.populateExpandedView(cardElement, plan);
+                break;
         }
     }
 
-    setupFormEvents() {
-        // Formulario principal
-        const form = document.getElementById('studyPlanForm');
-        if (form) {
-            form.addEventListener('submit', (e) => this.handleFormSubmit(e));
-        }
+    loadTasksTab(cardElement, plan) {
+        // Seleccionar el contenedor dentro del panel de Tareas para evitar coincidencias fuera del panel
+        const tasksPanel = cardElement.querySelector('.tab-panel[data-panel="tasks"]');
+        const tasksContainer = tasksPanel?.querySelector('.tasks-list-expanded') || cardElement.querySelector('.tasks-list');
+        if (!tasksContainer) return;
 
-        // Botón agregar tarea
-        const addTaskBtn = document.getElementById('addTaskBtn');
+        // Botón para agregar tarea
+        const addTaskBtn = cardElement.querySelector('.add-task-btn');
         if (addTaskBtn) {
-            addTaskBtn.addEventListener('click', () => this.addTaskToForm());
+            // Se mantiene por compatibilidad, pero existe delegación global
+            addTaskBtn.onclick = () => this.openAddTaskForm(cardElement, plan);
         }
 
-        // Validación de fechas
-        const startDate = document.getElementById('startDate');
-        const endDate = document.getElementById('endDate');
-        
-        if (startDate && endDate) {
-            startDate.addEventListener('change', () => this.validateDates());
-            endDate.addEventListener('change', () => this.validateDates());
+        const tasks = plan.plan_tasks || [];
+        if (!tasks.length) {
+            tasksContainer.innerHTML = '<p class="empty-message">No hay tareas registradas en este plan.</p>';
+            return;
+        }
+
+        tasksContainer.innerHTML = tasks.map(task => `
+            <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
+                <span class="task-title">${task.title}</span>
+                <span class="task-status">${task.completed ? 'Completada' : 'Pendiente'}</span>
+                <div class="task-actions">
+                    <button class="btn btn-sm btn-outline-primary btn-edit-task">Editar</button>
+                    <button class="btn btn-sm ${task.completed ? 'btn-warning' : 'btn-success'} btn-toggle-task">${task.completed ? 'Desmarcar' : 'Completar'}</button>
+                    <button class="btn btn-sm btn-danger btn-delete-task">Eliminar</button>
+                    <button class="btn btn-sm btn-secondary btn-view-task">Ver</button>
+                </div>
+            </div>
+        `).join('');
+
+        // Conectar acciones
+        tasksContainer.querySelectorAll('.task-item').forEach(item => {
+            const taskId = item.getAttribute('data-task-id');
+            item.querySelector('.btn-edit-task')?.addEventListener('click', () => this.editTask(taskId));
+            item.querySelector('.btn-toggle-task')?.addEventListener('click', () => this.toggleTaskCompletion(taskId));
+            item.querySelector('.btn-delete-task')?.addEventListener('click', () => this.deleteTask(taskId));
+            item.querySelector('.btn-view-task')?.addEventListener('click', () => this.viewPlanDetails(plan.id));
+        });
+    }
+
+    loadContentTab(cardElement, plan) {
+        const contentContainer = cardElement.querySelector('.content-list-expanded') || cardElement.querySelector('.content-list');
+        if (!contentContainer) return;
+
+        contentContainer.innerHTML = `<div class="content-loading">Cargando contenido...</div>`;
+
+        const token = this.getAuthToken();
+        const base = this.getBaseUrl();
+
+        // Botón para agregar contenido
+        const addContentBtn = cardElement.querySelector('.add-content-btn');
+        if (addContentBtn) {
+            addContentBtn.onclick = () => this.openAddContentForm(cardElement, plan);
+        }
+
+        fetch(`${base}/api/study/plans/${plan.id}/content`, {
+            headers: {
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            }
+        })
+        .then(res => res.ok ? res.json() : Promise.reject(res))
+        .then(data => {
+            const items = Array.isArray(data) ? data : (data && data.contents) ? data.contents : [];
+            if (!items.length) {
+                contentContainer.innerHTML = `<div class="content-empty">No hay contenido generado aún para este plan</div>`;
+                return;
+            }
+
+            const html = items.map(item => {
+                const type = item.content_type || 'contenido';
+                const taskTitle = item.plan_tasks?.title || '';
+                const pdfTitle = item.pdf_uploads?.title || '';
+                const title = item.title || taskTitle || pdfTitle || 'Sin título';
+                const created = item.created_at ? new Date(item.created_at).toLocaleString() : '';
+                const extra = item.is_extra ? ` • Extra${item.extra_group_name ? ` (${item.extra_group_name})` : ''}` : '';
+
+                return `
+                    <div class="content-item">
+                        <div class="content-item-header">
+                            <span class="content-type badge">${type}${extra}</span>
+                            ${created ? `<span class="content-date">${created}</span>` : ''}
+                        </div>
+                        <div class="content-item-body">
+                            <div class="content-title">${title}</div>
+                            ${taskTitle ? `<div class="content-related">Tarea: ${taskTitle}</div>` : ''}
+                            ${pdfTitle ? `<div class="content-related">PDF: ${pdfTitle}</div>` : ''}
+                        </div>
+                        <div class="content-item-actions">
+                            <button class="btn btn-secondary btn-sm view-content-btn" data-content-id="${item.id}">Ver</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            contentContainer.innerHTML = html;
+
+            // Acciones
+            contentContainer.querySelectorAll('.view-content-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.openContentManager(plan.id);
+                });
+            });
+        })
+        .catch(err => {
+            console.error('Error cargando contenido del plan:', err);
+            contentContainer.innerHTML = `<div class="content-error">Error al cargar el contenido del plan</div>`;
+        });
+    }
+
+    loadEditTab(cardElement, plan) {
+        // El formulario de edición ya está poblado en populateExpandedView
+    }
+
+    populateEditForm(cardElement, plan) {
+        const titleInput = cardElement.querySelector('.edit-title');
+        const descInput = cardElement.querySelector('.edit-description');
+        const startDateInput = cardElement.querySelector('.edit-start-date');
+        const endDateInput = cardElement.querySelector('.edit-end-date');
+        const statusSelect = cardElement.querySelector('.edit-status');
+
+        if (titleInput) titleInput.value = plan.title || '';
+        if (descInput) descInput.value = plan.description || '';
+        if (startDateInput) startDateInput.value = plan.start_date || '';
+        if (endDateInput) endDateInput.value = plan.end_date || '';
+        if (statusSelect) statusSelect.value = plan.status || 'active';
+
+        // Listeners de la pestaña Editar (alineados con el HTML)
+        const saveBtn = cardElement.querySelector('.save-edit');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.saveExpandedPlan(cardElement, plan);
+            });
+        }
+
+        const cancelBtn = cardElement.querySelector('.cancel-edit');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Restablecer valores del formulario y volver a Resumen
+                this.populateEditForm(cardElement, plan);
+                const tabBtns = cardElement.querySelectorAll('.tab-btn');
+                const tabPanels = cardElement.querySelectorAll('.tab-panel');
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabPanels.forEach(p => p.classList.remove('active'));
+                const overviewBtn = cardElement.querySelector('.tab-btn[data-tab="overview"]');
+                const overviewPanel = cardElement.querySelector('.tab-panel[data-panel="overview"]');
+                if (overviewBtn) overviewBtn.classList.add('active');
+                if (overviewPanel) overviewPanel.classList.add('active');
+            });
+        }
+
+        // Manejar envío del formulario por Enter o acción de submit
+        const editForm = cardElement.querySelector('.edit-plan-form');
+        if (editForm) {
+            editForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.saveExpandedPlan(cardElement, plan);
+            });
+        }
+    }
+
+    async saveExpandedPlan(cardElement, plan) {
+        const titleInput = cardElement.querySelector('.edit-title');
+        const descInput = cardElement.querySelector('.edit-description');
+        const startDateInput = cardElement.querySelector('.edit-start-date');
+        const endDateInput = cardElement.querySelector('.edit-end-date');
+        const statusSelect = cardElement.querySelector('.edit-status');
+
+        const updatedData = {
+            title: titleInput?.value || plan.title,
+            description: descInput?.value || plan.description,
+            start_date: startDateInput?.value || plan.start_date,
+            end_date: endDateInput?.value || plan.end_date,
+            status: statusSelect?.value || plan.status
+        };
+
+        try {
+            const base = this.getBaseUrl();
+            const response = await fetch(`${base}/api/study/plans/${plan.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(() => { const token = this.getAuthToken(); return token ? { 'Authorization': `Bearer ${token}` } : {}; })()
+                },
+                body: JSON.stringify(updatedData)
+            });
+
+            if (response.ok) {
+                this.showSuccess('Plan actualizado correctamente');
+                await this.loadStudyPlans();
+            } else {
+                throw new Error('Error al actualizar el plan');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            this.showError('Error al actualizar el plan');
         }
     }
 
     async loadStudyPlans() {
         try {
-            console.log('Cargando planes de estudio...');
             this.showLoading(true);
             
-            // Hacer petición directa al backend
-            const response = await fetch('http://localhost:5500/api/study/plans', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+            const token = this.getAuthToken();
+            const base = this.getBaseUrl();
+            const response = await fetch(`${base}/api/study/plans`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
             });
             
-            console.log('Respuesta de la API:', response.status, response.statusText);
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            if (response.ok) {
+                this.studyPlans = await response.json();
+                this.renderStudyPlans();
+            } else {
+                throw new Error('Error al cargar los planes');
             }
 
-            const data = await response.json();
-            console.log('Datos recibidos:', data);
-            
-            this.studyPlans = data.plans || data || [];
-            console.log('Planes cargados:', this.studyPlans.length);
-            
-            this.renderStudyPlans();
         } catch (error) {
             console.error('Error cargando planes:', error);
-            this.showError('Error al cargar los planes de estudio: ' + error.message);
+            this.showError('Error al cargar los planes de estudio');
         } finally {
             this.showLoading(false);
         }
@@ -198,7 +561,22 @@ class StudyPlansManager {
 
     getAuthToken() {
         try {
-            return this.authModule?.getAccessToken() || '';
+            const fromModule = (this.authModule && typeof this.authModule.getAccessToken === 'function')
+                ? this.authModule.getAccessToken()
+                : null;
+            if (fromModule) return fromModule;
+
+            // Fallback a localStorage (formato usado en otras pantallas)
+            const sessionStr = localStorage.getItem('session');
+            if (sessionStr) {
+                try {
+                    const session = JSON.parse(sessionStr);
+                    return session?.access_token || '';
+                } catch (_) {
+                    return '';
+                }
+            }
+            return '';
         } catch (error) {
             console.error('Error obteniendo token:', error);
             return '';
@@ -209,13 +587,13 @@ class StudyPlansManager {
         const grid = document.getElementById('studyPlansGrid');
         const emptyState = document.getElementById('emptyState');
         const emptyMessage = document.getElementById('emptyMessage');
+        const loadingIndicator = document.getElementById('loadingIndicator');
         
         if (grid) grid.style.display = 'none';
+        if (loadingIndicator) loadingIndicator.style.display = 'none';
         if (emptyState) {
             emptyState.style.display = 'block';
-            if (emptyMessage) {
-                emptyMessage.textContent = message;
-            }
+            if (emptyMessage) emptyMessage.textContent = message;
         }
     }
 
@@ -223,94 +601,196 @@ class StudyPlansManager {
         const grid = document.getElementById('studyPlansGrid');
         const emptyState = document.getElementById('emptyState');
         
-        if (!grid) return;
-
-        if (this.studyPlans.length === 0) {
-            grid.style.display = 'none';
-            if (emptyState) emptyState.style.display = 'block';
+        if (!this.studyPlans || this.studyPlans.length === 0) {
+            this.showEmptyState('No tienes planes de estudio creados aún');
             return;
         }
-
-        grid.style.display = 'grid';
-        if (emptyState) emptyState.style.display = 'none';
-
-        grid.innerHTML = '';
         
-        this.studyPlans.forEach(plan => {
-            const card = this.createPlanCard(plan);
-            grid.appendChild(card);
-        });
+        if (emptyState) emptyState.style.display = 'none';
+        if (grid) {
+            grid.style.display = 'grid';
+            grid.innerHTML = ''; // Limpiar el grid
+            
+            // Crear y agregar cada tarjeta individualmente
+            this.studyPlans.forEach(plan => {
+                const cardElement = this.createPlanCard(plan);
+                if (cardElement) {
+                    grid.appendChild(cardElement);
+                }
+            });
+        }
     }
 
     createPlanCard(plan) {
         const template = document.getElementById('studyPlanCardTemplate');
-        if (!template) return document.createElement('div');
+        if (!template) {
+            console.error('Template studyPlanCardTemplate no encontrado');
+            return null;
+        }
 
-        const card = template.content.cloneNode(true);
-        const cardElement = card.querySelector('.study-plan-card');
+        const cardElement = template.content.cloneNode(true);
+        const card = cardElement.querySelector('.study-plan-card');
         
-        // Configurar datos
-        cardElement.dataset.planId = plan.id;
+        // Establecer el ID del plan
+        if (card) {
+            card.setAttribute('data-plan-id', plan.id);
+        }
         
-        // Título
-        const title = card.querySelector('.plan-title');
+        // Datos básicos
+        const title = cardElement.querySelector('.plan-title');
+        const description = cardElement.querySelector('.plan-description');
+        const startDate = cardElement.querySelector('.start-date');
+        const endDate = cardElement.querySelector('.end-date');
+        const tasksCount = cardElement.querySelector('.tasks-count');
+        const completedTasks = cardElement.querySelector('.completed-tasks');
+        const progressPercentage = cardElement.querySelector('.progress-percentage');
+        const progressBarFill = cardElement.querySelector('.progress-bar-fill');
+
         if (title) title.textContent = plan.title;
+        if (description) description.textContent = plan.description || 'Sin descripción';
+        if (startDate) startDate.textContent = this.formatDate(plan.start_date);
+        if (endDate) endDate.textContent = this.formatDate(plan.end_date);
         
-        // Descripción
-        const description = card.querySelector('.plan-description');
-        if (description) {
-            description.textContent = plan.description || 'Sin descripción';
-        }
+        // Estadísticas de tareas
+        const totalTasks = plan.plan_tasks ? plan.plan_tasks.length : 0;
+        const completed = plan.plan_tasks ? plan.plan_tasks.filter(task => task.completed).length : 0;
+        const progress = totalTasks > 0 ? Math.round((completed / totalTasks) * 100) : 0;
         
-        // Fechas
-        const dates = card.querySelector('.plan-dates');
-        if (dates) {
-            const startDate = new Date(plan.start_date).toLocaleDateString();
-            const endDate = new Date(plan.end_date).toLocaleDateString();
-            dates.textContent = `${startDate} - ${endDate}`;
-        }
-        
-        // Contador de tareas
-        const tasksCount = card.querySelector('.plan-tasks-count');
-        if (tasksCount) {
-            const totalTasks = plan.plan_tasks?.length || 0;
-            const completedTasks = plan.plan_tasks?.filter(t => t.completed).length || 0;
-            tasksCount.textContent = `${completedTasks}/${totalTasks} tareas`;
-        }
-        
+        if (tasksCount) tasksCount.textContent = totalTasks;
+        if (completedTasks) completedTasks.textContent = completed;
+        if (progressPercentage) progressPercentage.textContent = `${progress}%`;
+        if (progressBarFill) progressBarFill.style.width = `${progress}%`;
 
-        
-        // Estado
-        const statusBadge = card.querySelector('.status-badge');
-        if (statusBadge) {
-            statusBadge.textContent = this.getStatusText(plan.status);
-            statusBadge.dataset.status = plan.status;
+        // Event listeners
+        const viewBtn = cardElement.querySelector('.view-btn');
+        const statusSelect = cardElement.querySelector('.status-select');
+        const closeBtn = cardElement.querySelector('.close-expanded-btn');
+
+        if (viewBtn) {
+            viewBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.expandCard(card, plan);
+            });
         }
-        
-        // Eventos de botones
-        const viewBtn = card.querySelector('.view-plan');
-        const editBtn = card.querySelector('.edit-plan');
-        const deleteBtn = card.querySelector('.delete-plan');
-        
-        if (viewBtn) viewBtn.addEventListener('click', () => this.viewPlanDetails(plan.id));
-        if (editBtn) editBtn.addEventListener('click', () => this.editPlan(plan.id));
-        if (deleteBtn) deleteBtn.addEventListener('click', () => this.deletePlan(plan.id));
-        
+
+        if (statusSelect) {
+            statusSelect.value = plan.status || 'active';
+            statusSelect.addEventListener('change', (e) => {
+                e.stopPropagation();
+                const newStatus = e.target.value;
+                this.setPlanStatus(plan.id, newStatus);
+            });
+        }
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.collapseCard(card);
+            });
+        }
+
+        // Configurar tabs y vista expandida usando el elemento real de la tarjeta
+        this.setupExpandedTabs(card, plan);
+        this.populateExpandedView(card, plan);
+
         return cardElement;
+    }
+
+    expandCard(cardElement, plan) {
+        if (!cardElement || !plan) {
+            console.error('Faltan parámetros para expandir la tarjeta');
+            return;
+        }
+
+        // Cerrar cualquier otra tarjeta expandida
+        const expandedCards = document.querySelectorAll('.study-plan-card.expanded');
+        expandedCards.forEach(expandedCard => {
+            if (expandedCard !== cardElement) {
+                this.collapseCard(expandedCard);
+            }
+        });
+
+        // Mostrar el botón de cerrar
+        const closeBtn = cardElement.querySelector('.close-expanded-btn');
+        if (closeBtn) {
+            closeBtn.style.display = 'block';
+        }
+
+        // Mostrar la vista expandida y ocultar la normal
+        const normalView = cardElement.querySelector('.normal-view');
+        const expandedView = cardElement.querySelector('.expanded-view');
+        
+        if (normalView) normalView.style.display = 'none';
+        if (expandedView) expandedView.style.display = 'block';
+
+        // Expandir la tarjeta actual
+        cardElement.classList.add('pre-expand');
+        
+        setTimeout(() => {
+            cardElement.classList.remove('pre-expand');
+            cardElement.classList.add('expanded');
+            
+            // Scroll suave hacia la tarjeta expandida
+            cardElement.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start',
+                inline: 'nearest'
+            });
+            
+            // Actualizar datos de la vista expandida
+            this.populateExpandedView(cardElement, plan);
+            
+            // Activar la primera pestaña por defecto
+            const firstTab = cardElement.querySelector('.tab-btn');
+            const firstPanel = cardElement.querySelector('.tab-panel');
+            if (firstTab && firstPanel) {
+                firstTab.classList.add('active');
+                firstPanel.classList.add('active');
+                // Cargar contenido de la primera pestaña
+                this.loadTabContent(cardElement, plan, firstTab.getAttribute('data-tab'));
+            }
+        }, 100);
+    }
+
+    collapseCard(cardElement) {
+        if (!cardElement) {
+            console.error('No se proporcionó un elemento de tarjeta para colapsar');
+            return;
+        }
+
+        // Ocultar el botón de cerrar
+        const closeBtn = cardElement.querySelector('.close-expanded-btn');
+        if (closeBtn) {
+            closeBtn.style.display = 'none';
+        }
+
+        // Mostrar la vista normal y ocultar la expandida
+        const normalView = cardElement.querySelector('.normal-view');
+        const expandedView = cardElement.querySelector('.expanded-view');
+        
+        if (normalView) normalView.style.display = 'block';
+        if (expandedView) expandedView.style.display = 'none';
+
+        // Aplicar animación de colapso
+        cardElement.classList.add('collapsing');
+        
+        setTimeout(() => {
+            cardElement.classList.remove('expanded', 'collapsing');
+        }, 300);
     }
 
     calculateProgress(plan) {
         if (!plan.plan_tasks || plan.plan_tasks.length === 0) return 0;
-        
-        const completedTasks = plan.plan_tasks.filter(task => task.completed).length;
-        return Math.round((completedTasks / plan.plan_tasks.length) * 100);
+        const completed = plan.plan_tasks.filter(task => task.completed).length;
+        return Math.round((completed / plan.plan_tasks.length) * 100);
     }
 
     getStatusText(status) {
         const statusMap = {
             'active': 'Activo',
+            'paused': 'Pausado',
             'completed': 'Completado',
-            'paused': 'Pausado'
+            'inactive': 'Inactivo'
         };
         return statusMap[status] || status;
     }
@@ -318,42 +798,56 @@ class StudyPlansManager {
     filterPlans(searchTerm) {
         const filteredPlans = this.studyPlans.filter(plan => 
             plan.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (plan.description && plan.description.toLowerCase().includes(searchTerm.toLowerCase()))
+            plan.description.toLowerCase().includes(searchTerm.toLowerCase())
         );
-        
         this.renderFilteredPlans(filteredPlans);
     }
 
-    applyFilters() {
-        const statusFilter = document.getElementById('statusFilter')?.value || 'all';
-        const sortBy = document.getElementById('sortBy')?.value || 'created_at';
-        const searchTerm = document.getElementById('searchPlans')?.value || '';
+    resetAllFilters() {
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const sortBy = document.getElementById('sortBy');
+        const priorityFilter = document.getElementById('priorityFilter');
         
+        if (searchInput) searchInput.value = '';
+        if (statusFilter) statusFilter.value = '';
+        if (sortBy) sortBy.value = 'created_desc';
+        if (priorityFilter) priorityFilter.value = '';
+        
+        this.renderStudyPlans();
+    }
+
+    applyFilters() {
         let filteredPlans = [...this.studyPlans];
         
-        // Filtrar por estado
-        if (statusFilter !== 'all') {
-            filteredPlans = filteredPlans.filter(plan => plan.status === statusFilter);
-        }
+        const searchTerm = document.getElementById('searchInput')?.value || '';
+        const statusFilter = document.getElementById('statusFilter')?.value || '';
+        const sortBy = document.getElementById('sortBy')?.value || 'created_desc';
+        const priorityFilter = document.getElementById('priorityFilter')?.value || '';
         
-        // Filtrar por búsqueda
         if (searchTerm) {
             filteredPlans = filteredPlans.filter(plan => 
                 plan.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (plan.description && plan.description.toLowerCase().includes(searchTerm.toLowerCase()))
+                plan.description.toLowerCase().includes(searchTerm.toLowerCase())
             );
+        }
+        
+        if (statusFilter) {
+            filteredPlans = filteredPlans.filter(plan => plan.status === statusFilter);
+        }
+        
+        if (priorityFilter) {
+            filteredPlans = filteredPlans.filter(plan => plan.priority === priorityFilter);
         }
         
         // Ordenar
         filteredPlans.sort((a, b) => {
             switch (sortBy) {
-                case 'title':
-                    return a.title.localeCompare(b.title);
-                case 'progress':
-                    return this.calculateProgress(b) - this.calculateProgress(a);
-                case 'created_at':
-                default:
-                    return new Date(b.created_at) - new Date(a.created_at);
+                case 'title_asc': return a.title.localeCompare(b.title);
+                case 'title_desc': return b.title.localeCompare(a.title);
+                case 'created_asc': return new Date(a.created_at) - new Date(b.created_at);
+                case 'created_desc': return new Date(b.created_at) - new Date(a.created_at);
+                default: return 0;
             }
         });
         
@@ -361,10 +855,18 @@ class StudyPlansManager {
     }
 
     renderFilteredPlans(plans) {
-        const originalPlans = this.studyPlans;
-        this.studyPlans = plans;
-        this.renderStudyPlans();
-        this.studyPlans = originalPlans;
+        const grid = document.getElementById('studyPlansGrid');
+        if (grid) {
+            grid.innerHTML = ''; // Limpiar el grid
+            
+            // Crear y agregar cada tarjeta individualmente
+            plans.forEach(plan => {
+                const cardElement = this.createPlanCard(plan);
+                if (cardElement) {
+                    grid.appendChild(cardElement);
+                }
+            });
+        }
     }
 
     openCreateModal() {
@@ -373,24 +875,18 @@ class StudyPlansManager {
         
         const modal = document.getElementById('studyPlanModal');
         const modalTitle = document.getElementById('modalTitle');
-        const saveBtnText = document.getElementById('saveBtnText');
+        const saveBtn = document.getElementById('saveBtn');
         
         if (modalTitle) modalTitle.textContent = 'Crear Nuevo Plan de Estudio';
-        if (saveBtnText) saveBtnText.textContent = 'Crear Plan';
-        
-        // Establecer fecha mínima como hoy
-        const startDate = document.getElementById('startDate');
-        if (startDate) {
-            startDate.min = new Date().toISOString().split('T')[0];
-            startDate.value = new Date().toISOString().split('T')[0];
-        }
-        
-        this.addTaskToForm(); // Agregar una tarea inicial
+        if (saveBtn) saveBtn.textContent = 'Crear Plan';
         
         if (modal) {
             modal.style.display = 'flex';
-            modal.classList.add('show');
+            setTimeout(() => modal.classList.add('show'), 10);
         }
+        
+        const titleInput = document.getElementById('title');
+        if (titleInput) titleInput.focus();
     }
 
     async editPlan(planId) {
@@ -402,41 +898,39 @@ class StudyPlansManager {
         
         const modal = document.getElementById('studyPlanModal');
         const modalTitle = document.getElementById('modalTitle');
-        const saveBtnText = document.getElementById('saveBtnText');
+        const saveBtn = document.getElementById('saveBtn');
         
         if (modalTitle) modalTitle.textContent = 'Editar Plan de Estudio';
-        if (saveBtnText) saveBtnText.textContent = 'Guardar Cambios';
+        if (saveBtn) saveBtn.textContent = 'Actualizar Plan';
         
-        if (modal) modal.style.display = 'flex';
+        if (modal) {
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
     }
 
     populateForm(plan) {
-        // Datos básicos
-        const titleInput = document.getElementById('planTitle');
-        const descriptionInput = document.getElementById('planDescription');
+        const titleInput = document.getElementById('title');
+        const descriptionInput = document.getElementById('description');
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
-        const statusInput = document.getElementById('planStatus');
+        const statusSelect = document.getElementById('status');
+        const prioritySelect = document.getElementById('priority');
         
         if (titleInput) titleInput.value = plan.title || '';
         if (descriptionInput) descriptionInput.value = plan.description || '';
-        if (startDateInput) startDateInput.value = plan.start_date?.split('T')[0] || '';
-        if (endDateInput) endDateInput.value = plan.end_date?.split('T')[0] || '';
-        if (statusInput) statusInput.value = plan.status || 'active';
+        if (startDateInput) startDateInput.value = plan.start_date || '';
+        if (endDateInput) endDateInput.value = plan.end_date || '';
+        if (statusSelect) statusSelect.value = plan.status || 'active';
+        if (prioritySelect) prioritySelect.value = plan.priority || 'medium';
         
-        // Limpiar tareas existentes
+        // Cargar tareas existentes
         const tasksContainer = document.getElementById('tasksContainer');
-        if (tasksContainer) {
+        if (tasksContainer && plan.plan_tasks) {
             tasksContainer.innerHTML = '';
-        }
-        
-        // Agregar tareas existentes
-        if (plan.tasks && plan.tasks.length > 0) {
-            plan.tasks.forEach(task => {
+            plan.plan_tasks.forEach(task => {
                 this.addTaskToForm(task);
             });
-        } else {
-            this.addTaskToForm(); // Agregar una tarea vacía
         }
     }
 
@@ -445,101 +939,117 @@ class StudyPlansManager {
         if (form) form.reset();
         
         const tasksContainer = document.getElementById('tasksContainer');
-        if (tasksContainer) {
-            tasksContainer.innerHTML = '';
-        }
+        if (tasksContainer) tasksContainer.innerHTML = '';
+        
+        this.addTaskToForm();
     }
 
     addTaskToForm(taskData = null) {
-        const template = document.getElementById('taskFormTemplate');
-        const container = document.getElementById('tasksContainer');
+        const tasksContainer = document.getElementById('tasksContainer');
+        if (!tasksContainer) return;
         
-        if (!template || !container) return;
+        const taskDiv = document.createElement('div');
+        taskDiv.className = 'task-input-group';
+        taskDiv.innerHTML = `
+            <div class="form-group">
+                <input type="text" class="form-control task-title" placeholder="Título de la tarea" 
+                       value="${taskData?.title || ''}" required>
+            </div>
+            <div class="form-group">
+                <textarea class="form-control task-description" placeholder="Descripción de la tarea" 
+                          rows="2">${taskData?.description || ''}</textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <select class="form-control task-priority">
+                        <option value="low" ${taskData?.priority === 'low' ? 'selected' : ''}>Baja</option>
+                        <option value="medium" ${taskData?.priority === 'medium' || !taskData ? 'selected' : ''}>Media</option>
+                        <option value="high" ${taskData?.priority === 'high' ? 'selected' : ''}>Alta</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-6">
+                    <button type="button" class="btn btn-danger btn-sm remove-task">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+        `;
         
-        const taskElement = template.content.cloneNode(true);
-        const taskItem = taskElement.querySelector('.task-item');
+        const removeBtn = taskDiv.querySelector('.remove-task');
+        removeBtn.addEventListener('click', () => taskDiv.remove());
         
-        // Rellenar datos si se proporcionan
-        if (taskData) {
-            const titleInput = taskElement.querySelector('.task-title');
-            const descriptionInput = taskElement.querySelector('.task-description');
-            const dueDateInput = taskElement.querySelector('.task-due-date');
-            const priorityInput = taskElement.querySelector('.task-priority');
-            
-            if (titleInput) titleInput.value = taskData.title || '';
-            if (descriptionInput) descriptionInput.value = taskData.description || '';
-            if (dueDateInput) dueDateInput.value = taskData.due_date?.split('T')[0] || '';
-            if (priorityInput) priorityInput.value = taskData.priority || 'medium';
-        }
-        
-        // Evento para eliminar tarea
-        const removeBtn = taskElement.querySelector('.remove-task');
-        if (removeBtn) {
-            removeBtn.addEventListener('click', () => {
-                taskItem.remove();
-            });
-        }
-        
-        container.appendChild(taskElement);
+        tasksContainer.appendChild(taskDiv);
     }
 
     validateDates() {
         const startDate = document.getElementById('startDate');
         const endDate = document.getElementById('endDate');
         
-        if (!startDate || !endDate) return true;
-        
-        const start = new Date(startDate.value);
-        const end = new Date(endDate.value);
-        
-        if (start && end && start >= end) {
-            endDate.setCustomValidity('La fecha de finalización debe ser posterior a la fecha de inicio');
-            return false;
-        } else {
-            endDate.setCustomValidity('');
-            return true;
+        if (startDate && endDate && startDate.value && endDate.value) {
+            const start = new Date(startDate.value);
+            const end = new Date(endDate.value);
+            
+            if (end <= start) {
+                endDate.setCustomValidity('La fecha de fin debe ser posterior a la fecha de inicio');
+                return false;
+            } else {
+                endDate.setCustomValidity('');
+                return true;
+            }
         }
+        return true;
     }
 
     async handleFormSubmit(e) {
         e.preventDefault();
         
         if (!this.validateDates()) {
-            this.showError('Por favor corrige las fechas del plan');
+            this.showError('Por favor, corrige las fechas del plan');
             return;
         }
         
-        const formData = this.getFormData();
-        if (!formData) return;
+        const planData = this.getFormData();
+        const isEdit = !!this.currentEditingPlan;
+        const planId = this.currentEditingPlan?.id;
         
+        await this.createOrUpdatePlan(planData, isEdit, planId);
+    }
+
+    async createOrUpdatePlan(planData, isEdit = false, planId = null) {
         try {
             this.setFormLoading(true);
             
-            const isEditing = !!this.currentEditingPlan;
-            const url = isEditing ? 
-                `http://localhost:5500/api/study/plans/${this.currentEditingPlan.id}` : 
-                `http://localhost:5500/api/study/plans`;
+            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+            const url = isEdit ? `${base}/api/study/plans/${planId}` : `${base}/api/study/plans`;
+            const method = isEdit ? 'PUT' : 'POST';
+            const token = this.getAuthToken();
             
+            // Forzar estado activo en creación por lógica de negocio
+            if (!isEdit) {
+                planData.status = 'active';
+            }
+
             const response = await fetch(url, {
-                method: isEditing ? 'PUT' : 'POST',
+                method: method,
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(planData)
             });
             
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            if (response.ok) {
+                const result = await response.json();
+                this.showSuccess(isEdit ? 'Plan actualizado correctamente' : 'Plan creado correctamente');
+                this.closeModal();
+                await this.loadStudyPlans();
+            } else {
+                const error = await response.json();
+                throw new Error(error.message || 'Error al procesar la solicitud');
             }
             
-            const result = await response.json();
-            
-            this.showSuccess(isEditing ? 'Plan actualizado correctamente' : 'Plan creado correctamente');
-            this.closeModal();
-            await this.loadStudyPlans();
-            
         } catch (error) {
-            console.error('Error guardando plan:', error);
+            console.error('Error:', error);
             this.showError(error.message || 'Error al guardar el plan');
         } finally {
             this.setFormLoading(false);
@@ -547,45 +1057,39 @@ class StudyPlansManager {
     }
 
     getFormData() {
-        const title = document.getElementById('planTitle')?.value?.trim();
-        const description = document.getElementById('planDescription')?.value?.trim();
+        const title = document.getElementById('title')?.value;
+        const description = document.getElementById('description')?.value;
         const startDate = document.getElementById('startDate')?.value;
         const endDate = document.getElementById('endDate')?.value;
-        const status = document.getElementById('planStatus')?.value;
-        
-        if (!title || !startDate || !endDate) {
-            this.showError('Por favor completa todos los campos obligatorios');
-            return null;
-        }
+        const status = document.getElementById('status')?.value;
+        const priority = document.getElementById('priority')?.value;
         
         // Recopilar tareas
-        const tasks = [];
-        const taskItems = document.querySelectorAll('#tasksContainer .task-item');
-        
-        taskItems.forEach(item => {
-            const taskTitle = item.querySelector('.task-title')?.value?.trim();
-            const taskDescription = item.querySelector('.task-description')?.value?.trim();
-            const taskDueDate = item.querySelector('.task-due-date')?.value;
-            const taskPriority = item.querySelector('.task-priority')?.value;
+        const taskInputs = document.querySelectorAll('.task-input-group');
+        const tasks = Array.from(taskInputs).map(taskDiv => {
+            const title = taskDiv.querySelector('.task-title')?.value;
+            const description = taskDiv.querySelector('.task-description')?.value;
+            const priority = taskDiv.querySelector('.task-priority')?.value;
             
-            if (taskTitle) {
-                tasks.push({
-                    title: taskTitle,
-                    description: taskDescription || null,
-                    due_date: taskDueDate || null,
-                    priority: taskPriority || 'medium',
+            if (title) {
+                return {
+                    title,
+                    description: description || '',
+                    priority: priority || 'medium',
                     completed: false
-                });
+                };
             }
-        });
+            return null;
+        }).filter(task => task !== null);
         
         return {
             title,
-            description: description || null,
+            description: description || '',
             start_date: startDate,
             end_date: endDate,
             status: status || 'active',
-            tasks
+            priority: priority || 'medium',
+            tasks: tasks
         };
     }
 
@@ -597,102 +1101,83 @@ class StudyPlansManager {
         this.populateDetailsModal(plan);
         
         const modal = document.getElementById('planDetailsModal');
-        if (modal) modal.style.display = 'flex';
+        if (modal) {
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
     }
 
     populateDetailsModal(plan) {
-        // Título
-        const title = document.getElementById('detailsTitle');
+        const title = document.getElementById('detailTitle');
+        const description = document.getElementById('detailDescription');
+        const dates = document.getElementById('detailDates');
+        const status = document.getElementById('detailStatus');
+        const priority = document.getElementById('detailPriority');
+        const progress = document.getElementById('detailProgress');
+        const tasksList = document.getElementById('detailTasksList');
+        
         if (title) title.textContent = plan.title;
-        
-        // Información básica
-        const description = document.getElementById('detailsDescription');
-        const status = document.getElementById('detailsStatus');
-        const startDate = document.getElementById('detailsStartDate');
-        const endDate = document.getElementById('detailsEndDate');
-        
         if (description) description.textContent = plan.description || 'Sin descripción';
+        if (dates) dates.textContent = `${this.formatDate(plan.start_date)} - ${this.formatDate(plan.end_date)}`;
         if (status) {
             status.textContent = this.getStatusText(plan.status);
-            status.dataset.status = plan.status;
+            status.className = `status-badge ${plan.status}`;
         }
-        if (startDate) startDate.textContent = new Date(plan.start_date).toLocaleDateString();
-        if (endDate) endDate.textContent = new Date(plan.end_date).toLocaleDateString();
+        if (priority) {
+            priority.textContent = this.getPriorityText(plan.priority);
+            priority.className = `priority-badge ${plan.priority}`;
+        }
+        if (progress) {
+            const progressValue = this.calculateProgress(plan);
+            progress.textContent = `${progressValue}%`;
+        }
         
-        // Progreso
-        const progress = this.calculateProgress(plan);
-        const progressFill = document.getElementById('detailsProgress');
-        const progressText = document.getElementById('detailsProgressText');
-        
-        if (progressFill) progressFill.style.width = `${progress}%`;
-        if (progressText) progressText.textContent = `${progress}%`;
-        
-        // Lista de tareas
-        this.populateTasksList(plan.tasks || []);
+        if (tasksList) {
+            this.populateTasksList(plan.plan_tasks || []);
+        }
     }
 
     populateTasksList(tasks) {
-        const tasksList = document.getElementById('detailsTasksList');
+        const tasksList = document.getElementById('detailTasksList');
         if (!tasksList) return;
         
-        tasksList.innerHTML = '';
-        
         if (tasks.length === 0) {
-            tasksList.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 20px;">No hay tareas en este plan</p>';
+            tasksList.innerHTML = '<p class="no-tasks">No hay tareas asignadas a este plan</p>';
             return;
         }
         
-        tasks.forEach(task => {
-            const taskElement = this.createTaskDetailElement(task);
-            tasksList.appendChild(taskElement);
-        });
+        tasksList.innerHTML = tasks.map(task => this.createTaskDetailElement(task).outerHTML).join('');
     }
 
     createTaskDetailElement(task) {
-        const template = document.getElementById('taskDetailsTemplate');
-        if (!template) {
-            console.error('Template taskDetailsTemplate no encontrado');
-            return document.createElement('div');
-        }
-        
-        const taskElement = template.content.cloneNode(true);
-        const container = taskElement.querySelector('.task-detail-item');
-        
-        // Configurar checkbox y título
-        const checkbox = taskElement.querySelector('.task-completed');
-        const label = taskElement.querySelector('.task-title');
-        const uniqueId = `task-${task.id}-${Date.now()}`;
-        
-        checkbox.id = uniqueId;
-        checkbox.checked = task.completed || false;
-        checkbox.addEventListener('change', () => this.toggleTaskCompletion(task.id));
-        
-        label.setAttribute('for', uniqueId);
-        label.textContent = task.title;
-        
-        // Configurar badge de prioridad
-        const priorityBadge = taskElement.querySelector('.task-priority-badge');
-        priorityBadge.textContent = this.getPriorityText(task.priority);
-        priorityBadge.className = `task-priority-badge ${task.priority || 'medium'}`;
-        
-        // Configurar descripción
-        const description = taskElement.querySelector('.task-description');
-        description.textContent = task.description || 'Sin descripción disponible';
-        
-        // Configurar fecha límite
-        const dueDate = taskElement.querySelector('.task-due-date');
-        if (task.dueDate) {
-            const date = new Date(task.dueDate);
-            dueDate.textContent = `📅 ${date.toLocaleDateString('es-ES')}`;
-        } else {
-            dueDate.textContent = '📅 Sin fecha límite';
-        }
-        
-        // Configurar estado
-        const status = taskElement.querySelector('.task-status');
-        status.textContent = task.completed ? '✅ Completada' : '⏳ Pendiente';
-        
-        return container;
+        const taskDiv = document.createElement('div');
+        taskDiv.className = 'task-detail-item';
+        taskDiv.innerHTML = `
+            <div class="task-header">
+                <h5 class="task-title">${task.title}</h5>
+                <span class="task-priority-badge ${task.priority}">${this.getPriorityText(task.priority)}</span>
+            </div>
+            <p class="task-description">${task.description || 'Sin descripción'}</p>
+            <div class="task-footer">
+                <span class="task-status ${task.completed ? 'completed' : 'pending'}">
+                    ${task.completed ? '✅ Completada' : '⏳ Pendiente'}
+                </span>
+                <div class="task-actions">
+                    <button class="btn btn-sm btn-outline-primary" onclick="studyPlansManager.editTask('${task.id}')">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    <button class="btn btn-sm ${task.completed ? 'btn-warning' : 'btn-success'}" 
+                            onclick="studyPlansManager.toggleTaskCompletion('${task.id}')">
+                        <i class="fas ${task.completed ? 'fa-undo' : 'fa-check'}"></i>
+                        ${task.completed ? 'Desmarcar' : 'Completar'}
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="studyPlansManager.deleteTask('${task.id}')">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+        `;
+        return taskDiv;
     }
 
     getPriorityText(priority) {
@@ -704,22 +1189,93 @@ class StudyPlansManager {
         return priorityMap[priority] || priority;
     }
 
+    async togglePlanStatus(planId) {
+        try {
+            const plan = (this.studyPlans || []).find(p => p.id === planId);
+            const currentStatus = plan?.status || 'active';
+            const nextStatus = currentStatus === 'active' ? 'paused' : 'active';
+
+            const token = this.getAuthToken();
+            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+            const response = await fetch(`${base}/api/study/plans/${planId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ status: nextStatus })
+            });
+
+            if (response.ok) {
+                this.showSuccess(`Estado del plan actualizado a ${this.getStatusText(nextStatus)}`);
+                await this.loadStudyPlans();
+            } else {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error || err.message || 'Error al actualizar estado del plan');
+            }
+        } catch (error) {
+            console.error('Error togglePlanStatus:', error);
+            this.showError('No se pudo actualizar el estado del plan');
+        }
+    }
+
+    async setPlanStatus(planId, status) {
+        try {
+            const token = this.getAuthToken();
+            const base = this.getBaseUrl();
+            const response = await fetch(`${base}/api/study/plans/${planId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ status })
+            });
+
+            if (response.ok) {
+                this.showSuccess(`Estado del plan actualizado a ${this.getStatusText(status)}`);
+                await this.loadStudyPlans();
+            } else {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error || err.message || 'Error al actualizar estado del plan');
+            }
+        } catch (error) {
+            console.error('Error setPlanStatus:', error);
+            this.showError('No se pudo actualizar el estado del plan');
+        }
+    }
+
     async toggleTaskCompletion(taskId, completed) {
         try {
-            const response = await this.apiModule.put(`/api/tasks/${taskId}`, { completed });
-            await this.apiModule.handleResponse(response);
-            
-            // Actualizar datos locales
-            await this.loadStudyPlans();
-            
-            // Actualizar modal si está abierto
-            if (this.currentEditingPlan) {
-                const updatedPlan = this.studyPlans.find(p => p.id === this.currentEditingPlan.id);
-                if (updatedPlan) {
-                    this.populateDetailsModal(updatedPlan);
+            // Determinar estado actual si no se proporcionó
+            let currentCompleted = completed;
+            if (typeof currentCompleted === 'undefined') {
+                for (const p of (this.studyPlans || [])) {
+                    const t = (p.plan_tasks || []).find(x => String(x.id) === String(taskId));
+                    if (t) {
+                        currentCompleted = !!t.completed;
+                        break;
+                    }
                 }
             }
+
+            const token = this.getAuthToken();
+            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+            const response = await fetch(`${base}/api/tasks/${taskId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ completed: !currentCompleted })
+            });
             
+            if (response.ok) {
+                await this.loadStudyPlans();
+                this.showSuccess('Tarea actualizada correctamente');
+            } else {
+                throw new Error('Error al actualizar la tarea');
+            }
         } catch (error) {
             console.error('Error actualizando tarea:', error);
             this.showError('Error al actualizar la tarea');
@@ -727,25 +1283,26 @@ class StudyPlansManager {
     }
 
     async deletePlan(planId) {
-        if (!confirm('¿Estás seguro de que quieres eliminar este plan de estudio? Esta acción no se puede deshacer.')) {
+        if (!confirm('¿Estás seguro de que deseas eliminar este plan de estudio? Esta acción no se puede deshacer.')) {
             return;
         }
-        
+
         try {
-            const response = await fetch(`http://localhost:5500/api/study/plans/${planId}`, {
+            const token = this.getAuthToken();
+            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+            const response = await fetch(`${base}/api/study/plans/${planId}`, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json'
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 }
             });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+            if (response.ok) {
+                this.showSuccess('Plan eliminado correctamente');
+                await this.loadStudyPlans();
+            } else {
+                throw new Error('Error al eliminar el plan');
             }
-            
-            this.showSuccess('Plan eliminado correctamente');
-            await this.loadStudyPlans();
-            
         } catch (error) {
             console.error('Error eliminando plan:', error);
             this.showError('Error al eliminar el plan');
@@ -767,46 +1324,8 @@ class StudyPlansManager {
     }
 
     async editTask(taskId) {
-        // Implementar edición de tarea individual
         console.log('Editar tarea:', taskId);
-        // Por ahora, redirigir a editar el plan completo
         this.editCurrentPlan();
-    }
-
-    async toggleTaskCompletion(taskId) {
-        try {
-            const response = await this.apiModule.patch(`/api/tasks/${taskId}/toggle`);
-            const updatedTask = await this.apiModule.handleResponse(response);
-            
-            // Actualizar la tarea en el plan actual
-            if (this.currentEditingPlan) {
-                const task = this.currentEditingPlan.tasks.find(t => t.id === taskId);
-                if (task) {
-                    task.completed = updatedTask.completed;
-                }
-                
-                // Recalcular progreso y actualizar vista
-                this.updatePlanProgress(this.currentEditingPlan);
-                this.populateDetailsModal(this.currentEditingPlan);
-            }
-            
-            // Recargar planes para actualizar las tarjetas
-            await this.loadStudyPlans();
-            
-        } catch (error) {
-            console.error('Error actualizando tarea:', error);
-            this.showError('Error al actualizar el estado de la tarea');
-        }
-    }
-    
-    updatePlanProgress(plan) {
-        if (!plan.tasks || plan.tasks.length === 0) {
-            plan.progress = 0;
-            return;
-        }
-        
-        const completedTasks = plan.tasks.filter(task => task.completed).length;
-        plan.progress = Math.round((completedTasks / plan.tasks.length) * 100);
     }
 
     async deleteTask(taskId) {
@@ -815,20 +1334,25 @@ class StudyPlansManager {
         }
         
         try {
-            const response = await this.apiModule.delete(`/api/tasks/${taskId}`);
-            await this.apiModule.handleResponse(response);
-            
-            this.showSuccess('Tarea eliminada correctamente');
-            await this.loadStudyPlans();
-            
-            // Actualizar modal si está abierto
-            if (this.currentEditingPlan) {
-                const updatedPlan = this.studyPlans.find(p => p.id === this.currentEditingPlan.id);
-                if (updatedPlan) {
-                    this.populateDetailsModal(updatedPlan);
+            const token = this.getAuthToken();
+            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+            const response = await fetch(`${base}/api/tasks/${taskId}`, {
+                method: 'DELETE',
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 }
-            }
+            });
             
+            if (response.ok) {
+                this.showSuccess('Tarea eliminada correctamente');
+                await this.loadStudyPlans();
+                
+                if (this.currentEditingPlan) {
+                    this.populateDetailsModal(this.currentEditingPlan);
+                }
+            } else {
+                throw new Error('Error al eliminar la tarea');
+            }
         } catch (error) {
             console.error('Error eliminando tarea:', error);
             this.showError('Error al eliminar la tarea');
@@ -871,11 +1395,11 @@ class StudyPlansManager {
     }
 
     showLoading(show) {
-        const loadingState = document.getElementById('loadingState');
+        const loadingIndicator = document.getElementById('loadingIndicator');
         const grid = document.getElementById('studyPlansGrid');
         const emptyState = document.getElementById('emptyState');
-        
-        if (loadingState) loadingState.style.display = show ? 'block' : 'none';
+
+        if (loadingIndicator) loadingIndicator.style.display = show ? 'block' : 'none';
         if (show) {
             if (grid) grid.style.display = 'none';
             if (emptyState) emptyState.style.display = 'none';
@@ -883,52 +1407,310 @@ class StudyPlansManager {
     }
 
     showError(message) {
-        // Implementar sistema de notificaciones
-        console.error(message);
-        alert(`Error: ${message}`);
+        if (typeof window.showError === 'function') {
+            window.showError(message);
+        } else {
+            console.error('Error:', message);
+            
+            const notification = document.createElement('div');
+            notification.className = 'error-notification-planes';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #ff4757;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+                z-index: 10000;
+                max-width: 400px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-size: 14px;
+                line-height: 1.4;
+                animation: slideInRight 0.3s ease-out;
+            `;
+
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span>❌</span>
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                            style="background: none; border: none; color: white; cursor: pointer; margin-left: auto; font-size: 16px;">×</button>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
     }
 
     showSuccess(message) {
-        // Implementar sistema de notificaciones
-        console.log(message);
-        alert(message);
+        if (typeof window.showSuccess === 'function') {
+            window.showSuccess(message);
+        } else {
+            console.log('Success:', message);
+            
+            const notification = document.createElement('div');
+            notification.className = 'success-notification-planes';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #2ed573;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(46, 213, 115, 0.3);
+                z-index: 10000;
+                max-width: 400px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-size: 14px;
+                line-height: 1.4;
+                animation: slideInRight 0.3s ease-out;
+            `;
+
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span>✅</span>
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                            style="background: none; border: none; color: white; cursor: pointer; margin-left: auto; font-size: 16px;">×</button>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 3000);
+        }
+    }
+
+    openContentManager(planId) {
+        console.log('Abriendo gestor de contenido para plan:', planId);
+        
+        if (typeof openPlanContentModal === 'function') {
+            openPlanContentModal(planId);
+        } else {
+            console.error('Plan Content Manager no está disponible');
+            this.showError('Error: Gestor de contenido no disponible');
+        }
+    }
+
+    showNotification(type, message) {
+        if (typeof showNotification === 'function') {
+            showNotification(type, message, type === 'error' ? '❌' : '✅');
+        } else {
+            console.log(`${type.toUpperCase()}: ${message}`);
+        }
+    }
+
+    // Formularios inline para crear tareas y contenido en la vista expandida
+    openAddTaskForm(cardElement, plan) {
+        const tasksContainer = cardElement.querySelector('.tasks-list-expanded') || cardElement.querySelector('.tasks-list');
+        if (!tasksContainer) return;
+
+        const form = document.createElement('div');
+        form.className = 'task-form-inline';
+        form.innerHTML = `
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Título</label>
+                    <input type="text" id="newTaskTitle" placeholder="Ej. Repasar capítulo 3" />
+                </div>
+                <div class="form-field">
+                    <label>Descripción</label>
+                    <textarea id="newTaskDescription" placeholder="Detalles opcionales"></textarea>
+                </div>
+                <div class="form-field">
+                    <label>Fecha límite</label>
+                    <input type="date" id="newTaskDueDate" />
+                </div>
+                <div class="form-field">
+                    <label>Prioridad</label>
+                    <select id="newTaskPriority">
+                        <option value="low">Baja</option>
+                        <option value="medium" selected>Media</option>
+                        <option value="high">Alta</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn primary" id="saveNewTaskBtn">Guardar</button>
+                <button class="btn secondary" id="cancelNewTaskBtn">Cancelar</button>
+            </div>
+        `;
+
+        tasksContainer.prepend(form);
+
+        form.querySelector('#cancelNewTaskBtn').onclick = () => form.remove();
+        form.querySelector('#saveNewTaskBtn').onclick = () => this.saveNewTask(cardElement, plan, form);
+    }
+
+    async saveNewTask(cardElement, plan, form) {
+        const title = form.querySelector('#newTaskTitle')?.value?.trim();
+        const description = form.querySelector('#newTaskDescription')?.value?.trim();
+        const dueDate = form.querySelector('#newTaskDueDate')?.value || null;
+        const priority = form.querySelector('#newTaskPriority')?.value || 'medium';
+
+        if (!title) {
+            this.showError('El título de la tarea es requerido.');
+            return;
+        }
+
+        try {
+            const token = this.getAuthToken();
+            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+            const res = await fetch(`${base}/api/study/plans/${plan.id}/tasks`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ title, description, dueDate, priority })
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data?.error || 'No se pudo crear la tarea');
+            }
+
+            const newTask = data?.task;
+            if (newTask) {
+                const tasks = plan.plan_tasks || plan.tasks || [];
+                tasks.unshift(newTask);
+                plan.plan_tasks = tasks;
+            }
+
+            form.remove();
+            this.loadTasksTab(cardElement, plan);
+            this.showSuccess('Tarea creada correctamente');
+        } catch (error) {
+            console.error('Error creando tarea:', error);
+            this.showError(error.message || 'Error al crear la tarea');
+        }
+    }
+
+    openAddContentForm(cardElement, plan) {
+        const contentContainer = cardElement.querySelector('.content-list-expanded') || cardElement.querySelector('.content-list');
+        if (!contentContainer) return;
+
+        const form = document.createElement('div');
+        form.className = 'content-form-inline';
+        form.innerHTML = `
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Tipo</label>
+                    <select id="newContentType">
+                        <option value="resumen" selected>Resumen</option>
+                        <option value="flashcards">Flashcards</option>
+                        <option value="multiple_choice">Multiple Choice</option>
+                        <option value="verdadero_falso">Verdadero/Falso</option>
+                        <option value="chat_qa">Chat Q&A</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Título</label>
+                    <input type="text" id="newContentTitle" placeholder="Ej. Resumen capítulo 3" />
+                </div>
+                <div class="form-field">
+                    <label>Contenido</label>
+                    <textarea id="newContentBody" placeholder="Texto del contenido generado"></textarea>
+                </div>
+                <div class="form-field">
+                    <label>Extra (opcional)</label>
+                    <input type="text" id="newExtraGroupName" placeholder="Nombre de grupo extra" />
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn primary" id="saveNewContentBtn">Guardar</button>
+                <button class="btn secondary" id="cancelNewContentBtn">Cancelar</button>
+            </div>
+        `;
+
+        contentContainer.prepend(form);
+
+        form.querySelector('#cancelNewContentBtn').onclick = () => form.remove();
+        form.querySelector('#saveNewContentBtn').onclick = () => this.saveNewContent(cardElement, plan, form);
+    }
+
+    async saveNewContent(cardElement, plan, form) {
+        const contentType = form.querySelector('#newContentType')?.value || 'resumen';
+        const title = form.querySelector('#newContentTitle')?.value?.trim();
+        const content = form.querySelector('#newContentBody')?.value?.trim();
+        const extraGroupName = form.querySelector('#newExtraGroupName')?.value?.trim();
+
+        if (!title || !content) {
+            this.showError('Título y contenido son requeridos.');
+            return;
+        }
+
+        try {
+            const token = this.getAuthToken();
+            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+            const res = await fetch(`${base}/api/study/plans/${plan.id}/content`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ contentType, title, content, extraGroupName })
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data?.error || 'No se pudo crear el contenido');
+            }
+
+            form.remove();
+            this.loadContentTab(cardElement, plan);
+            this.showSuccess('Contenido añadido correctamente');
+        } catch (error) {
+            console.error('Error creando contenido:', error);
+            this.showError(error.message || 'Error al crear el contenido');
+        }
     }
 }
 
-// Inicializar cuando se carga la sección
-let studyPlansManager = null;
+// Instancia global como singleton
+window.studyPlansManager = window.studyPlansManager || null;
 
 function initializeStudyPlans() {
-    console.log('Inicializando StudyPlansManager...');
-    if (!studyPlansManager) {
-        studyPlansManager = new StudyPlansManager();
+    if (!window.studyPlansManager) {
+        window.studyPlansManager = new window.StudyPlansManager();
+    } else if (window.studyPlansManager && typeof window.studyPlansManager.init === 'function') {
+        window.studyPlansManager.init();
     }
-    return studyPlansManager;
 }
 
-// Limpiar cuando se cambia de sección
 function cleanupStudyPlans() {
-    console.log('Limpiando StudyPlansManager...');
-    studyPlansManager = null;
+    window.studyPlansManager = null;
 }
 
-// Exportar para uso global
 if (typeof window !== 'undefined') {
     window.initializeStudyPlans = initializeStudyPlans;
     window.cleanupStudyPlans = cleanupStudyPlans;
 }
 
-// Auto-inicializar si el DOM ya está listo y no estamos en el sistema modular
+// Inicialización automática
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        // Solo auto-inicializar si no estamos en el sistema modular
-        if (!window.app) {
+        if (window.location.pathname.includes('planes-estudio')) {
             initializeStudyPlans();
         }
     });
 } else {
-    // Solo auto-inicializar si no estamos en el sistema modular
-    if (!window.app) {
-        initializeStudyPlans();
+    if (window.location.pathname.includes('planes-estudio')) {
+        if (!window.app) {
+            initializeStudyPlans();
+        }
     }
 }

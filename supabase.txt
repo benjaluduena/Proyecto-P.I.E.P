@@ -12,9 +12,9 @@ CREATE TABLE public.assignment_submissions (
   graded_by uuid,
   graded_at timestamp without time zone,
   CONSTRAINT assignment_submissions_pkey PRIMARY KEY (id),
-  CONSTRAINT assignment_submissions_graded_by_fkey FOREIGN KEY (graded_by) REFERENCES auth.users(id),
   CONSTRAINT assignment_submissions_assignment_id_fkey FOREIGN KEY (assignment_id) REFERENCES public.classroom_assignments(id),
-  CONSTRAINT assignment_submissions_student_id_fkey FOREIGN KEY (student_id) REFERENCES auth.users(id)
+  CONSTRAINT assignment_submissions_student_id_fkey FOREIGN KEY (student_id) REFERENCES auth.users(id),
+  CONSTRAINT assignment_submissions_graded_by_fkey FOREIGN KEY (graded_by) REFERENCES auth.users(id)
 );
 CREATE TABLE public.classroom_assignments (
   id integer NOT NULL DEFAULT nextval('classroom_assignments_id_seq'::regclass),
@@ -27,9 +27,9 @@ CREATE TABLE public.classroom_assignments (
   created_by uuid NOT NULL,
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT classroom_assignments_pkey PRIMARY KEY (id),
+  CONSTRAINT classroom_assignments_classroom_id_fkey FOREIGN KEY (classroom_id) REFERENCES public.classrooms(id),
   CONSTRAINT classroom_assignments_material_id_fkey FOREIGN KEY (material_id) REFERENCES public.classroom_materials(id),
-  CONSTRAINT classroom_assignments_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
-  CONSTRAINT classroom_assignments_classroom_id_fkey FOREIGN KEY (classroom_id) REFERENCES public.classrooms(id)
+  CONSTRAINT classroom_assignments_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
 );
 CREATE TABLE public.classroom_enrollments (
   id integer NOT NULL DEFAULT nextval('classroom_enrollments_id_seq'::regclass),
@@ -95,6 +95,16 @@ CREATE TABLE public.classrooms (
   CONSTRAINT classrooms_teacher_id_fkey FOREIGN KEY (teacher_id) REFERENCES auth.users(id),
   CONSTRAINT fk_teacher FOREIGN KEY (teacher_id) REFERENCES public.profiles(id)
 );
+CREATE TABLE public.comments (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  post_id bigint NOT NULL,
+  user_id uuid NOT NULL,
+  text text NOT NULL,
+  created_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT comments_pkey PRIMARY KEY (id),
+  CONSTRAINT comments_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id),
+  CONSTRAINT comments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
 CREATE TABLE public.notifications (
   id integer NOT NULL DEFAULT nextval('notifications_id_seq'::regclass),
   user_id uuid NOT NULL,
@@ -114,6 +124,7 @@ CREATE TABLE public.pdf_uploads (
   file_url text NOT NULL,
   title character varying,
   uploaded_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pdf_uploads_pkey PRIMARY KEY (id),
   CONSTRAINT pdf_uploads_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
@@ -124,12 +135,26 @@ CREATE TABLE public.plan_tasks (
   description text,
   due_date date,
   completed boolean DEFAULT false,
-  related_output_id integer,
+  output_id integer,
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-  due_at text,
+  priority text NOT NULL DEFAULT 'medium'::text CHECK (priority = ANY (ARRAY['low'::text, 'medium'::text, 'high'::text])),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT plan_tasks_pkey PRIMARY KEY (id),
-  CONSTRAINT plan_tasks_related_output_id_fkey FOREIGN KEY (related_output_id) REFERENCES public.study_outputs(id),
-  CONSTRAINT plan_tasks_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.study_plans(id)
+  CONSTRAINT plan_tasks_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.study_plans(id),
+  CONSTRAINT plan_tasks_output_id_fkey FOREIGN KEY (output_id) REFERENCES public.study_outputs(id)
+);
+CREATE TABLE public.posts (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  classroom_id integer NOT NULL,
+  user_id uuid NOT NULL,
+  content text NOT NULL,
+  created_at timestamp without time zone DEFAULT now(),
+  file_url text,
+  material_id integer,
+  material_type character varying CHECK (material_type::text = ANY (ARRAY['ai_generated'::character varying, 'pdf'::character varying, 'link'::character varying, 'text'::character varying]::text[])),
+  CONSTRAINT posts_pkey PRIMARY KEY (id),
+  CONSTRAINT posts_classroom_id_fkey FOREIGN KEY (classroom_id) REFERENCES public.classrooms(id),
+  CONSTRAINT posts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
 );
 CREATE TABLE public.profiles (
   id uuid NOT NULL,
@@ -151,8 +176,8 @@ CREATE TABLE public.progress_tracking (
   score numeric,
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT progress_tracking_pkey PRIMARY KEY (id),
-  CONSTRAINT progress_tracking_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
-  CONSTRAINT progress_tracking_output_id_fkey FOREIGN KEY (output_id) REFERENCES public.study_outputs(id)
+  CONSTRAINT progress_tracking_output_id_fkey FOREIGN KEY (output_id) REFERENCES public.study_outputs(id),
+  CONSTRAINT progress_tracking_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.study_outputs (
   id integer NOT NULL DEFAULT nextval('study_outputs_id_seq'::regclass),
@@ -173,6 +198,9 @@ CREATE TABLE public.study_plans (
   notify_by_email boolean DEFAULT false,
   notify_by_whatsapp boolean DEFAULT false,
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  status text NOT NULL DEFAULT 'active'::text CHECK (status = ANY (ARRAY['active'::text, 'paused'::text, 'completed'::text, 'inactive'::text])),
+  priority text NOT NULL DEFAULT 'medium'::text CHECK (priority = ANY (ARRAY['low'::text, 'medium'::text, 'high'::text])),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT study_plans_pkey PRIMARY KEY (id),
   CONSTRAINT study_plans_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );

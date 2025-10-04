@@ -86,7 +86,7 @@ router.post('/plans/test', async (req, res) => {
 // Crear plan de estudio
 router.post('/plans', authMiddleware, async (req, res) => {
   try {
-    const { title, description, start_date, end_date, notify_by_email, notify_by_whatsapp } = req.body;
+    const { title, description, start_date, end_date, notify_by_email, notify_by_whatsapp, tasks, status, priority } = req.body;
 
     if (!title || !start_date || !end_date) {
       return res.status(400).json({ error: 'Título, fecha de inicio y fecha de fin son requeridos' });
@@ -95,6 +95,7 @@ router.post('/plans', authMiddleware, async (req, res) => {
     // En desarrollo, usar el cliente con service role para bypasear RLS
     const sb = process.env.NODE_ENV === 'development' ? supabase : (req.supabase || supabase);
 
+    // Crear el plan
     const { data: plan, error } = await sb
       .from('study_plans')
       .insert([{
@@ -104,7 +105,9 @@ router.post('/plans', authMiddleware, async (req, res) => {
         start_date,
         end_date,
         notify_by_email: notify_by_email || false,
-        notify_by_whatsapp: notify_by_whatsapp || false
+        notify_by_whatsapp: notify_by_whatsapp || false,
+        status: status || 'active',
+        priority: priority || 'medium'
       }])
       .select('*')
       .single();
@@ -112,6 +115,29 @@ router.post('/plans', authMiddleware, async (req, res) => {
     if (error) {
       console.error('Error al crear plan:', error);
       return res.status(500).json({ error: 'Error al crear el plan de estudio' });
+    }
+
+    // Crear las tareas si se proporcionaron
+    if (tasks && tasks.length > 0) {
+      const tasksToInsert = tasks.map(task => ({
+        plan_id: plan.id,
+        title: task.title,
+        description: task.description,
+        due_date: task.due_date,
+        priority: task.priority || 'medium',
+        completed: task.completed || false,
+        output_id: task.output_id || null
+      }));
+
+      const { error: tasksError } = await sb
+        .from('plan_tasks')
+        .insert(tasksToInsert);
+
+      if (tasksError) {
+        console.error('Error al crear tareas:', tasksError);
+        // No fallar completamente, solo advertir
+        console.warn('Plan creado pero algunas tareas no se pudieron crear');
+      }
     }
 
     res.status(201).json({
@@ -133,31 +159,61 @@ router.get('/plans', authMiddleware, async (req, res) => {
     
     const sb = process.env.NODE_ENV === 'development' ? supabase : (req.supabase || supabase);
     
-    // En desarrollo, usar un user_id específico que exista en la base de datos
-    const userId = process.env.NODE_ENV === 'development' ? 'c023d6db-dcd1-4778-8c56-f551309c8132' : req.user.id;
-    
-    const query = sb
-      .from('study_plans')
-      .select(`
-        id,
-        title,
-        description,
-        start_date,
-        end_date,
-        notify_by_email,
-        notify_by_whatsapp,
-        created_at,
-        plan_tasks (
+    // En desarrollo, mostrar todos los planes sin filtrar por usuario
+    let query;
+    if (process.env.NODE_ENV === 'development') {
+      query = sb
+        .from('study_plans')
+        .select(`
           id,
           title,
           description,
-          due_date,
-          due_at,
-          completed
-        )
-      `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+          start_date,
+          end_date,
+          notify_by_email,
+          notify_by_whatsapp,
+          created_at,
+          status,
+          priority,
+          plan_tasks (
+            id,
+            title,
+            description,
+            due_date,
+            completed,
+            priority,
+            output_id
+          )
+        `)
+        .order('created_at', { ascending: false });
+    } else {
+      const userId = req.user.id;
+      query = sb
+        .from('study_plans')
+        .select(`
+          id,
+          title,
+          description,
+          start_date,
+          end_date,
+          notify_by_email,
+          notify_by_whatsapp,
+          created_at,
+          status,
+          priority,
+          plan_tasks (
+            id,
+            title,
+            description,
+            due_date,
+            completed,
+            priority,
+            output_id
+          )
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+    }
     
     const { data: plans, error } = await query;
 
@@ -169,7 +225,7 @@ router.get('/plans', authMiddleware, async (req, res) => {
     console.log('✅ Planes obtenidos:', plans ? plans.length : 0, 'planes');
     console.log('📊 Datos:', plans);
     
-    res.json({ plans });
+    res.json(plans);
 
   } catch (error) {
     console.error('💥 Error al listar planes:', error);
@@ -181,9 +237,9 @@ router.get('/plans', authMiddleware, async (req, res) => {
 router.get('/plans/:planId', authMiddleware, async (req, res) => {
   try {
     const { planId } = req.params;
+    const sb = process.env.NODE_ENV === 'development' ? supabase : (req.supabase || supabase);
 
-    const sb = req.supabase || supabase;
-    const { data: plan, error } = await sb
+    let selectQuery = sb
       .from('study_plans')
       .select(`
         id,
@@ -194,13 +250,16 @@ router.get('/plans/:planId', authMiddleware, async (req, res) => {
         notify_by_email,
         notify_by_whatsapp,
         created_at,
+        status,
+        priority,
         plan_tasks (
           id,
           title,
           description,
           due_date,
           completed,
-          related_output_id,
+          priority,
+          output_id,
           study_outputs (
             id,
             type,
@@ -208,19 +267,19 @@ router.get('/plans/:planId', authMiddleware, async (req, res) => {
           )
         )
       `)
-      .eq('id', planId)
-      .eq('user_id', req.user.id)
-      .single();
+      .eq('id', planId);
 
-    if (error || !plan) {
-      return res.status(404).json({ error: 'Plan de estudio no encontrado' });
+    // En desarrollo no filtramos por usuario para evitar 404s con datos de prueba
+    if (process.env.NODE_ENV !== 'development') {
+      selectQuery = selectQuery.eq('user_id', req.user.id);
     }
 
-    res.json({ plan });
+    const { data: plan, error } = await selectQuery.single();
 
-  } catch (error) {
-    console.error('Error al obtener plan:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    if (error || !plan) return res.status(404).json({ error: 'Plan de estudio no encontrado' });
+    res.json({ plan });
+  } catch (e) {
+    res.status(500).json({ error: 'Error al obtener el plan de estudio' });
   }
 });
 
@@ -228,7 +287,7 @@ router.get('/plans/:planId', authMiddleware, async (req, res) => {
 router.put('/plans/:planId', authMiddleware, async (req, res) => {
   try {
     const { planId } = req.params;
-    const { title, description, start_date, end_date, notify_by_email, notify_by_whatsapp } = req.body;
+    const { title, description, start_date, end_date, notify_by_email, notify_by_whatsapp, status, priority } = req.body;
 
     const updateData = {};
     if (title) updateData.title = title;
@@ -237,13 +296,21 @@ router.put('/plans/:planId', authMiddleware, async (req, res) => {
     if (end_date) updateData.end_date = end_date;
     if (notify_by_email !== undefined) updateData.notify_by_email = notify_by_email;
     if (notify_by_whatsapp !== undefined) updateData.notify_by_whatsapp = notify_by_whatsapp;
+    if (status !== undefined) updateData.status = status;
+    if (priority !== undefined) updateData.priority = priority;
 
-    const sb = req.supabase || supabase;
-    const { data: plan, error } = await sb
+    const sb = process.env.NODE_ENV === 'development' ? supabase : (req.supabase || supabase);
+
+    let updateQuery = sb
       .from('study_plans')
       .update(updateData)
-      .eq('id', planId)
-      .eq('user_id', req.user.id)
+      .eq('id', planId);
+
+    if (process.env.NODE_ENV !== 'development') {
+      updateQuery = updateQuery.eq('user_id', req.user.id);
+    }
+
+    const { data: plan, error } = await updateQuery
       .select('*')
       .single();
 
@@ -267,12 +334,17 @@ router.delete('/plans/:planId', authMiddleware, async (req, res) => {
   try {
     const { planId } = req.params;
 
-    const sb = req.supabase || supabase;
-    const { error } = await sb
+    const sb = process.env.NODE_ENV === 'development' ? supabase : (req.supabase || supabase);
+    let deleteQuery = sb
       .from('study_plans')
       .delete()
-      .eq('id', planId)
-      .eq('user_id', req.user.id);
+      .eq('id', planId);
+
+    if (process.env.NODE_ENV !== 'development') {
+      deleteQuery = deleteQuery.eq('user_id', req.user.id);
+    }
+
+    const { error } = await deleteQuery;
 
     if (error) {
       console.error('Error al eliminar plan:', error);
@@ -291,7 +363,7 @@ router.delete('/plans/:planId', authMiddleware, async (req, res) => {
 router.post('/plans/:planId/tasks', authMiddleware, async (req, res) => {
   try {
     const { planId } = req.params;
-    const { title, description, due_date, related_output_id } = req.body;
+    const { title, description, due_date, output_id, priority, completed } = req.body;
 
     if (!title || !due_date) {
       return res.status(400).json({ error: 'Título y fecha de vencimiento son requeridos' });
@@ -317,7 +389,9 @@ router.post('/plans/:planId/tasks', authMiddleware, async (req, res) => {
         title,
         description,
         due_date,
-        related_output_id
+        output_id: output_id || null,
+        priority: priority || 'medium',
+        completed: !!completed
       }])
       .select('*')
       .single();
@@ -342,14 +416,15 @@ router.post('/plans/:planId/tasks', authMiddleware, async (req, res) => {
 router.put('/tasks/:taskId', authMiddleware, async (req, res) => {
   try {
     const { taskId } = req.params;
-    const { title, description, due_date, completed, related_output_id } = req.body;
+    const { title, description, due_date, completed, output_id, priority } = req.body;
 
     const updateData = {};
     if (title) updateData.title = title;
     if (description !== undefined) updateData.description = description;
     if (due_date) updateData.due_date = due_date;
     if (completed !== undefined) updateData.completed = completed;
-    if (related_output_id !== undefined) updateData.related_output_id = related_output_id;
+    if (output_id !== undefined) updateData.output_id = output_id;
+    if (priority !== undefined) updateData.priority = priority;
 
     const sb = req.supabase || supabase;
     const { data: task, error } = await sb
@@ -800,6 +875,404 @@ router.delete('/outputs/:id', authMiddleware, async (req, res) => {
 
   } catch (error) {
     console.error('Error al eliminar output:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// ==========================================
+// ENDPOINTS PARA CONTENIDO GENERADO EN PLANES
+// ==========================================
+
+// POST /api/study/plans/:planId/content - Añadir contenido generado a un plan
+router.post('/plans/:planId/content', authMiddleware, async (req, res) => {
+  try {
+    const { planId } = req.params;
+    const { 
+      taskId, 
+      contentType, 
+      title, 
+      description, 
+      content, 
+      sourcePdfId, 
+      isExtra, 
+      extraGroupName 
+    } = req.body;
+
+    // Validaciones
+    if (!contentType || !title || !content) {
+      return res.status(400).json({ 
+        error: 'Tipo de contenido, título y contenido son requeridos' 
+      });
+    }
+
+    const validContentTypes = [
+      'resumen', 'multiple_choice', 'verdadero_falso', 'flashcards', 
+      'mapa_mental', 'problema', 'chat_qa', 'recomendacion_video', 'recomendacion_texto'
+    ];
+
+    if (!validContentTypes.includes(contentType)) {
+      return res.status(400).json({ 
+        error: 'Tipo de contenido no válido' 
+      });
+    }
+
+    const sb = process.env.NODE_ENV === 'development' ? supabase : (req.supabase || supabase);
+
+    // Verificar que el plan pertenece al usuario
+    const { data: plan, error: planError } = await sb
+      .from('study_plans')
+      .select('id, user_id')
+      .eq('id', planId)
+      .single();
+
+    if (planError || !plan) {
+      return res.status(404).json({ error: 'Plan de estudio no encontrado' });
+    }
+
+    if (plan.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'No tienes permisos para modificar este plan' });
+    }
+
+    // Si se especifica taskId, verificar que la tarea pertenece al plan
+    if (taskId) {
+      const { data: task, error: taskError } = await sb
+        .from('plan_tasks')
+        .select('id')
+        .eq('id', taskId)
+        .eq('plan_id', planId)
+        .single();
+
+      if (taskError || !task) {
+        return res.status(404).json({ error: 'Tarea no encontrada en este plan' });
+      }
+    }
+
+    // Crear el contenido generado
+    const { data: generatedContent, error: contentError } = await sb
+      .from('plan_generated_content')
+      .insert([{
+        plan_id: planId,
+        task_id: taskId || null,
+        content_type: contentType,
+        title,
+        description: description || null,
+        content,
+        source_pdf_id: sourcePdfId || null,
+        is_extra: isExtra || false,
+        extra_group_name: extraGroupName || null,
+        created_by: req.user.id
+      }])
+      .select('*')
+      .single();
+
+    if (contentError) {
+      console.error('Error al crear contenido generado:', contentError);
+      return res.status(500).json({ error: 'Error al guardar el contenido' });
+    }
+
+    res.status(201).json({
+      message: 'Contenido añadido exitosamente al plan',
+      content: generatedContent
+    });
+
+  } catch (error) {
+    console.error('Error POST /plans/:planId/content:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// GET /api/study/plans/:planId/content - Obtener contenido generado de un plan
+router.get('/plans/:planId/content', authMiddleware, async (req, res) => {
+  try {
+    const { planId } = req.params;
+    const { taskId, contentType, isExtra, extraGroupName } = req.query;
+
+    const sb = process.env.NODE_ENV === 'development' ? supabase : (req.supabase || supabase);
+
+    // Verificar que el plan pertenece al usuario
+    const { data: plan, error: planError } = await sb
+      .from('study_plans')
+      .select('id, user_id')
+      .eq('id', planId)
+      .single();
+
+    if (planError || !plan) {
+      return res.status(404).json({ error: 'Plan de estudio no encontrado' });
+    }
+
+    if (plan.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'No tienes permisos para ver este plan' });
+    }
+
+    // Construir query con filtros opcionales
+    let query = sb
+      .from('plan_generated_content')
+      .select(`
+        *,
+        plan_tasks (
+          id,
+          title
+        ),
+        pdf_uploads (
+          id,
+          title,
+          file_name
+        )
+      `)
+      .eq('plan_id', planId)
+      .order('created_at', { ascending: false });
+
+    // Aplicar filtros opcionales
+    if (taskId) {
+      query = query.eq('task_id', taskId);
+    }
+    if (contentType) {
+      query = query.eq('content_type', contentType);
+    }
+    if (isExtra !== undefined) {
+      query = query.eq('is_extra', isExtra === 'true');
+    }
+    if (extraGroupName) {
+      query = query.eq('extra_group_name', extraGroupName);
+    }
+
+    const { data: contents, error: contentsError } = await query;
+
+    if (contentsError) {
+      console.error('Error al obtener contenido:', contentsError);
+      return res.status(500).json({ error: 'Error al obtener el contenido' });
+    }
+
+    res.json({
+      planId: parseInt(planId),
+      contents: contents || []
+    });
+
+  } catch (error) {
+    console.error('Error GET /plans/:planId/content:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// PUT /api/study/plans/:planId/content/:contentId - Actualizar contenido generado
+router.put('/plans/:planId/content/:contentId', authMiddleware, async (req, res) => {
+  try {
+    const { planId, contentId } = req.params;
+    const { title, description, content, isExtra, extraGroupName } = req.body;
+
+    const sb = process.env.NODE_ENV === 'development' ? supabase : (req.supabase || supabase);
+
+    // Verificar que el contenido existe y pertenece al usuario
+    const { data: existingContent, error: contentError } = await sb
+      .from('plan_generated_content')
+      .select(`
+        *,
+        study_plans!inner(user_id)
+      `)
+      .eq('id', contentId)
+      .eq('plan_id', planId)
+      .single();
+
+    if (contentError || !existingContent) {
+      return res.status(404).json({ error: 'Contenido no encontrado' });
+    }
+
+    if (existingContent.study_plans.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'No tienes permisos para modificar este contenido' });
+    }
+
+    // Preparar datos de actualización
+    const updateData = {};
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (content !== undefined) updateData.content = content;
+    if (isExtra !== undefined) updateData.is_extra = isExtra;
+    if (extraGroupName !== undefined) updateData.extra_group_name = extraGroupName;
+
+    // Actualizar contenido
+    const { data: updatedContent, error: updateError } = await sb
+      .from('plan_generated_content')
+      .update(updateData)
+      .eq('id', contentId)
+      .select('*')
+      .single();
+
+    if (updateError) {
+      console.error('Error al actualizar contenido:', updateError);
+      return res.status(500).json({ error: 'Error al actualizar el contenido' });
+    }
+
+    res.json({
+      message: 'Contenido actualizado exitosamente',
+      content: updatedContent
+    });
+
+  } catch (error) {
+    console.error('Error PUT /plans/:planId/content/:contentId:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// DELETE /api/study/plans/:planId/content/:contentId - Eliminar contenido generado
+router.delete('/plans/:planId/content/:contentId', authMiddleware, async (req, res) => {
+  try {
+    const { planId, contentId } = req.params;
+
+    const sb = process.env.NODE_ENV === 'development' ? supabase : (req.supabase || supabase);
+
+    // Verificar que el contenido existe y pertenece al usuario
+    const { data: existingContent, error: contentError } = await sb
+      .from('plan_generated_content')
+      .select(`
+        *,
+        study_plans!inner(user_id)
+      `)
+      .eq('id', contentId)
+      .eq('plan_id', planId)
+      .single();
+
+    if (contentError || !existingContent) {
+      return res.status(404).json({ error: 'Contenido no encontrado' });
+    }
+
+    if (existingContent.study_plans.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'No tienes permisos para eliminar este contenido' });
+    }
+
+    // Eliminar contenido
+    const { error: deleteError } = await sb
+      .from('plan_generated_content')
+      .delete()
+      .eq('id', contentId);
+
+    if (deleteError) {
+      console.error('Error al eliminar contenido:', deleteError);
+      return res.status(500).json({ error: 'Error al eliminar el contenido' });
+    }
+
+    res.json({
+      message: 'Contenido eliminado exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error DELETE /plans/:planId/content/:contentId:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// POST /api/study/plans/:planId/content/:contentId/progress - Registrar progreso en contenido
+router.post('/plans/:planId/content/:contentId/progress', authMiddleware, async (req, res) => {
+  try {
+    const { planId, contentId } = req.params;
+    const { interactionType, score, timeSpent } = req.body;
+
+    if (!interactionType) {
+      return res.status(400).json({ error: 'Tipo de interacción es requerido' });
+    }
+
+    const validInteractionTypes = ['leido', 'completado', 'respondido', 'favorito'];
+    if (!validInteractionTypes.includes(interactionType)) {
+      return res.status(400).json({ error: 'Tipo de interacción no válido' });
+    }
+
+    const sb = process.env.NODE_ENV === 'development' ? supabase : (req.supabase || supabase);
+
+    // Verificar que el contenido existe y pertenece al usuario
+    const { data: content, error: contentError } = await sb
+      .from('plan_generated_content')
+      .select(`
+        *,
+        study_plans!inner(user_id)
+      `)
+      .eq('id', contentId)
+      .eq('plan_id', planId)
+      .single();
+
+    if (contentError || !content) {
+      return res.status(404).json({ error: 'Contenido no encontrado' });
+    }
+
+    if (content.study_plans.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'No tienes permisos para registrar progreso en este contenido' });
+    }
+
+    // Insertar o actualizar progreso (upsert)
+    const { data: progress, error: progressError } = await sb
+      .from('plan_content_progress')
+      .upsert([{
+        user_id: req.user.id,
+        plan_content_id: contentId,
+        interaction_type: interactionType,
+        score: score || null,
+        time_spent: timeSpent || 0
+      }], {
+        onConflict: 'user_id,plan_content_id,interaction_type'
+      })
+      .select('*')
+      .single();
+
+    if (progressError) {
+      console.error('Error al registrar progreso:', progressError);
+      return res.status(500).json({ error: 'Error al registrar el progreso' });
+    }
+
+    res.json({
+      message: 'Progreso registrado exitosamente',
+      progress
+    });
+
+  } catch (error) {
+    console.error('Error POST /plans/:planId/content/:contentId/progress:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// GET /api/study/plans/:planId/content/:contentId/progress - Obtener progreso de contenido
+router.get('/plans/:planId/content/:contentId/progress', authMiddleware, async (req, res) => {
+  try {
+    const { planId, contentId } = req.params;
+
+    const sb = process.env.NODE_ENV === 'development' ? supabase : (req.supabase || supabase);
+
+    // Verificar que el contenido existe y pertenece al usuario
+    const { data: content, error: contentError } = await sb
+      .from('plan_generated_content')
+      .select(`
+        *,
+        study_plans!inner(user_id)
+      `)
+      .eq('id', contentId)
+      .eq('plan_id', planId)
+      .single();
+
+    if (contentError || !content) {
+      return res.status(404).json({ error: 'Contenido no encontrado' });
+    }
+
+    if (content.study_plans.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'No tienes permisos para ver el progreso de este contenido' });
+    }
+
+    // Obtener progreso
+    const { data: progress, error: progressError } = await sb
+      .from('plan_content_progress')
+      .select('*')
+      .eq('user_id', req.user.id)
+      .eq('plan_content_id', contentId)
+      .order('completed_at', { ascending: false });
+
+    if (progressError) {
+      console.error('Error al obtener progreso:', progressError);
+      return res.status(500).json({ error: 'Error al obtener el progreso' });
+    }
+
+    res.json({
+      contentId: parseInt(contentId),
+      progress: progress || []
+    });
+
+  } catch (error) {
+    console.error('Error GET /plans/:planId/content/:contentId/progress:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

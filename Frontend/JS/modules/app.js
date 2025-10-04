@@ -315,10 +315,23 @@ class App {
         existingScript.remove();
         console.log(`🗑️ Script existente de ${sectionName} eliminado`);
       }
+
+      // Eliminar cualquier script duplicado previamente cargado por otros sistemas
+      const scriptPath = sectionName === 'historial' ? 'historial-simple' : sectionName;
+      const duplicates = Array.from(document.querySelectorAll('script[src]')).filter(s => {
+        const src = s.getAttribute('src') || '';
+        return src.includes(`/JS/${scriptPath}.js`);
+      });
+      duplicates.forEach(s => {
+        // Evitar eliminar el mismo que pudiéramos estar actualizando por ID
+        if (s.id !== `section-script-${sectionName}`) {
+          s.remove();
+          console.log(`🗑️ Script duplicado eliminado: ${s.src}`);
+        }
+      });
       
       const script = document.createElement('script');
       // Usar versión simplificada para historial
-      const scriptPath = sectionName === 'historial' ? 'historial-simple' : sectionName;
       script.src = `/JS/${scriptPath}.js?t=${new Date().getTime()}`; // Añadir timestamp para evitar caché
       script.type = 'text/javascript';
       script.defer = true;

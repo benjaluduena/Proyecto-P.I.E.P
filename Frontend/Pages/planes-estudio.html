@@ -1,292 +1,539 @@
-<div class="study-plans-container">
-    <div class="study-plans-header">
-        <h1>Planes de Estudio</h1>
-        <p>Organiza y gestiona tus planes de estudio de manera eficiente</p>
-        <button class="btn-primary" id="createPlanBtn">
-            <i class="fas fa-plus"></i>
-            Crear Nuevo Plan
-        </button>
-    </div>
-
-    <!-- Controles y filtros -->
-    <div class="controls-section">
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Buscar planes de estudio...">
-            <i class="fas fa-search"></i>
-        </div>
-        
-        <div class="filters">
-            <select id="statusFilter">
-                <option value="">Todos los estados</option>
-                <option value="active">Activo</option>
-                <option value="completed">Completado</option>
-                <option value="paused">Pausado</option>
-            </select>
-            
-            <select id="sortBy">
-                <option value="created_at">Fecha de creación</option>
-                <option value="start_date">Fecha de inicio</option>
-                <option value="end_date">Fecha de fin</option>
-                <option value="title">Nombre</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Loading indicator -->
-    <div class="loading" id="loadingIndicator" style="display: none;">
-        <i class="fas fa-spinner fa-spin"></i>
-        <span>Cargando planes de estudio...</span>
-    </div>
-
-    <!-- Plans grid -->
-    <div class="study-plans-grid" id="studyPlansGrid">
-        <!-- Los planes se cargarán dinámicamente aquí -->
-    </div>
-
-    <!-- Empty state -->
-    <div class="empty-state" id="emptyState" style="display: none;">
-        <i class="fas fa-book-open"></i>
-        <h3>No hay planes de estudio</h3>
-        <p id="emptyMessage">Crea tu primer plan de estudio para comenzar a organizar tu aprendizaje</p>
-        <button class="create-plan-btn" onclick="document.getElementById('createPlanBtn').click()">
-            <i class="fas fa-plus"></i>
-            Crear Primer Plan
-        </button>
-    </div>
-</div>
-
-<!-- Modal para crear/editar plan -->
-<div class="modal" id="studyPlanModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="modalTitle">Crear Plan de Estudio</h2>
-            <button class="close-btn" id="closeModalBtn">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <form id="studyPlanForm" class="modal-body">
-            <div class="form-group">
-                <label for="planTitle">Título del Plan *</label>
-                <input type="text" id="planTitle" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="planDescription">Descripción</label>
-                <textarea id="planDescription" rows="3"></textarea>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="startDate">Fecha de Inicio *</label>
-                    <input type="date" id="startDate" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="endDate">Fecha de Fin *</label>
-                    <input type="date" id="endDate" required>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="planStatus">Estado</label>
-                <select id="planStatus">
-                    <option value="active">Activo</option>
-                    <option value="paused">Pausado</option>
-                    <option value="completed">Completado</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>Notificaciones</label>
-                <div class="checkbox-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="notifyEmail">
-                        <span class="checkmark"></span>
-                        Notificar por email
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="notifyWhatsapp">
-                        <span class="checkmark"></span>
-                        Notificar por WhatsApp
-                    </label>
-                </div>
-            </div>
-            
-            <div class="tasks-section">
-                <div class="section-header">
-                    <h3>Tareas del Plan</h3>
-                    <button type="button" class="add-task-btn" id="addTaskBtn">
+<!-- Contenido de Planes de Estudio para cargar dinámicamente -->
+<div class="planes-estudio-content">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+            <div class="study-plans-container">
+                <div class="study-plans-header">
+                    <h1>Planes de Estudio</h1>
+                    <p>Organiza y gestiona tus planes de estudio de manera eficiente</p>
+                    <button class="btn-primary" id="createPlanBtn">
                         <i class="fas fa-plus"></i>
-                        Agregar Tarea
+                        Crear Nuevo Plan
                     </button>
                 </div>
-                
-                <div class="tasks-container" id="tasksContainer">
-                    <!-- Las tareas se agregarán dinámicamente aquí -->
+
+                <!-- Controles y filtros -->
+                <div class="controls-section">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Buscar planes de estudio...">
+                    </div>
+                    
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label for="statusFilter">Estado</label>
+                            <select id="statusFilter">
+                                <option value="">Todos los estados</option>
+                                <option value="active">Activo</option>
+                                <option value="completed">Completado</option>
+                                <option value="paused">Pausado</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="sortBy">Ordenar por</label>
+                            <select id="sortBy">
+                                <option value="created_at">Fecha de creación</option>
+                                <option value="start_date">Fecha de inicio</option>
+                                <option value="end_date">Fecha de fin</option>
+                                <option value="title">Nombre</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="priorityFilter">Prioridad</label>
+                            <select id="priorityFilter">
+                                <option value="">Todas las prioridades</option>
+                                <option value="high">Alta</option>
+                                <option value="medium">Media</option>
+                                <option value="low">Baja</option>
+                            </select>
+                        </div>
+                        
+                        <button class="filter-reset-btn" id="resetFilters">
+                            <i class="fas fa-times"></i>
+                            Limpiar filtros
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading indicator -->
+                <div class="loading" id="loadingIndicator" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Cargando planes de estudio...</span>
+                </div>
+
+                <!-- Plans grid -->
+                <div class="study-plans-grid" id="studyPlansGrid">
+                    <!-- Los planes se cargarán dinámicamente aquí -->
+                </div>
+
+                <!-- Empty state -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <i class="fas fa-book-open"></i>
+                    <h3>No hay planes de estudio</h3>
+                    <p id="emptyMessage">Crea tu primer plan de estudio para comenzar a organizar tu aprendizaje</p>
+                    <button class="btn-primary" id="createFirstPlanBtn">
+                        <i class="fas fa-plus"></i>
+                        Crear Mi Primer Plan
+                    </button>
                 </div>
             </div>
-        </form>
-        
-        <div class="modal-footer">
-            <button type="button" class="btn-secondary" id="cancelBtn">Cancelar</button>
-            <button type="submit" class="btn-primary" id="saveBtn" form="studyPlanForm">
-                <span class="btn-spinner" style="display: none;">⏳</span>
-                <span id="saveBtnText">Crear Plan</span>
-            </button>
+
+    <!-- Modal para crear/editar plan -->
+    <div class="modal" id="studyPlanModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Crear Nuevo Plan de Estudio</h2>
+                <button class="close-btn" id="closeModalBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="studyPlanForm" class="modal-body">
+                <div class="form-section">
+                    <h3>Información Básica</h3>
+                    
+                    <div class="form-group">
+                        <label for="title">Título del Plan *</label>
+                        <input type="text" id="title" name="title" required placeholder="Ej: Preparación para Examen de Matemáticas">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Descripción</label>
+                        <textarea id="description" name="description" rows="3" placeholder="Describe brevemente los objetivos de este plan de estudio"></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startDate">Fecha de Inicio *</label>
+                            <input type="date" id="startDate" name="start_date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="endDate">Fecha de Finalización *</label>
+                            <input type="date" id="endDate" name="end_date" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="status">Estado</label>
+                        <select id="status" name="status" disabled>
+                            <option value="active" selected>Activo</option>
+                            <option value="paused">Pausado</option>
+                            <option value="completed">Completado</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <div class="section-header">
+                        <h3>Tareas del Plan</h3>
+                        <button type="button" class="add-task-btn" id="addTaskBtn">
+                            <i class="fas fa-plus"></i>
+                            Agregar Tarea
+                        </button>
+                    </div>
+                    
+                    <div class="tasks-container" id="tasksContainer">
+                        <!-- Las tareas se agregarán dinámicamente aquí -->
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="cancelBtn">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="saveBtn">
+                        <span id="saveBtnText">Crear Plan</span>
+                        <i class="fas fa-spinner fa-spin" id="saveSpinner" style="display: none;"></i>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-</div>
 
-<!-- Modal de detalles del plan -->
-<div class="modal" id="planDetailsModal">
-    <div class="modal-content modal-large">
-        <div class="modal-header">
-            <h2 id="detailsTitle">Detalles del Plan</h2>
-            <button class="close-btn" id="closeDetailsBtn">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <div class="modal-body">
-            <div class="plan-info">
-                <div class="info-item">
-                    <label>Descripción:</label>
-                    <p id="detailsDescription">-</p>
+    <!-- Modal para ver detalles del plan -->
+    <div class="modal" id="planDetailsModal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2 id="detailTitle">Detalles del Plan</h2>
+                <div class="header-actions">
+                    <button class="btn-icon" id="editPlanBtn" title="Editar Plan">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-icon danger" id="deletePlanBtn" title="Eliminar Plan">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button class="close-btn" id="closeDetailsBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                
-                <div class="info-item">
-                    <label>Fecha de Inicio:</label>
-                    <p id="detailsStartDate">-</p>
-                </div>
-                
-                <div class="info-item">
-                    <label>Fecha de Fin:</label>
-                    <p id="detailsEndDate">-</p>
-                </div>
-                
-                <div class="info-item">
-                    <label>Progreso:</label>
-                    <div class="progress-container">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="detailsProgress"></div>
+            </div>
+            
+            <div class="modal-body">
+                <div class="plan-info">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Descripción:</label>
+                            <p id="detailDescription">-</p>
                         </div>
-                        <span class="progress-text" id="detailsProgressText">0%</span>
+                        
+                        <div class="info-item">
+                            <label>Estado:</label>
+                            <span class="status-badge" id="detailStatus">-</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <label>Fecha de Inicio:</label>
+                            <p id="detailStartDate">-</p>
+                        </div>
+                        
+                        <div class="info-item">
+                            <label>Fecha de Fin:</label>
+                            <p id="detailEndDate">-</p>
+                        </div>
+                        
+                        <div class="info-item">
+                            <label>Progreso:</label>
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="detailProgress"></div>
+                                </div>
+                                <span class="progress-text" id="detailProgressText">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tasks-section">
+                    <h3>Tareas del Plan</h3>
+                    <div class="tasks-list" id="detailTasksList">
+                        <!-- Las tareas se mostrarán aquí -->
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="tasks-section">
-            <h3>Tareas del Plan</h3>
-            <div class="tasks-list" id="detailsTasksList">
-                <!-- Las tareas se cargarán dinámicamente aquí -->
-            </div>
-        </div>
-        
-        <div class="modal-footer">
-            <button class="btn-secondary" id="closeDetailsModal">Cerrar</button>
-            <button class="btn-primary" id="editPlanBtn">
-                <i class="fas fa-edit"></i>
-                Editar Plan
-            </button>
-            <button class="btn-danger" id="deletePlanBtn">
-                <i class="fas fa-trash"></i>
-                Eliminar Plan
-            </button>
-        </div>
     </div>
-</div>
 
-<!-- Template para tareas del formulario -->
-<template id="taskFormTemplate">
-    <div class="task-item">
-        <div class="task-form-row">
-            <div class="form-group">
-                <label>Título de la Tarea *</label>
-                <input type="text" class="task-title" required>
+    <!-- Overlay para modo expandido -->
+    <div class="expansion-overlay" id="expansionOverlay"></div>
+
+    <!-- Template para tarjetas de planes -->
+    <template id="planCardTemplate">
+        <div class="plan-card">
+            <div class="card-header">
+                <h3 class="plan-title"></h3>
+                <div class="card-actions">
+                    <button class="btn-icon view-plan" title="Ver detalles">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn-icon edit-plan" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-icon delete-plan danger" title="Eliminar">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </div>
             
-            <div class="form-group">
-                <label>Fecha Límite</label>
-                <input type="date" class="task-due-date">
+            <div class="card-body">
+                <p class="plan-description"></p>
+                
+                <div class="plan-dates">
+                    <div class="date-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span class="start-date"></span>
+                    </div>
+                    <div class="date-item">
+                        <i class="fas fa-calendar-check"></i>
+                        <span class="end-date"></span>
+                    </div>
+                </div>
+                
+                <div class="tasks-preview">
+                    <h4 class="tasks-title">Tareas Asignadas</h4>
+                    <ul class="tasks-list">
+                        <!-- Las tareas se cargarán dinámicamente -->
+                    </ul>
+                    <button class="view-all-tasks">
+                        <i class="fas fa-list"></i>
+                        Ver todas las tareas
+                    </button>
+                </div>
             </div>
             
-            <div class="form-group">
-                <label>Prioridad</label>
-                <select class="task-priority">
-                    <option value="low">Baja</option>
-                    <option value="medium" selected>Media</option>
-                    <option value="high">Alta</option>
-                </select>
-            </div>
-            
-            <button type="button" class="remove-task btn-icon danger" title="Eliminar tarea">
-                <i class="fas fa-trash"></i>
+            <div class="card-footer">
+                 <div class="status-badge"></div>
+             </div>
+        </div>
+    </template>
+
+    <!-- Template para tarjeta de plan de estudio -->
+    <template id="studyPlanCardTemplate">
+        <div class="study-plan-card" data-plan-id="">
+            <!-- Botón de cerrar para modo expandido -->
+            <button class="close-expanded-btn" title="Cerrar vista expandida" style="display: none;">
+                <i class="fas fa-times"></i>
             </button>
-        </div>
-        
-        <div class="form-group">
-            <label>Descripción</label>
-            <textarea class="task-description" rows="2" placeholder="Descripción opcional de la tarea..."></textarea>
-        </div>
-    </div>
-</template>
-
-<!-- Template para detalles de tareas -->
-<template id="taskDetailsTemplate">
-    <div class="task-detail-item">
-        <div class="task-detail-header">
-            <div class="task-checkbox-container">
-                <input type="checkbox" class="task-completed" id="task-checkbox">
-                <label for="task-checkbox" class="task-title"></label>
+            
+            <div class="card-header">
+                <div class="header-content">
+                    <h3 class="plan-title"></h3>
+                    <p class="plan-description"></p>
+                </div>
+                <div class="card-actions">
+                    <button class="action-btn view-btn" title="Ver detalles">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <select class="action-select status-select" title="Estado del plan">
+                        <option value="active">Activo</option>
+                        <option value="paused">Pausado</option>
+                        <option value="completed">Completado</option>
+                    </select>
+                </div>
             </div>
-            <div class="task-priority-badge"></div>
-        </div>
-        
-        <div class="task-detail-body">
-            <p class="task-description"></p>
-            <div class="task-meta">
-                <span class="task-due-date"></span>
-                <span class="task-status"></span>
+            
+            <div class="card-content">
+                <!-- Vista normal (compacta) -->
+                <div class="normal-view">
+                    <div class="plan-dates">
+                        <div class="date-item">
+                            <span class="date-label">
+                                <i class="fas fa-play"></i>
+                                Inicio
+                            </span>
+                            <span class="date-value start-date"></span>
+                        </div>
+                        <div class="date-item">
+                            <span class="date-label">
+                                <i class="fas fa-flag-checkered"></i>
+                                Fin
+                            </span>
+                            <span class="date-value end-date"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-stats">
+                        <div class="stat-item">
+                            <span class="stat-number tasks-count">0</span>
+                            <span class="stat-label">Tareas</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number completed-tasks">0</span>
+                            <span class="stat-label">Completadas</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-progress">
+                        <div class="progress-header">
+                            <span class="progress-label">Progreso</span>
+                            <span class="progress-percentage">0%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Vista expandida -->
+                <div class="expanded-view" style="display: none;">
+                    <!-- Navegación de pestañas -->
+                    <div class="expanded-tabs">
+                        <button class="tab-btn active" data-tab="overview">
+                            <i class="fas fa-chart-pie"></i>
+                            Resumen
+                        </button>
+                        <button class="tab-btn" data-tab="tasks">
+                            <i class="fas fa-tasks"></i>
+                            Tareas
+                        </button>
+                        <button class="tab-btn" data-tab="content">
+                            <i class="fas fa-brain"></i>
+                            Contenido
+                        </button>
+                        <button class="tab-btn" data-tab="edit">
+                            <i class="fas fa-edit"></i>
+                            Editar
+                        </button>
+                    </div>
+                    
+                    <!-- Contenido de pestañas -->
+                    <div class="tab-content">
+                        <!-- Pestaña Resumen -->
+                        <div class="tab-panel active" data-panel="overview">
+                            <div class="overview-stats">
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-tasks"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <span class="stat-value tasks-total">0</span>
+                                        <span class="stat-title">Total Tareas</span>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <span class="stat-value tasks-completed">0</span>
+                                        <span class="stat-title">Completadas</span>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <span class="stat-value tasks-pending">0</span>
+                                        <span class="stat-title">Pendientes</span>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-calendar-day"></i>
+                                    </div>
+                                    <div class="stat-info">
+                                        <span class="stat-value days-remaining">0</span>
+                                        <span class="stat-title">Días Restantes</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="progress-section">
+                                <h4>Progreso General</h4>
+                                <div class="progress-bar-large">
+                                    <div class="progress-fill-large" style="width: 0%"></div>
+                                    <span class="progress-text-large">0%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="recent-activity">
+                                <h4>Actividad Reciente</h4>
+                                <div class="activity-list">
+                                    <!-- Se llenará dinámicamente -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pestaña Tareas -->
+                        <div class="tab-panel" data-panel="tasks">
+                            <div class="tasks-header">
+                                <h4>Gestión de Tareas</h4>
+                                <button class="btn-primary add-task-btn">
+                                    <i class="fas fa-plus"></i>
+                                    Nueva Tarea
+                                </button>
+                            </div>
+                            <div class="tasks-list-expanded">
+                                <!-- Las tareas se cargarán dinámicamente -->
+                            </div>
+                        </div>
+                        
+                        <!-- Pestaña Contenido -->
+                        <div class="tab-panel" data-panel="content">
+                            <div class="content-header">
+                                <h4>Gestión de Contenido</h4>
+                                <button class="btn-primary add-content-btn">
+                                    <i class="fas fa-plus"></i>
+                                    Agregar Contenido
+                                </button>
+                            </div>
+                            <div class="content-list-expanded">
+                                <!-- El contenido se cargará dinámicamente -->
+                            </div>
+                        </div>
+                        
+                        <!-- Pestaña Editar -->
+                        <div class="tab-panel" data-panel="edit">
+                            <form class="edit-plan-form">
+                                <div class="form-group">
+                                    <label>Título del Plan</label>
+                                    <input type="text" class="edit-title" placeholder="Título del plan">
+                                </div>
+                                <div class="form-group">
+                                    <label>Descripción</label>
+                                    <textarea class="edit-description" rows="3" placeholder="Descripción del plan"></textarea>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Fecha de Inicio</label>
+                                        <input type="date" class="edit-start-date">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Fecha de Fin</label>
+                                        <input type="date" class="edit-end-date">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Estado</label>
+                                    <select class="edit-status">
+                                        <option value="active">Activo</option>
+                                        <option value="paused">Pausado</option>
+                                        <option value="completed">Completado</option>
+                                    </select>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn-secondary cancel-edit">Cancelar</button>
+                                    <button type="submit" class="btn-primary save-edit">Guardar Cambios</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer">
+                <div class="status-badge"></div>
             </div>
         </div>
-    </div>
-</template>
+    </template>
 
-<!-- Template para las tarjetas de planes de estudio -->
-<template id="studyPlanCardTemplate">
-    <div class="study-plan-card">
-        <div class="plan-header">
-            <h3 class="plan-title"></h3>
-            <div class="plan-actions">
-                <button class="btn-icon edit-plan" title="Editar plan">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-icon delete-plan" title="Eliminar plan">
+    <!-- Template para detalles de tareas -->
+    <template id="taskDetailTemplate">
+        <div class="task-detail-item">
+            <div class="task-status">
+                <i class="task-icon"></i>
+            </div>
+            <div class="task-content">
+                <h4 class="task-title"></h4>
+                <p class="task-description"></p>
+                <div class="task-meta">
+                    <span class="task-due-date"></span>
+                    <span class="task-priority"></span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template para formulario de tareas -->
+    <template id="taskFormTemplate">
+        <div class="task-item">
+            <div class="task-form-row">
+                <div class="form-group">
+                    <label>Título de la tarea:</label>
+                    <input type="text" class="task-title" placeholder="Ej: Estudiar capítulo 1" required>
+                </div>
+                <div class="form-group">
+                    <label>Fecha límite:</label>
+                    <input type="date" class="task-due-date">
+                </div>
+                <div class="form-group">
+                    <label>Prioridad:</label>
+                    <select class="task-priority">
+                        <option value="low">Baja</option>
+                        <option value="medium" selected>Media</option>
+                        <option value="high">Alta</option>
+                    </select>
+                </div>
+                <button type="button" class="remove-task" title="Eliminar tarea">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
-        </div>
-        
-        <div class="plan-info">
-            <div class="plan-dates">
-                <span class="start-date"></span>
-                <span class="end-date"></span>
+            <div class="form-group">
+                <label>Descripción:</label>
+                <textarea class="task-description" placeholder="Descripción de la tarea (opcional)" rows="2"></textarea>
             </div>
-            <div class="plan-status"></div>
         </div>
-        
+    </template>
+</div>
 
-        
-        <div class="plan-description"></div>
-        
-        <div class="plan-footer">
-            <span class="task-count"></span>
-            <button class="btn-secondary view-plan">Ver Detalles</button>
-        </div>
-    </div>
-</template>
-
-<!-- Script específico para planes de estudio -->
-<script src="../JS/planes-estudio.js"></script>
+<!-- Scripts necesarios -->
+<link rel="stylesheet" href="../Css/planes-estudio.css">

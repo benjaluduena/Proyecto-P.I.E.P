@@ -3,6 +3,39 @@ const router = express.Router();
 const supabase = require('../config/supabase');
 const { supabaseAuth } = require('../middleware/auth');
 
+// Endpoint temporal para eliminar planes específicos
+router.delete('/delete-plan/:id', async (req, res) => {
+  try {
+    const planId = req.params.id;
+    
+    // Primero eliminar las tareas del plan
+    const { error: tasksError } = await supabase
+      .from('plan_tasks')
+      .delete()
+      .eq('plan_id', planId);
+    
+    if (tasksError) {
+      console.error('Error eliminando tareas:', tasksError);
+    }
+    
+    // Luego eliminar el plan
+    const { error: planError } = await supabase
+      .from('study_plans')
+      .delete()
+      .eq('id', planId);
+    
+    if (planError) {
+      console.error('Error eliminando plan:', planError);
+      return res.status(500).json({ error: 'Error al eliminar el plan' });
+    }
+    
+    res.json({ message: `Plan ${planId} eliminado correctamente` });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 // Diagnóstico de suscripción para un usuario específico
 router.get('/subscription/diagnostic/:userId', async (req, res) => {
   try {

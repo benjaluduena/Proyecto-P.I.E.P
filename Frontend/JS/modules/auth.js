@@ -93,10 +93,11 @@ export class AuthModule {
   // Obtener headers de autorización
   getAuthHeaders() {
     const token = this.getAccessToken();
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': token ? `Bearer ${token}` : ''
+    const headers = {
+      'Content-Type': 'application/json'
     };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
   }
 
   // Obtener usuario actual

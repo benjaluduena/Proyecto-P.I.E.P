@@ -1,11 +1,14 @@
 const express = require('express');
 const supabase = require('../config/supabase');
-const { supabaseAuth } = require('../middleware/auth');
+const { supabaseAuth, devAuth } = require('../middleware/auth');
+
+// Usar devAuth en desarrollo, authMiddleware en producción
+const authMiddleware = process.env.NODE_ENV === 'development' ? devAuth : supabaseAuth;
 
 const router = express.Router();
 
 // GET /api/tasks - Listar tareas del usuario autenticado
-router.get('/', supabaseAuth, async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
   try {
     const sb = req.supabase || supabase;
     const { data: tasks, error } = await sb
@@ -16,44 +19,42 @@ router.get('/', supabaseAuth, async (req, res) => {
         title,
         description,
         due_date,
-        due_at,
         completed,
+        priority,
+        output_id,
         created_at,
         study_plans!inner ( user_id )
       `)
       .eq('study_plans.user_id', req.user.id)
       .order('due_date', { ascending: true });
 
-    if (error) {
-      console.error('Error al listar tareas:', error);
-      return res.status(500).json({ error: 'Error al obtener tareas' });
-    }
+    if (error) return res.status(400).json({ error: error.message });
 
-    // Remover join de respuesta
     const sanitized = (tasks || []).map(t => ({
       id: t.id,
       plan_id: t.plan_id,
       title: t.title,
       description: t.description,
       due_date: t.due_date,
-      due_at: t.due_at,
       completed: t.completed,
+      priority: t.priority,
+      output_id: t.output_id,
       created_at: t.created_at
     }));
 
     res.json({ tasks: sanitized });
-  } catch (err) {
-    console.error('Error GET /tasks:', err);
-    res.status(500).json({ error: 'Error interno del servidor' });
+  } catch (e) {
+    res.status(500).json({ error: 'Error al obtener tareas' });
   }
 });
 
 // POST /api/tasks - Crear tarea
-router.post('/', supabaseAuth, async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { plan_id, title, description, due_date, due_at, completed } = req.body;
+    const { plan_id, title, description, due_date, completed, output_id, priority } = req.body;
+
     if (!plan_id || !title || !due_date) {
-      return res.status(400).json({ error: 'plan_id, title y due_date son requeridos' });
+      return res.status(400).json({ error: 'plan_id, título y due_date son requeridos' });
     }
 
     const sb = req.supabase || supabase;
@@ -72,34 +73,30 @@ router.post('/', supabaseAuth, async (req, res) => {
 
     const { data: task, error } = await sb
       .from('plan_tasks')
-      .insert([{ 
-        plan_id, 
-        title, 
-        description: description || null, 
-        due_date, 
-        due_at: due_at || null,
-        completed: !!completed 
+      .insert([{
+        plan_id,
+        title,
+        description,
+        due_date,
+        completed: !!completed,
+        output_id: output_id || null,
+        priority: priority || 'medium'
       }])
       .select('*')
       .single();
 
-    if (error) {
-      console.error('Error al crear tarea:', error);
-      return res.status(500).json({ error: 'Error al crear la tarea' });
-    }
-
-    res.status(201).json({ task });
-  } catch (err) {
-    console.error('Error POST /tasks:', err);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    if (error) return res.status(400).json({ error: error.message });
+    res.status(201).json(task);
+  } catch (e) {
+    res.status(500).json({ error: 'Error al crear tarea' });
   }
 });
 
 // PUT /api/tasks/:id - Editar tarea
-router.put('/:id', supabaseAuth, async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, due_date, due_at, completed, plan_id } = req.body;
+    const { title, description, due_date, completed, plan_id, output_id, priority } = req.body;
 
     const sb = req.supabase || supabase;
 
@@ -114,34 +111,30 @@ router.put('/:id', supabaseAuth, async (req, res) => {
     }
 
     const update = {};
-    if (title !== undefined) update.title = title;
+    if (title) update.title = title;
     if (description !== undefined) update.description = description;
-    if (due_date !== undefined) update.due_date = due_date;
-    if (due_at !== undefined) update.due_at = due_at;
+    if (due_date) update.due_date = due_date;
     if (completed !== undefined) update.completed = completed;
-    if (plan_id !== undefined) update.plan_id = plan_id; // opcional mover tarea a otro plan del mismo user
+    if (plan_id !== undefined) update.plan_id = plan_id;
+    if (output_id !== undefined) update.output_id = output_id;
+    if (priority !== undefined) update.priority = priority;
 
-    const { data: task, error } = await sb
+    const { data, error } = await sb
       .from('plan_tasks')
       .update(update)
       .eq('id', id)
       .select('*')
       .single();
 
-    if (error) {
-      console.error('Error al actualizar tarea:', error);
-      return res.status(500).json({ error: 'Error al actualizar la tarea' });
-    }
-
-    res.json({ task });
-  } catch (err) {
-    console.error('Error PUT /tasks/:id:', err);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    if (error) return res.status(400).json({ error: error.message });
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: 'Error al actualizar tarea' });
   }
 });
 
 // DELETE /api/tasks/:id - Eliminar tarea
-router.delete('/:id', supabaseAuth, async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const sb = req.supabase || supabase;
