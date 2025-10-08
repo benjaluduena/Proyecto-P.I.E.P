@@ -54,23 +54,20 @@ class HistorialUnified {
    */
   async init() {
     try {
-      console.log('🚀 Inicializando Historial Unificado v3.0...');
       const startTime = performance.now();
 
       await this.bindElements();
       this.setupEventListeners();
       this.setupIntersectionObserver();
       this.setupPerformanceMonitoring();
-
       await this.loadData();
       this.render();
 
       this.metrics.loadTime = performance.now() - startTime;
-      console.log(`✅ Historial inicializado en ${this.metrics.loadTime.toFixed(2)}ms`);
-      
       this.trackEvent('historial_initialized', { loadTime: this.metrics.loadTime });
     } catch (error) {
-      console.error('❌ Error en inicialización:', error);
+      console.error('❌ [DEBUG] Error en inicialización:', error);
+      console.error('❌ [DEBUG] Stack trace:', error.stack);
       this.showError('Error al cargar el historial', error.message);
     }
   }
@@ -297,16 +294,27 @@ class HistorialUnified {
       if (cachedData && this.isCacheValid(cachedData.timestamp)) {
         this.state.data = cachedData.data;
         this.metrics.cacheHits++;
-        console.log('📦 Datos cargados desde cache');
       } else {
+        // Verificar headers de autenticación
+        const authHeaders = this.getAuthHeaders();
+        
         // Cargar desde API
-        const response = await this.apiCall('/api/study/outputs?limit=100');
+        const response = await this.apiCall(`${CONFIG.API.BASE_URL}/api/historial/content?limit=100`);
         
         if (!response || !response.ok) {
-          throw new Error(`Error HTTP: ${response?.status || 'Desconocido'}`);
+          throw new Error(`Error HTTP: ${response?.status || 'Desconocido'} - ${response?.statusText || 'Sin descripción'}`);
         }
 
-        const data = await response.json();
+        const responseData = await response.json();
+        
+        // Extraer datos del objeto de respuesta
+        let data = responseData;
+        if (responseData && responseData.success && responseData.data) {
+          data = responseData.data;
+        } else if (Array.isArray(responseData)) {
+          data = responseData;
+        }
+        
         this.state.data = Array.isArray(data) ? data : [];
         
         // Guardar en cache
@@ -316,7 +324,6 @@ class HistorialUnified {
         });
         
         this.metrics.cacheMisses++;
-        console.log(`📡 ${this.state.data.length} elementos cargados desde API`);
       }
 
       // Procesar datos
@@ -324,10 +331,10 @@ class HistorialUnified {
       this.applyFiltersAndSort();
 
       const loadTime = performance.now() - startTime;
-      console.log(`⚡ Datos procesados en ${loadTime.toFixed(2)}ms`);
 
     } catch (error) {
-      console.error('❌ Error cargando datos:', error);
+      console.error('❌ [DEBUG] Error cargando datos:', error);
+      console.error('❌ [DEBUG] Stack trace:', error.stack);
       this.state.data = this.generateFallbackData();
       this.showError('Error al cargar datos', 'Mostrando datos de ejemplo');
     } finally {
@@ -448,27 +455,30 @@ class HistorialUnified {
   }
 
   /**
-   * Renderizado optimizado con virtual scrolling
+   * Renderizado principal optimizado
    */
   render() {
     const startTime = performance.now();
 
-    this.updateStats();
-    this.updateFilterCounts();
     this.renderContent();
+    this.updateStats();
     this.updatePagination();
     this.updateUI();
 
     this.metrics.renderTime = performance.now() - startTime;
-    console.log(`🎨 Renderizado completado en ${this.metrics.renderTime.toFixed(2)}ms`);
   }
 
   /**
-   * Renderizado de contenido con paginación
+   * Renderizado optimizado de contenido
    */
   renderContent() {
-    if (!this.elements.contentGrid) return;
+    const contentGrid = this.elements.contentGrid;
+    if (!contentGrid) {
+      console.error('❌ [DEBUG] contentGrid no encontrado');
+      return;
+    }
 
+    // Calcular elementos para la página actual
     const startIndex = (this.state.currentPage - 1) * this.config.itemsPerPage;
     const endIndex = startIndex + this.config.itemsPerPage;
     const pageItems = this.state.filteredData.slice(startIndex, endIndex);
@@ -479,27 +489,18 @@ class HistorialUnified {
     }
 
     this.hideEmptyState();
-    
-    // Usar DocumentFragment para mejor rendimiento
+
+    // Renderizar elementos
     const fragment = document.createDocumentFragment();
-    
     pageItems.forEach((item, index) => {
       const card = this.createItemCard(item);
-      if (card) {
-        // Añadir delay escalonado para animaciones
-        card.style.animationDelay = `${index * 50}ms`;
-        fragment.appendChild(card);
-      }
+      fragment.appendChild(card);
     });
 
-    // Actualizar DOM de una vez
-    this.elements.contentGrid.innerHTML = '';
-    this.elements.contentGrid.appendChild(fragment);
+    contentGrid.innerHTML = '';
+    contentGrid.appendChild(fragment);
 
-    // Configurar lazy loading para nuevos elementos
-    this.setupLazyLoading();
-    
-    // Animar entrada
+    // Animar entrada de tarjetas
     this.animateCardEntrance();
   }
 
@@ -743,7 +744,14 @@ class HistorialUnified {
   cleanupCache() {
     this.cache.clear();
     this.renderCache.clear();
-    console.log('🧹 Cache limpiado');
+  }
+
+  /**
+   * Limpia el cache del historial
+   */
+  clearCache() {
+    localStorage.removeItem('historial_cache');
+    localStorage.removeItem('historial_cache_timestamp');
   }
 
   // Tracking de eventos
@@ -757,8 +765,6 @@ class HistorialUnified {
         timestamp: Date.now()
       });
     }
-    
-    console.log(`📊 Evento: ${eventName}`, data);
   }
 
   // Manejo de errores
@@ -771,7 +777,6 @@ class HistorialUnified {
 
   showNotification(type, message) {
     // Implementar sistema de notificaciones
-    console.log(`🔔 ${type.toUpperCase()}: ${message}`);
   }
 
   // Estados de carga
@@ -1307,5 +1312,3 @@ function initializeHistorial() {
 // Exponer funciones globales para compatibilidad
 window.initializeHistorial = initializeHistorial;
 window.refreshHistorial = () => historialUnified?.loadData();
-
-console.log('📜 Historial Unificado v3.0 cargado');

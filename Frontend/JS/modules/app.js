@@ -370,7 +370,7 @@ class App {
       }
 
       // Eliminar cualquier script duplicado previamente cargado por otros sistemas
-      const scriptPath = sectionName === 'historial' ? 'historial-simple' : sectionName;
+      const scriptPath = sectionName === 'historial' ? 'historial-unified' : sectionName;
       const duplicates = Array.from(document.querySelectorAll('script[src]')).filter(s => {
         const src = s.getAttribute('src') || '';
         return src.includes(`/JS/${scriptPath}.js`);
@@ -384,8 +384,8 @@ class App {
       });
       
       const script = document.createElement('script');
-      // Usar versión simplificada para historial
-      script.src = `/JS/${sectionName}.js?t=${new Date().getTime()}`; // Añadir timestamp para evitar caché
+      // Usar versión unificada para historial
+      script.src = `/JS/${scriptPath}.js?t=${new Date().getTime()}`; // Añadir timestamp para evitar caché
       script.type = 'text/javascript';
       script.defer = true;
       script.id = `section-script-${sectionName}`;

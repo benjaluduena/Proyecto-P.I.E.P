@@ -63,7 +63,6 @@ router.get('/content', authMiddleware, validatePagination, validateFilters, asyn
         type,
         content,
         created_at,
-        updated_at,
         pdf_uploads!inner (
           id,
           user_id,
@@ -123,7 +122,6 @@ router.get('/content', authMiddleware, validatePagination, validateFilters, asyn
       type: output.type,
       content: output.content,
       created_at: output.created_at,
-      updated_at: output.updated_at,
       pdf_id: output.pdf_uploads.id,
       pdf_title: output.pdf_uploads.title || output.pdf_uploads.file_name,
       pdf_name: output.pdf_uploads.file_name,
