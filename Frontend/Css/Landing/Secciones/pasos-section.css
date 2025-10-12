@@ -1,5 +1,5 @@
-@import url("General/variables.css");
-@import url("General/animaciones.css");
+@import url("../General/variables.css");
+@import url("../General/animaciones.css");
 
 /* ===== HOW IT WORKS SECTION ===== */
 .how-it-works {

@@ -1,16 +1,18 @@
 /* Cambiar Plan - Estilos */
 .cambiar-plan-container {
-  padding: 40px;
+  padding: 20px;
   width: 100%;
   background: linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%);
   min-height: 100vh;
   box-sizing: border-box;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 /* Header */
 .plan-header {
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 40px;
 }
 
 .header-content {
@@ -19,7 +21,7 @@
 }
 
 .page-title {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #2d3748;
   margin-bottom: 16px;
@@ -34,7 +36,7 @@
 }
 
 .page-subtitle {
-  font-size: 1.2rem;
+  font-size: 1rem;
   color: #718096;
   line-height: 1.6;
   margin: 0;
@@ -135,11 +137,11 @@
 .plan-card.popular {
   border-color: #a259fa;
   box-shadow: 0 10px 30px rgba(162, 89, 250, 0.15);
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
 .plan-card.popular:hover {
-  transform: scale(1.05) translateY(-8px);
+  transform: scale(1.02) translateY(-8px);
 }
 
 .plan-badge {
