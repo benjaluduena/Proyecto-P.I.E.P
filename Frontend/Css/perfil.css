@@ -19,10 +19,24 @@ body {
 }
 
 .header {
-  background: white;
-  padding: 20px 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: saturate(180%) blur(8px);
+  padding: 16px 0;
   margin-bottom: 30px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #6c63ff, #a259fa, #20c997);
 }
 
 .header-content {
@@ -34,40 +48,39 @@ body {
   justify-content: space-between;
 }
 
-.logo {
-  width: 6rem;
-}
-
-
-.back-btn {
+.brand {
   display: flex;
-  font-size: 0.8rem;
   align-items: center;
-  background: #f1f3f4;
-  border: none;
-  padding: 12px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 700;
-  transition: background 0.3s ease;
-  /* Asegura que el contenido esté centrado verticalmente */
+  gap: 12px;
 }
 
-.back-btn:hover {
-  background: #e8eaed;
+.logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
 }
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+}
+
+.brand-subtitle {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
 
 .buttons-ico {
   display: flex;
   align-items: center;
   gap: 8px; /* Espacio entre icono y texto */
-}
-
-.back-btn .buttons-ico svg {
-  width: 16px;
-  height: 16px;
-  display: block;
-  /* Centrado vertical */
 }
 
 
@@ -173,27 +186,6 @@ body {
   display: inline-block;
 }
 
-.edit-profile-btn {
-  font-size: 0.9rem;
-  background: #f8f9fa;
-  color: #333;
-  border: 1px solid #e9ecef;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease, box-shadow 0.3s ease;
-}
-
-.edit-profile-btn .buttons-ico svg {
-  fill: #333;
-  width: 14px;
-  height: 14px;
-}
-
-.edit-profile-btn:hover {
-  transform: translateY(-2px);
-}
 
 .profile-stats {
   display: grid;
@@ -333,16 +325,16 @@ body {
 }
 
 .btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 12px 25px;
+  gap: 8px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 1rem;
+  font-size: 14px;
 }
 
 .btn-primary {
@@ -356,12 +348,20 @@ body {
 }
 
 .btn-secondary {
-  background: #f1f3f4;
-  color: #333;
+  background: #ffffff;
+  color: #333333;
+  border: 2px solid #e6e8eb; /* borde suave */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06); /* sombra sutil */
 }
 
 .btn-secondary:hover {
-  background: #e8eaed;
+  background: #fafafa;
+  border-color: #d1d5db;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.10);
+}
+
+.btn-secondary .buttons-ico svg {
+  fill: #333333;
 }
 
 .btn-danger {
@@ -384,8 +384,9 @@ body {
 
 
 .buttons-ico svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
 }
 
 /* Responsive */
@@ -847,13 +848,6 @@ body {
   font-weight: 600;
 }
 
-/* Subscription Actions */
-.subscription-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-  flex-wrap: wrap;
-}
 
 /* Usage Progress Styles */
 .usage-progress-container {
@@ -966,11 +960,5 @@ body {
     gap: 10px;
   }
   
-  .subscription-actions {
-    flex-direction: column;
-  }
-  
-  .subscription-actions button {
-    width: 100%;
-  }
+  /* Bloque de acciones de suscripción retirado del perfil */
 }

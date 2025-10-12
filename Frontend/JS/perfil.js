@@ -5,6 +5,8 @@ function initializePerfil() {
   
   // Cargar información de suscripción
   loadSubscriptionInfo();
+  // Sincronizar estado de suscripción automáticamente (sin botones)
+  autoSyncSubscription();
   
   // Cargar estadísticas del usuario
   loadUserStatistics();
@@ -29,12 +31,7 @@ function initializePerfil() {
   document.getElementById('btnSaveProfile').addEventListener('click', saveProfile);
   document.getElementById('btnCancelEdit').addEventListener('click', closeEditModal);
   
-  document.getElementById('btnManageSubscriptionFromProfile').addEventListener('click', () => {
-    window.location.href = '/Pages/suscripciones.html';
-  });
-  
-  document.getElementById('btnSyncSubscriptionFromProfile').addEventListener('click', syncSubscriptionFromProfile);
-  document.getElementById('btnDiagnosticSubscription').addEventListener('click', showSubscriptionDiagnostic);
+  // Botones de suscripción removidos del perfil: gestión en sección dedicada
   
   // Event listeners for goals
   document.getElementById('btnAddGoal').addEventListener('click', openGoalModal);
@@ -62,7 +59,7 @@ window.cleanupPerfil = function() {
   const ids = [
     'btnBack','btnAvatarUpload','btnEditProfile','toggleEmail','toggleReminder','togglePublic','toggleDark',
     'btnSaveChanges','btnChangePassword','btnDeleteAccount','btnCloseEditModal','btnSaveProfile','btnCancelEdit',
-    'btnManageSubscriptionFromProfile','btnSyncSubscriptionFromProfile','btnDiagnosticSubscription',
+    // Botones de suscripción removidos del perfil
     'btnAddGoal','btnCloseGoalModal','btnSaveGoal','btnCancelGoal'
   ];
   ids.forEach(id => {
@@ -86,7 +83,49 @@ function toggleSetting(element) {
 }
 
 function openEditModal() {
-  document.getElementById('editModal').style.display = 'block';
+  const modal = document.getElementById('editModal');
+  const nameInput = document.getElementById('editName');
+  const emailInput = document.getElementById('editEmail');
+  const roleSelect = document.getElementById('editRole');
+  const educationSelect = document.getElementById('editEducation');
+
+  // Obtener usuario almacenado o desde sesión de Supabase
+  let user = getStoredUser();
+  if (!user && window.supabase && supabase.auth && typeof supabase.auth.getSession === 'function') {
+    supabase.auth.getSession().then(({ data }) => {
+      const session = data?.session;
+      if (session?.user) {
+        user = session.user;
+        try {
+          localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(user));
+        } catch (_) {}
+      }
+      // Rellenar campos con datos del usuario
+      const displayName = getBestDisplayName(user);
+      const email = user?.email || '';
+      const rawRole = (user?.role || user?.user_metadata?.role || 'estudiante').toString().toLowerCase();
+      const roleValue = rawRole === 'authenticated' ? 'estudiante' : rawRole;
+      const rawEducation = (user?.education_level || user?.user_metadata?.education_level || 'universitario').toString().toLowerCase();
+
+      if (nameInput) nameInput.value = displayName;
+      if (emailInput) emailInput.value = email;
+      if (roleSelect) roleSelect.value = roleValue;
+      if (educationSelect) educationSelect.value = rawEducation;
+    });
+  } else {
+    const displayName = getBestDisplayName(user);
+    const email = user?.email || '';
+    const rawRole = (user?.role || user?.user_metadata?.role || 'estudiante').toString().toLowerCase();
+    const roleValue = rawRole === 'authenticated' ? 'estudiante' : rawRole;
+    const rawEducation = (user?.education_level || user?.user_metadata?.education_level || 'universitario').toString().toLowerCase();
+
+    if (nameInput) nameInput.value = displayName;
+    if (emailInput) emailInput.value = email;
+    if (roleSelect) roleSelect.value = roleValue;
+    if (educationSelect) educationSelect.value = rawEducation;
+  }
+
+  modal.style.display = 'block';
 }
 
 function closeEditModal() {
@@ -100,21 +139,65 @@ function saveProfile() {
   const role = document.getElementById('editRole').value;
   const education = document.getElementById('editEducation').value;
 
-  // Actualizar la información mostrada
-  document.getElementById('userName').textContent = name.split(' ')[0] + ' ' + name.split(' ')[1];
-  document.getElementById('userEmail').textContent = email;
-  document.getElementById('displayName').textContent = name;
-  document.getElementById('displayEmail').textContent = email;
-  document.getElementById('displayRole').textContent = role.charAt(0).toUpperCase() + role.slice(1);
-  document.getElementById('displayEducation').textContent = education.charAt(0).toUpperCase() + education.slice(1);
-  document.getElementById('userRole').textContent = role.charAt(0).toUpperCase() + role.slice(1);
+  // Llamar al backend para actualizar perfil (name, role, education_level)
+  const payload = { name, role, education_level: education };
+  apiCall('/api/auth/profile', {
+    method: 'PUT',
+    body: JSON.stringify(payload)
+  }).then(async (resp) => {
+    let updated = null;
+    if (resp && resp.ok) {
+      try {
+        const data = await resp.json();
+        updated = data?.user || null;
+      } catch (_) {}
+    }
 
-  // Actualizar iniciales del avatar
-  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
-  document.getElementById('avatarInitials').textContent = initials;
+    // Actualizar UI con valores confirmados
+    const displayRoleLabel = getBestRole({ role });
+    const displayEducationLabel = getBestEducation({ education_level: education });
+    document.getElementById('userName').textContent = name;
+    document.getElementById('userEmail').textContent = email;
+    document.getElementById('displayName').textContent = name;
+    document.getElementById('displayEmail').textContent = email;
+    document.getElementById('displayRole').textContent = displayRoleLabel;
+    document.getElementById('displayEducation').textContent = displayEducationLabel;
+    document.getElementById('userRole').textContent = displayRoleLabel;
 
-  closeEditModal();
-  alert('Perfil actualizado correctamente');
+    // Actualizar iniciales del avatar
+    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
+    document.getElementById('avatarInitials').textContent = initials;
+
+    // Sincronizar localStorage si backend devolvió usuario
+    try {
+      const storedUser = getStoredUser() || {};
+      const newUser = {
+        ...storedUser,
+        name,
+        email,
+        role,
+        education_level: education
+      };
+      localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(newUser));
+    } catch (_) {}
+
+    closeEditModal();
+    alert('Perfil actualizado correctamente');
+  }).catch((err) => {
+    console.error('Error actualizando perfil:', err);
+    // Aun si falla, reflejar cambios en UI local para evitar sensación de error silencioso
+    const displayRoleLabel = getBestRole({ role });
+    const displayEducationLabel = getBestEducation({ education_level: education });
+    document.getElementById('userName').textContent = name;
+    document.getElementById('userEmail').textContent = email;
+    document.getElementById('displayName').textContent = name;
+    document.getElementById('displayEmail').textContent = email;
+    document.getElementById('displayRole').textContent = displayRoleLabel;
+    document.getElementById('displayEducation').textContent = displayEducationLabel;
+    document.getElementById('userRole').textContent = displayRoleLabel;
+    closeEditModal();
+    alert('No se pudo guardar en el servidor, cambios locales aplicados');
+  });
 }
 
 function changeAvatar() {
@@ -201,16 +284,35 @@ function getBestAvatarUrl(user) {
 
 function getBestRole(user) {
   if (!user) return 'Estudiante';
-  return (user.role || (user.user_metadata && user.user_metadata.role) || 'estudiante')
+  const raw = (user.role || (user.user_metadata && user.user_metadata.role) || 'estudiante')
     .toString()
-    .toLowerCase()
-    .replace(/^./, c => c.toUpperCase());
+    .toLowerCase();
+  const map = {
+    'estudiante': 'Estudiante',
+    'student': 'Estudiante',
+    'authenticated': 'Estudiante',
+    'docente': 'Docente',
+    'teacher': 'Docente',
+    'profesor': 'Docente',
+    'admin': 'Administrador',
+    'administrator': 'Administrador'
+  };
+  return map[raw] || (raw.charAt(0).toUpperCase() + raw.slice(1));
 }
 
 function getBestEducation(user) {
   if (!user) return 'Universitario';
-  const value = (user.education_level || (user.user_metadata && user.user_metadata.education_level) || 'universitario').toString();
-  return value.charAt(0).toUpperCase() + value.slice(1);
+  const raw = (user.education_level || (user.user_metadata && user.user_metadata.education_level) || 'universitario')
+    .toString()
+    .toLowerCase();
+  const map = {
+    'primario': 'Primario',
+    'secundario': 'Secundario',
+    'terciario': 'Terciario',
+    'universitario': 'Universitario',
+    'posgrado': 'Posgrado'
+  };
+  return map[raw] || (raw.charAt(0).toUpperCase() + raw.slice(1));
 }
 
 async function populateProfileFromUser() {
@@ -351,6 +453,7 @@ function updateSubscriptionInfoUI(data) {
 
 // Función para sincronizar suscripción desde perfil
 async function syncSubscriptionFromProfile() {
+  return; // removida: lógica de sincronización no disponible en perfil
   try {
     const response = await apiCall('/api/payments/subscription/sync', {
       method: 'POST'
@@ -371,6 +474,7 @@ async function syncSubscriptionFromProfile() {
 
 // Función para mostrar diagnóstico de suscripción
 async function showSubscriptionDiagnostic() {
+  return; // removida: diagnóstico de suscripción se gestiona en otra sección
   try {
     const response = await apiCall('/api/payments/subscription/diagnostic');
     
@@ -388,6 +492,7 @@ async function showSubscriptionDiagnostic() {
 
 // Función para mostrar modal de diagnóstico
 function showDiagnosticModal(diagnostic) {
+  return; // removida: modal de diagnóstico ya no se usa en perfil
   const modal = document.createElement('div');
   modal.className = 'modal';
   modal.style.display = 'block';
@@ -482,25 +587,20 @@ async function loadUserStatistics() {
   try {
     console.log('📊 Cargando estadísticas del usuario...');
     
-    // Cargar estadísticas del historial
-    const historialResponse = await apiCall('/api/ai/content/history');
+    // Cargar estadísticas del historial (endpoint correcto)
     let totalStudies = 0;
     let totalPdfs = 0;
-    
-    if (historialResponse && historialResponse.ok) {
-      const historialData = await historialResponse.json();
-      if (historialData.success && historialData.data) {
-        totalStudies = historialData.data.length;
-        
-        // Contar PDFs únicos
-        const uniquePdfs = new Set();
-        historialData.data.forEach(item => {
-          if (item.pdf_id) {
-            uniquePdfs.add(item.pdf_id);
-          }
-        });
-        totalPdfs = uniquePdfs.size;
+    try {
+      const statsResponse = await apiCall('/api/historial/stats');
+      if (statsResponse && statsResponse.ok) {
+        const statsData = await statsResponse.json();
+        if (statsData && statsData.success && statsData.stats) {
+          totalStudies = Number(statsData.stats.total || 0);
+          totalPdfs = Number(statsData.stats.totalPdfs || 0);
+        }
       }
+    } catch (e) {
+      console.warn('No se pudo obtener /api/historial/stats, usando valores por defecto.', e);
     }
     
     // Cargar datos del perfil del usuario
@@ -518,7 +618,7 @@ async function loadUserStatistics() {
           studyDays = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
           
           // Formatear fecha de registro
-          registrationDate = createdDate.toLocaleDateString('es-ES', {
+          registrationDate = createdDate.toLocaleDateString('es-AR', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
@@ -537,32 +637,32 @@ async function loadUserStatistics() {
         }
         
         if (profileData.user.role) {
-          const role = profileData.user.role.charAt(0).toUpperCase() + profileData.user.role.slice(1);
+          const role = getBestRole({ role: profileData.user.role });
           document.getElementById('displayRole').textContent = role;
           document.getElementById('userRole').textContent = role;
         }
         
         if (profileData.user.education_level) {
-          const education = profileData.user.education_level.charAt(0).toUpperCase() + profileData.user.education_level.slice(1);
+          const education = getBestEducation({ education_level: profileData.user.education_level });
           document.getElementById('displayEducation').textContent = education;
         }
       }
     }
     
     // Actualizar estadísticas en la UI
-    document.getElementById('totalStudies').textContent = totalStudies;
-    document.getElementById('totalPdfs').textContent = totalPdfs;
+    document.getElementById('totalStudies').textContent = String(totalStudies);
+    document.getElementById('totalPdfs').textContent = String(totalPdfs);
     document.getElementById('studyTime').textContent = studyDays;
     document.getElementById('registrationDate').textContent = registrationDate;
     
     // Último acceso (usando fecha actual como ejemplo)
     const now = new Date();
-    const lastAccessText = now.toLocaleDateString('es-ES', {
+    const lastAccessText = now.toLocaleDateString('es-AR', {
       weekday: 'long',
       hour: '2-digit',
       minute: '2-digit'
     });
-    document.getElementById('lastAccess').textContent = `Hoy, ${now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+    document.getElementById('lastAccess').textContent = `Hoy, ${now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`;
     
     console.log('✅ Estadísticas cargadas:', { totalStudies, totalPdfs, studyDays });
     
@@ -570,41 +670,19 @@ async function loadUserStatistics() {
     console.error('❌ Error cargando estadísticas:', error);
     
     // Mostrar valores por defecto en caso de error
-    document.getElementById('totalStudies').textContent = '0';
-    document.getElementById('totalPdfs').textContent = '0';
-    document.getElementById('studyTime').textContent = '0';
+    const safe = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = String(value);
+    };
+    safe('totalStudies', 0);
+    safe('totalPdfs', 0);
+    safe('studyTime', 0);
     document.getElementById('registrationDate').textContent = 'No disponible';
     document.getElementById('lastAccess').textContent = 'No disponible';
   }
 }
 
-// Mejorar la función populateProfileFromUser para datos dinámicos
-function populateProfileFromUser() {
-  try {
-    // Intentar cargar datos del localStorage
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      const user = JSON.parse(userData);
-      
-      // Poblar campos básicos si están disponibles
-      if (user.name) {
-        document.getElementById('userName').textContent = user.name;
-        document.getElementById('displayName').textContent = user.name;
-        
-        // Actualizar iniciales del avatar
-        const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
-        document.getElementById('avatarInitials').textContent = initials;
-      }
-      
-      if (user.email) {
-        document.getElementById('userEmail').textContent = user.email;
-        document.getElementById('displayEmail').textContent = user.email;
-      }
-    }
-  } catch (error) {
-    console.error('Error poblando perfil desde usuario:', error);
-  }
-}
+ 
 
 // Enhanced Analytics Functions
 async function loadEnhancedAnalytics() {
@@ -1162,5 +1240,31 @@ function updateUsageUI(usage, limit, showProgressBar) {
     
   } else {
     progressContainer.style.display = 'none';
+  }
+}
+
+// Sincronización automática y silenciosa de la suscripción
+async function autoSyncSubscription() {
+  try {
+    // Evitar sincronizaciones demasiado frecuentes (cada 6 horas)
+    const last = Number(localStorage.getItem('subscriptionSyncLast') || 0);
+    const now = Date.now();
+    const SIX_HOURS = 6 * 60 * 60 * 1000;
+    if (now - last < SIX_HOURS) {
+      return;
+    }
+
+    const resp = await apiCall('/api/payments/subscription/sync', { method: 'POST' });
+    if (resp && resp.ok) {
+      localStorage.setItem('subscriptionSyncLast', String(now));
+      // Refrescar información en UI tras sincronizar
+      await loadSubscriptionInfo();
+    } else {
+      // Fallo silencioso: no bloquear la UI
+      console.warn('Auto-sync de suscripción no exitosa');
+    }
+  } catch (error) {
+    // Silencioso en caso de error (entorno dev sin credenciales, etc.)
+    console.warn('Error en autoSyncSubscription:', error?.message || error);
   }
 }
