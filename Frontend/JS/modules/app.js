@@ -161,7 +161,7 @@ class App {
   // Configurar navegación
   setupNavigation() {
     // Configurar botones del sidebar
-    const menuItems = document.querySelectorAll('.menu-item');
+    const menuItems = document.querySelectorAll('.btn-sidebar-menu');
     menuItems.forEach(item => {
       item.addEventListener('click', (e) => {
         const action = this.getMenuAction(item);
@@ -183,7 +183,7 @@ class App {
     });
 
     // Buscar botón por icono de logout
-    const sidebarButtons = document.querySelectorAll('.sidebar-footer .menu-item');
+    const sidebarButtons = document.querySelectorAll('.sidebar-footer .btn-sidebar-menu');
     sidebarButtons.forEach(btn => {
       const svg = btn.querySelector('use');
       if (svg && svg.getAttribute('href')?.includes('icon-logout')) {
@@ -410,13 +410,20 @@ class App {
 
   // Actualizar menú activo
   updateActiveMenu(sectionName) {
-    document.querySelectorAll('.menu-item').forEach(item => {
+    document.querySelectorAll('.btn-sidebar-menu').forEach(item => {
       item.classList.remove('active');
     });
     
+    // Buscar botón por onclick (para botones con cargarSeccion)
     const activeItem = document.querySelector(`[onclick*="${sectionName}"]`);
     if (activeItem) {
       activeItem.classList.add('active');
+    } else if (sectionName === 'home') {
+      // Caso especial para el botón home que no tiene onclick
+      const homeBtn = document.getElementById('homeBtn');
+      if (homeBtn) {
+        homeBtn.classList.add('active');
+      }
     }
   }
   

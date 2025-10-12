@@ -1,4 +1,4 @@
-<div class="home-container">
+<section class="home-container bg-color">
   <div class="container-header">
     <div class="header-left"> <img class="mascot" src="/Assets/Imagenes/Mascota1.png" alt="Mascota" width="120"> </div>
     <div class="header-center">
@@ -28,8 +28,7 @@
               </svg>
             </div>
             <span class="upload-text" id="uploadText">Ningún archivo seleccionado</span>
-            <label for="fileInput"
-              class="upload-button">
+            <label for="fileInput" class="upload-button">
               Seleccionar archivo
             </label>
             <input type="file" class="file-input" id="fileInput" accept=".pdf">
@@ -60,7 +59,7 @@
               <div class="card-badge">Popular</div>
             </div>
             <div class="card-icon">
-              <img width="40px" src="/Assets/Imagenes/verdadero-falso.png" alt="">
+              <img width="50" src="/Assets/Imagenes/verdadero-falso.png" alt="">
             </div>
 
             <div class="card-content-home">
@@ -85,7 +84,7 @@
             </div>
 
             <div class="card-icon">
-              <img width="40px" src="/Assets/Imagenes/libro.png" alt="">
+              <img width="50" src="/Assets/Imagenes/libro.png" alt="">
             </div>
 
             <div class="card-content-home">
@@ -110,7 +109,7 @@
             </div>
 
             <div class="card-icon">
-              <img width="30px" src="/Assets/Imagenes/choice.png" alt="">
+              <img width="50" src="/Assets/Imagenes/choice.png" alt="">
             </div>
 
             <div class="card-content-home">
@@ -134,7 +133,7 @@
               <div class="card-badge nuevo">Nuevo</div>
             </div>
             <div class="card-icon">
-              <img width="36px" src="/Assets/Imagenes/mapa-mental.png" alt="">
+              <img width="50" src="/Assets/Imagenes/mapa-mental.png" alt="">
             </div>
             <div class="card-content-home">
               <div class="card-title">Mapa mental</div>
@@ -156,7 +155,7 @@
               <div class="card-badge nuevo">Nuevo</div>
             </div>
             <div class="card-icon">
-              <img width="36px" src="/Assets/Imagenes/tarjetas-estudio.png" alt="">
+              <img width="50" src="/Assets/Imagenes/tarjetas-estudio.png" alt="">
             </div>
             <div class="card-content-home">
               <div class="card-title">Tarjetas de Estudio</div>
@@ -178,7 +177,7 @@
               <div class="card-badge nuevo">Nuevo</div>
             </div>
             <div class="card-icon">
-              <img width="36px" src="/Assets/Imagenes/preguntas-respuestas.png" alt="">
+              <img width="50" src="/Assets/Imagenes/preguntas-respuestas.png" alt="">
             </div>
             <div class="card-content-home">
               <div class="card-title">Preguntas y Respuestas</div>
@@ -201,9 +200,11 @@
       </svg>
     </button>
   </div> <!-- Loading Overlay -->
-  <div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-spinner"></div>
-    <p>Procesando tu documento...</p>
+  <div class="overlay-loading" id="loadingOverlay">
+    <div class="overlay-loading-content">
+      <div class="overlay-loading-spinner"></div>
+      <p>Procesando tu documento...</p>
+    </div>
   </div>
   <script src="/JS/home.js"></script>
-</div>
+</section>

@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/Assets/Imagenes/PIEP-LOGOS.png">
+    <link rel="shortcut icon" type="image/png" href="/Assets/Imagenes/PIEP-LOGOS.png">
+    <link rel="apple-touch-icon" href="/Assets/Imagenes/PIEP-LOGOS.png">
     <title>Crear Perfil - P.I.E.P.</title>
     <style>
         body {
@@ -15,29 +19,35 @@
             align-items: center;
             justify-content: center;
         }
+
         .container {
             background: white;
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             max-width: 400px;
             width: 100%;
         }
+
         h1 {
             text-align: center;
             color: #333;
             margin-bottom: 30px;
         }
+
         .form-group {
             margin-bottom: 20px;
         }
+
         label {
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
             color: #333;
         }
-        input, select {
+
+        input,
+        select {
             width: 100%;
             padding: 12px;
             border: 1px solid #ddd;
@@ -45,6 +55,7 @@
             font-size: 1rem;
             box-sizing: border-box;
         }
+
         button {
             width: 100%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -57,21 +68,25 @@
             cursor: pointer;
             margin-top: 10px;
         }
+
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
         }
+
         .message {
             padding: 12px;
             border-radius: 6px;
             margin-top: 20px;
             text-align: center;
         }
+
         .success {
             background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
+
         .error {
             background: #f8d7da;
             color: #721c24;
@@ -79,6 +94,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Crear Perfil</h1>
@@ -111,7 +127,7 @@
     <script>
         document.getElementById('createProfileForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const formData = {
                 name: document.getElementById('name').value,
                 role: document.getElementById('role').value,
@@ -123,7 +139,7 @@
                 const session = localStorage.getItem('session');
                 const sessionData = session ? JSON.parse(session) : null;
                 const accessToken = sessionData ? sessionData.access_token : null;
-                
+
                 if (!accessToken) {
                     throw new Error('No hay token de acceso. Por favor, inicia sesión.');
                 }
@@ -165,5 +181,5 @@
         });
     </script>
 </body>
-</html>
 
+</html>

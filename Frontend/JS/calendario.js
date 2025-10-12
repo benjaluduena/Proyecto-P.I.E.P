@@ -247,12 +247,6 @@ class CalendarioStudyAI {
           </div>
           <h4>No hay eventos programados</h4>
           <p>Haz clic en "Nuevo Evento" para agregar tu primer evento de estudio</p>
-          <button class="btn-crear-primer-evento" onclick="calendario.openModal()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6z"/>
-            </svg>
-            Crear evento
-          </button>
         </div>
       `;
     } else {

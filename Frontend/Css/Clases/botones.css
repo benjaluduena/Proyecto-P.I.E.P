@@ -1,7 +1,93 @@
-/*Boton usado para: Regresar o Acciones secundarias */
+@import url('/Css/Clases/variables.css');
 
-.btn-white{
-    background-color: white;
+/*Boton usado para: Regresar o Acciones secundarias */
+.btn-white-icon {
+    font-family: 'Poppins', sans-serif;
+    background-color:var(--white);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid var(--bd-gray);
+    color: #333;
+}
+
+.btn-white-icon:hover {
+    border-color: var(--bd-gray-hover);
+    transform: scale(1.02);
+}
+
+.btn-white-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-white {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--white);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid var(--bd-gray);
+    color: #333;
+}
+
+.btn-white:hover {
+    border-color: var(--bd-gray-hover);
+    transform: scale(1.02);
+}
+
+.btn-white svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-white-dashed svg{
+    width: 20px;
+    height: 20px;
+}
+
+.btn-white-dashed {
+    font-family: 'Poppins', sans-serif;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px dashed var(--bd-dashed);
+    color: #64748b;
+    width: 100%;
+}
+
+.btn-white-dashed:hover {
+    border-color: var(--bd-dashed-hover);
+    color: #475569;
+}
+
+/*Boton usado para: Acciones Importantes */
+.btn-purple {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--purple);
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -10,12 +96,298 @@
     text-decoration: none;
     font-weight: 600;
     font-size: 14px;
-    transition: all 0.6s ease;
+    transition: all 0.3s ease;
     cursor: pointer;
-    border: 2px solid #f1f1f1;
-    color:#333;
+    border: none;
+    color: var(--white);
 }
 
-.btn-white:hover{
-    border-color: #999;
+.btn-purple:hover {
+    background-color: var(--purple-hover);
+    transform: scale(1.02);
+}
+
+.btn-purple svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-purple:disabled{
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-purple-secondary {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--white);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid var(--bd-gray);
+    color: var(--purple);
+}
+
+.btn-purple-secondary:hover {
+    border-color: var(--bd-gray-hover);
+    transform: scale(1.02);
+}
+
+.btn-purple-rounded {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background-color: var(--purple);
+    border: none;
+    border-radius: 50%;
+    color: var(--white);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-purple-rounded:hover {
+    background: var(--purple-hover);
+    transform: scale(1.05);
+}
+
+.btn-purple-large svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-purple-large {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--purple);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    color: var(--white);
+}
+
+.btn-purple-large:hover {
+    background-color: var(--purple-hover);
+    transform: scale(1.02);
+}
+
+.btn-purple-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-purple-icon {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--purple);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    color: white;
+}
+
+.btn-purple-icon:hover {
+    background-color: var(--purple-hover);
+    transform: scale(1.02);
+}
+
+.btn-close-modal-absolute {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    padding: 10px 10px;
+    border-radius: 10px;
+    background: var(--white);
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bd-gray);
+}
+
+.btn-close-modal-absolute svg {
+    width: 18px;
+    height: 18px;
+}
+
+.btn-close-modal-absolute:hover {
+    background: var(--red-light);
+    border-color: var(--bd-red-light-hover);
+    color: var(--red);
+    transform: scale(1.05);
+}
+
+
+.btn-close-modal {
+    padding: 10px 10px;
+    border-radius: 10px;
+    background: var(--white);
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bd-gray);
+}
+
+
+
+.btn-close-modal svg {
+    width: 18px;
+    height: 18px;
+}
+
+.btn-close-modal:hover {
+    background: var(--red-light);
+    border-color: var(--bd-red-light-hover);
+    color: var(--red);
+    transform: scale(1.05);
+}
+
+.btn-white-nav {
+    font-family: 'Poppins', sans-serif;
+    background: var(--white);
+    border: 2px solid var(--bd-gray);
+    color: #333;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.btn-white-nav:hover {
+    background: var(--bd-gray-hover);
+    border-color: var(--purple);
+    transform: translateY(-2px);
+}
+
+.btn-white-nav.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f1f1f1;
+    color: #999;
+}
+
+.btn-white-nav svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-sidebar-menu {
+    all: unset;
+    cursor: pointer;
+    text-decoration: none;
+    color: black;
+    font-size: 0.8rem;
+    background: transparent;
+    border-radius: 6px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+
+.btn-sidebar-menu:hover:not(.active) {
+    background: #ededed;
+}
+
+.btn-sidebar-menu svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-sidebar-menu.active {
+    background: var(--purple);
+    color: white;
+}
+
+.btn-sidebar-menu.active:hover {
+    background: var(--purple-hover);
+}
+
+.btn-sidebar-menu-icon {
+    all: unset;
+    cursor: pointer;
+    text-decoration: none;
+    color: #333;
+    font-size: 0.8rem;
+    background: var(--gray-50);
+    border-radius: 6px;
+    padding: 10px 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.btn-sidebar-menu-icon:hover {
+    background: var(--gray-100)
+}
+
+.btn-sidebar-menu-icon svg{
+    width: 20px;
+    height: 20px;
+}
+
+.btn-danger svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-danger {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--red);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: var(--red-hover);
+    transform: scale(1.02);
 }

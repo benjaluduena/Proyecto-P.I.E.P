@@ -1,6 +1,7 @@
-*{
+* {
   font-family: 'Poppins';
 }
+
 /* ===== LOADING OVERLAY ===== */
 .loading-overlay {
   position: fixed;
@@ -158,6 +159,7 @@
   --transition: all 0.3s ease;
   --success-color: #4CAF50;
   --error-color: #f44336;
+  --error-color-light: #f1d4d2;
   --padding-botones: padding: 12px 24px;
 }
 
@@ -429,14 +431,12 @@ body {
 }
 
 .vf-option.correct {
-  background: var(--success-color);
-  color: var(--white);
+  background: var(--accent-color);
   border-color: var(--success-color);
 }
 
 .vf-option.incorrect {
-  background: var(--error-color);
-  color: var(--white);
+  background-color: #f5e0de;
   border-color: var(--error-color);
 }
 
@@ -567,7 +567,7 @@ body {
   transition: all 0.3s ease;
 }
 
-.vf-navigation:hover{
+.vf-navigation:hover {
   box-shadow: var(--shadow-medium);
 }
 
@@ -649,7 +649,6 @@ body {
 /* ===== RESULTADOS ===== */
 .vf-results {
   text-align: center;
-  padding: 2rem;
 }
 
 .vf-results h2 {
@@ -687,6 +686,21 @@ body {
 .vf-results-actions .btn:not(.btn-primary) {
   justify-content: center;
   text-align: center;
+}
+
+/* Puedes agregar esto a vf.css */
+.vf-score-circle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+}
+.vf-score-circle svg {
+    display: block;
+}
+.vf-score-detail {
+    font-weight: 600;
 }
 
 /* ===== RESPONSIVE ===== */

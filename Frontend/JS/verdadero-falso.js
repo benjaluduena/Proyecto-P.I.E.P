@@ -271,10 +271,6 @@ function applyAnswerStyles(selectedOption, isCorrect) {
                 option.classList.add('incorrect');
                 console.log('Opción seleccionada marcada como incorrecta');
             }
-        } else if (optionIsCorrect) {
-            // Mostrar la respuesta correcta si el usuario se equivocó
-            option.classList.add('correct');
-            console.log('Respuesta correcta resaltada');
         }
     });
     
@@ -727,46 +723,100 @@ function calculateScore() {
 
 // ===== MOSTRAR RESULTADOS =====
 function showResults() {
+    // Ocultar navegación
+    const navigation = document.querySelector('.vf-navigation');
+    if (navigation) navigation.style.display = 'none';
+
     const score = calculateScore();
     const totalQuestions = questions.length;
     const percentage = (score / totalQuestions) * 100;
-    
-    // Determinar el mensaje según la puntuación
-    let message = '';
-    let color = '';
-    
-    if (percentage >= 90) {
-        message = '¡Excelente! Eres un experto en este tema.';
-        color = 'var(--success-color)';
-    } else if (percentage >= 70) {
-        message = '¡Muy bien! Tienes un buen conocimiento del tema.';
-        color = 'var(--primary-color)';
-    } else if (percentage >= 50) {
-        message = '¡Bien! Tienes conocimientos básicos del tema.';
-        color = 'var(--secondary-color)';
-  } else {
-        message = '¡Sigue estudiando! Puedes mejorar tu conocimiento del tema.';
-        color = 'var(--error-color)';
-    }
-    
+
+    // Determinar color según porcentaje
+    let color = '#4CAF50'; // verde
+    if (percentage < 50) color = '#f44336'; // rojo
+    else if (percentage < 70) color = '#f18531'; // naranja
+
+    // Seleccionar imagen según porcentaje
+    let imgSrc = "/Assets/Imagenes/zorro-celebracion.png";
+    if (percentage < 50) {
+        imgSrc = "/Assets/Imagenes/zorro-triste.png";
+    } else if (percentage < 70) {
+        imgSrc = "/Assets/Imagenes/zorro-normal.png";
+    } // Puedes ajustar los nombres de las imágenes según tus archivos
+
+    // SVG círculo de progreso
+    const radius = 60;
+    const stroke = 10;
+    const normalizedRadius = radius - stroke / 2;
+    const circumference = normalizedRadius * 2 * Math.PI;
+    const progress = circumference * (percentage / 100);
+
     const resultsHTML = `
         <div class="vf-results">
-            <img width="80" src="/Assets/Imagenes/zorro-celebracion.png" alt="">
-            <p class="vf-score">Puntuación: ${score}/${totalQuestions} (${percentage.toFixed(1)}%)</p>
-            <p class="vf-message" style="color: ${color}">${message}</p>
+            <img width="120" src="${imgSrc}" alt="">
+            <div class="vf-score-circle" style="margin: 0em 0 1.5rem 0;">
+                <svg height="130" width="130">
+                    <circle
+                        stroke="#eee"
+                        fill="none"
+                        stroke-width="${stroke}"
+                        r="${normalizedRadius}"
+                        cx="65"
+                        cy="65"
+                    />
+                    <circle
+                        stroke="${color}"
+                        fill="none"
+                        stroke-width="${stroke}"
+                        stroke-linecap="round"
+                        r="${normalizedRadius}"
+                        cx="65"
+                        cy="65"
+                        stroke-dasharray="${circumference} ${circumference}"
+                        stroke-dashoffset="${circumference - progress}"
+                        style="transition: stroke-dashoffset 0.6s;"
+                    />
+                    <text x="50%" y="50%" text-anchor="middle" dy="0.3em" font-size="1.5em" fill="${color}" font-weight="bold">${percentage.toFixed(0)}%</text>
+                    <text x="50%" y="50%" text-anchor="middle" dy="2.0em" font-size="0.8em" fill="#999" font-weight="500">${score} de ${totalQuestions}</text>
+                </svg>
+            </div>
+            <p class="vf-message" style="color: ${color}; font-size: 1.1rem;">
+                ${
+                    percentage >= 90
+                        ? '¡Excelente! Eres un experto en este tema.'
+                        : percentage >= 70
+                        ? '¡Muy bien! Tienes un buen conocimiento del tema.'
+                        : percentage >= 50
+                        ? '¡Bien! Tienes conocimientos básicos del tema.'
+                        : '¡Sigue estudiando! Puedes mejorar tu conocimiento del tema.'
+                }
+            </p>
             <div class="vf-results-actions">
-                <button class="btn btn-primary" onclick="restartQuiz()">Reiniciar Quiz</button>
-                <button class="btn" onclick="goToFirstQuestion()">Revisar Respuestas</button>
-                <button class="btn" onclick="window.location.href='/'">Nuevo PDF</button>
+                <button class="btn-purple" onclick="restartQuiz()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12C22 17.5228 17.5229 22 12 22C6.4772 22 2 17.5228 2 12C2 6.47715 6.4772 2 12 2V4C7.5817 4 4 7.58172 4 12C4 16.4183 7.5817 20 12 20C16.4183 20 20 16.4183 20 12C20 9.25022 18.6127 6.82447 16.4998 5.38451L16.5 8H14.5V2L20.5 2V4L18.0008 3.99989C20.4293 5.82434 22 8.72873 22 12Z"></path></svg>
+                    Reiniciar
+                </button>
+                <button class="btn-white" onclick="goToFirstQuestion()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5.45455 15L1 18.5V3C1 2.44772 1.44772 2 2 2H17C17.5523 2 18 2.44772 18 3V15H5.45455ZM4.76282 13H16V4H3V14.3851L4.76282 13ZM8 17H18.2372L20 18.3851V8H21C21.5523 8 22 8.44772 22 9V22.5L17.5455 19H9C8.44772 19 8 18.5523 8 18V17Z"></path></svg>
+                    Ver Respuestas
+                </button>
+                <button class="btn-white" onclick="window.location.href='/index.html'">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5.82843 6.99955L8.36396 9.53509L6.94975 10.9493L2 5.99955L6.94975 1.0498L8.36396 2.46402L5.82843 4.99955H13C17.4183 4.99955 21 8.58127 21 12.9996C21 17.4178 17.4183 20.9996 13 20.9996H4V18.9996H13C16.3137 18.9996 19 16.3133 19 12.9996C19 9.68584 16.3137 6.99955 13 6.99955H5.82843Z"></path></svg>
+                    Regresar
+                </button>
             </div>
         </div>
     `;
-    
+
     document.querySelector('.vf-question-card').innerHTML = resultsHTML;
 }
 
 // ===== REINICIAR QUIZ =====
 function restartQuiz() {
+    // Mostrar navegación
+    const navigation = document.querySelector('.vf-navigation');
+    if (navigation) navigation.style.display = 'flex';
+
     currentQuestionIndex = 0;
     userAnswers = [];
     location.reload();
@@ -774,6 +824,10 @@ function restartQuiz() {
 
 // ===== IR A LA PRIMERA PREGUNTA =====
 function goToFirstQuestion() {
+    // Mostrar navegación
+    const navigation = document.querySelector('.vf-navigation');
+    if (navigation) navigation.style.display = 'flex';
+    
     console.log('=== INICIANDO REVISIÓN DE RESPUESTAS ===');
     console.log('Preguntas totales:', questions.length);
     console.log('Respuestas del usuario:', userAnswers);

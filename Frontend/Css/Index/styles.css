@@ -1,104 +1,16 @@
 body {
   font-family: 'Poppins', Arial, sans-serif;
   margin: 0;
-  background: rgb(248, 247, 247);
 }
 
-.container {
+.index-container {
   display: flex;
   flex-direction: row;
   max-height: 100vh;
 }
 
-/* Sidebar */
-.sidebar {
-  min-height: 100vh;
-  width: 230px;
-  flex-shrink: 0;
-  background: white;
-  border-right: 2px solid #f1f1f1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 0;
-  position: relative;
-}
-
-/* Logo */
-.logo-container {
-  display: flex;
-  flex-direction: left;
-  align-items: center;
-  padding: 0px 20px;
-  margin-bottom: 30px;
-  margin-top: 20px;
-  text-align: center;
-}
-
-.logo {
-  width: 25%;
-}
-
-/* Sidebar Menu */
-.menu {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-left: 20px;
-  padding-right: 20px;
-}
-
-.menu-item {
-  all: unset;
-  cursor: pointer;
-  text-decoration: none;
-  color: black;
-  font-size: 0.8rem;
-  background: transparent;
-  border-radius: 6px;
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  transition: all 0.2s ease;
-  font-weight: 600;
-}
-
-.menu-item.active {
-  background: #a259fa;
-  color: white;
-}
-
-.menu-item:hover:not(.active) {
-  background: #ededed;
-}
-
-/* Sidebar Iconos */
-.sidebar-ico svg {
-  display: flex;
-  align-items: center;
-  width: 20px;
-  height: 20px;
-}
-
-.menu-item .sidebar-ico {
-  font-size: 1.25rem;
-  margin-right: 5px;
-}
-
-/* Sidebar Footer */
-.sidebar-footer {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-left: 20px;
-  padding-right: 20px;
-  margin-bottom: 30px;
-}
-
-
 /* Perfil de Usuario */
-/* Perfil de Usuario */
-.user-profile {
+.index-container .user-profile {
   background: transparent;
   border-radius: 12px;
   padding: 15px;
@@ -111,15 +23,15 @@ body {
   transition: background-color 0.2s ease;
 }
 
-.user-profile:hover {
+.index-container .user-profile:hover {
   background: #ededed;
 }
 
-.user-avatar {
+.index-container .user-avatar {
   flex-shrink: 0;
 }
 
-.avatar-img {
+.index-container .avatar-img {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -128,12 +40,12 @@ body {
   background: #e9ecef;
 }
 
-.user-info {
+.index-container .user-info {
   flex: 1;
   min-width: 0;
 }
 
-.user-name {
+.index-container .user-name {
   font-size: 0.85rem;
   font-weight: 600;
   color: #212529;
@@ -143,7 +55,7 @@ body {
   text-overflow: ellipsis;
 }
 
-.user-email {
+.index-container .user-email {
   font-size: 0.7rem;
   color: #6c757d;
   white-space: nowrap;
@@ -151,7 +63,7 @@ body {
   text-overflow: ellipsis;
 }
 /* Profile Dropdown */
-.profile-dropdown {
+.index-container .profile-dropdown {
   position: absolute;
   bottom: 100%;
   left: 0;
@@ -169,14 +81,14 @@ body {
   display: none;
 }
 
-.profile-dropdown.show {
+.index-container .profile-dropdown.show {
   display: block;
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
 
-.dropdown-item {
+.index-container .dropdown-item {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -190,19 +102,19 @@ body {
   margin: 4px;
 }
 
-.dropdown-item:hover {
+.index-container .dropdown-item:hover {
   background: #ededed;
 }
 
-.dropdown-item:first-child {
+.index-container .dropdown-item:first-child {
   margin-top: 8px;
 }
 
-.dropdown-item:last-child {
+.index-container .dropdown-item:last-child {
   margin-bottom: 8px;
 }
 
-.dropdown-item svg {
+.index-container .dropdown-item svg {
   color: black;
   flex-shrink: 0;
 }
@@ -219,19 +131,14 @@ main#contenido {
   flex-direction: column;
 }
 
-/* Responsive Sidebar */
-@media (max-width: 1024px) {
-  .sidebar {
-    width: 200px;
-  }
-}
+
 
 @media (max-width: 768px) {
-  .container {
+  .index-container {
     flex-direction: column;
   }
   
-  .sidebar {
+  .index-container .sidebar {
     width: 50%;
     min-height: auto;
     height: 100%;
@@ -243,7 +150,7 @@ main#contenido {
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
   }
   
-  .sidebar.open {
+  .index-container .sidebar.open {
     left: 0;
   }
   
@@ -328,20 +235,20 @@ main#contenido {
     transform: rotate(-45deg) translate(6px, -6px);
   }
   
-  .user-profile {
+  .index-container .user-profile {
     padding: 12px;
   }
   
-  .avatar-img {
+  .index-container .avatar-img {
     width: 35px;
     height: 35px;
   }
   
-  .user-name {
+  .index-container .user-name {
     font-size: 0.8rem;
   }
   
-  .user-email {
+  .index-container .user-email {
     font-size: 0.65rem;
   }
 }
