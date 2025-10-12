@@ -5,71 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tarjetas de Estudio - StudyAI</title>
   <link rel="stylesheet" href="/Css/styles.css">
-  <link rel="stylesheet" href="/Css/flashcards.css">
+  <link rel="stylesheet" href="/Css/Clases/clases.css">
+  <link rel="stylesheet" href="/Css/Flashcards/flashcards.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <main class="flashcards-container">
     <!-- Header -->
     <header class="flashcards-header">
-      <div class="flashcards-header-content">
         <div class="flashcards-header-left">
-          <button class="back-btn-modern" aria-label="Volver">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-            </svg>
-            Volver al inicio
+          <button class="btn-white-icon" id="closeBtn" aria-label="Cerrar">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M1.99805 21.0001V19.0001L3.99805 18.9999V4.83465C3.99805 4.35136 4.34367 3.93723 4.81916 3.85078L14.2907 2.12868C14.6167 2.0694 14.9291 2.28564 14.9884 2.61167C14.9948 2.64708 14.998 2.68301 14.998 2.719V3.9999L18.998 4.00007C19.5503 4.00007 19.998 4.44779 19.998 5.00007V18.9999L21.998 19.0001V21.0001H17.998V6.00007L14.998 5.9999V21.0001H1.99805ZM12.998 4.3965L5.99805 5.66923V19.0001H12.998V4.3965ZM11.998 11.0001V13.0001H9.99805V11.0001H11.998Z"></path></svg>
           </button>
-          <div class="flashcards-title-section">
-            <h1 class="flashcards-title">📚 Tarjetas de Estudio</h1>
-            <div id="flashcardsMeta" class="flashcards-meta">Estudia de manera interactiva</div>
-          </div>
+          <div class="fc-title" id="fcTitle" aria-label="Título de Flashcard">Flashcards como metodo de estudio</div>
         </div>
         <div class="flashcards-header-right">
-          <div class="flashcards-stats-container">
-            <div class="flashcards-stat-item">
-              <span class="flashcards-stat-number" id="cardCount">0</span>
-              <span class="flashcards-stat-label">Tarjetas</span>
-            </div>
-            <div class="flashcards-stat-item">
-              <span class="flashcards-stat-number" id="currentCardNumber">1</span>
-              <span class="flashcards-stat-label">Actual</span>
-            </div>
-            <div class="flashcards-stat-item">
-              <span class="flashcards-stat-number" id="correctCount">0</span>
-              <span class="flashcards-stat-label">Correctas</span>
-            </div>
-          </div>
           <div class="flashcards-actions">
-            <button id="shuffleBtn" class="btn-modern btn-secondary-modern" title="Mezclar tarjetas">
+            <button id="shuffleBtn" class="btn-white" title="Mezclar tarjetas">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
               </svg>
               Mezclar
             </button>
-            <button id="resetBtn" class="btn-modern btn-secondary-modern" title="Reiniciar sesión">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-              </svg>
+            <button id="resetBtn" class="btn-white" title="Reiniciar sesión">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12C22 17.5228 17.5229 22 12 22C6.4772 22 2 17.5228 2 12C2 6.47715 6.4772 2 12 2V4C7.5817 4 4 7.58172 4 12C4 16.4183 7.5817 20 12 20C16.4183 20 20 16.4183 20 12C20 9.25022 18.6127 6.82447 16.4998 5.38451L16.5 8H14.5V2L20.5 2V4L18.0008 3.99989C20.4293 5.82434 22 8.72873 22 12Z"></path></svg>
               Reiniciar
             </button>
-            <button id="downloadBtn" class="btn-modern btn-primary-modern" title="Descargar tarjetas">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
-              </svg>
+            <button id="downloadBtn" class="btn-purple" title="Descargar tarjetas">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13 10H18L12 16L6 10H11V3H13V10ZM4 19H20V12H22V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V12H4V19Z"></path></svg>
               Descargar
             </button>
           </div>
         </div>
-      </div>
     </header>
 
     <!-- Progress Bar -->
-    <div class="progress-container">
+    <!-- <div class="progress-container">
       <div class="progress-bar">
         <div class="progress-fill" id="progressFill"></div>
       </div>
       <div class="progress-text" id="progressText">0 / 0</div>
-    </div>
+    </div> -->
 
     <!-- Flashcard Container -->
     <div class="flashcard-study-area">
@@ -108,7 +84,7 @@
         </div>
       </div>
 
-      <!-- Study Controls -->
+      <!-- Study Controls
       <div class="study-controls" id="studyControls" style="display: none;">
         <div class="difficulty-question">
           <h3>¿Qué tan difícil fue esta tarjeta?</h3>
@@ -131,65 +107,58 @@
             <div class="btn-description">No la sabía</div>
           </button>
         </div>
-      </div>
+      </div> -->
 
       <!-- Navigation Controls -->
-      <div class="navigation-controls">
-        <button class="nav-btn prev-btn" id="prevBtn" disabled>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-          </svg>
-          Anterior
-        </button>
-        
-        <div class="card-indicator">
-          <span id="cardIndicator">1 / 1</span>
+      <div class="fc-navigation">
+        <div class="fc-nav-left">
+          <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.999V20C22 20.5523 21.5523 21 21 21H13V12.999H22ZM11 12.999V21H3C2.44772 21 2 20.5523 2 20V12.999H11ZM11 3V10.999H2V4C2 3.44772 2.44772 3 3 3H11ZM21 3C21.5523 3 22 3.44772 22 4V10.999H13V3H21Z"></path></svg>
+          <div class="fc-progress">
+            <span>1</span>
+            <div class="vf-progress-bar">
+              <div class="vf-progress-fill" style="width: 0%;"></div>
+            </div>
+            <span>1</span>
+          </div>
         </div>
-
-        <button class="nav-btn next-btn" id="nextBtn">
-          Siguiente
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-          </svg>
-        </button>
+        <div class="fc-nav-right">
+          <button class="btn-white-nav" id="prevBtn" disabled>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
+            </svg>
+          </button>
+          <button class="btn-white-nav" id="nextBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Study Summary -->
     <div class="study-summary" id="studySummary" style="display: none;">
       <div class="summary-header">
-        <h2>🎉 ¡Sesión completada!</h2>
+        <h2>¡Sesión completada!</h2>
         <p>Has terminado de estudiar todas las tarjetas</p>
       </div>
       
       <div class="summary-stats">
-        <div class="summary-stat">
-          <div class="stat-number" id="totalStudied">0</div>
-          <div class="stat-label">Tarjetas estudiadas</div>
-        </div>
-        <div class="summary-stat">
-          <div class="stat-number" id="easyCards">0</div>
-          <div class="stat-label">Fáciles</div>
-        </div>
-        <div class="summary-stat">
-          <div class="stat-number" id="mediumCards">0</div>
-          <div class="stat-label">Medias</div>
-        </div>
-        <div class="summary-stat">
-          <div class="stat-number" id="hardCards">0</div>
-          <div class="stat-label">Difíciles</div>
-        </div>
+        <img width="120" src="/Assets/Imagenes/zorro-card.png" alt="">
       </div>
 
       <div class="summary-actions">
-        <button class="btn-modern btn-secondary-modern" id="studyAgainBtn">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-          </svg>
-          Estudiar de nuevo
+        <button class="btn-purple" id="studyAgainBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12C22 17.5228 17.5229 22 12 22C6.4772 22 2 17.5228 2 12C2 6.47715 6.4772 2 12 2V4C7.5817 4 4 7.58172 4 12C4 16.4183 7.5817 20 12 20C16.4183 20 20 16.4183 20 12C20 9.25022 18.6127 6.82447 16.4998 5.38451L16.5 8H14.5V2L20.5 2V4L18.0008 3.99989C20.4293 5.82434 22 8.72873 22 12Z"></path></svg>
+          Reiniciar
         </button>
-        <button class="btn-modern btn-primary-modern" id="backToHistoryBtn">
-          Volver al historial
+        <button class="btn-white" id="backToHistoryBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12H4C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C9.25022 4 6.82447 5.38734 5.38451 7.50024L8 7.5V9.5H2V3.5H4L3.99989 5.99918C5.82434 3.57075 8.72873 2 12 2ZM13 7L12.9998 11.585L16.2426 14.8284L14.8284 16.2426L10.9998 12.413L11 7H13Z"></path></svg>
+          Historial
+        </button>
+        <button class="btn-white" id="btnRegresar">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5.82843 6.99955L8.36396 9.53509L6.94975 10.9493L2 5.99955L6.94975 1.0498L8.36396 2.46402L5.82843 4.99955H13C17.4183 4.99955 21 8.58127 21 12.9996C21 17.4178 17.4183 20.9996 13 20.9996H4V18.9996H13C16.3137 18.9996 19 16.3133 19 12.9996C19 9.68584 16.3137 6.99955 13 6.99955H5.82843Z"></path></svg>
+          Regresar
         </button>
       </div>
     </div>

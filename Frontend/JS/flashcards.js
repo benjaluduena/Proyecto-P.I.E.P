@@ -30,7 +30,7 @@ async function apiCall(url, options = {}) {
 
   const headers = getAuthHeaders();
   let finalHeaders = { ...headers, ...options.headers };
-  
+
   if (options.body instanceof FormData) {
     delete finalHeaders['Content-Type'];
   }
@@ -43,7 +43,7 @@ async function apiCall(url, options = {}) {
   try {
     const baseUrl = window.location.origin;
     const response = await fetch(baseUrl + url, config);
-    
+
     if (response.status === 401) {
       localStorage.removeItem('session');
       localStorage.removeItem('user');
@@ -51,7 +51,7 @@ async function apiCall(url, options = {}) {
       window.location.replace('/login.html');
       return null;
     }
-    
+
     return response;
   } catch (error) {
     console.error('Error en API call:', error);
@@ -62,7 +62,7 @@ async function apiCall(url, options = {}) {
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🎴 Inicializando Flashcards...');
-  
+
   initializeElements();
   setupEventListeners();
   loadFlashcards();
@@ -74,30 +74,30 @@ function initializeElements() {
   questionText = document.getElementById('questionText');
   answerText = document.getElementById('answerText');
   studyControls = document.getElementById('studyControls');
-  
+
   console.log('🔍 Inicializando elementos DOM:', {
     flashcard: !!flashcard,
     questionText: !!questionText,
     answerText: !!answerText,
     studyControls: !!studyControls
   });
-  
+
   if (!flashcard || !questionText || !answerText) {
     console.error('❌ Elementos críticos no encontrados en el DOM');
     return;
   }
-  
+
   cardCount = document.getElementById('cardCount');
   currentCardNumber = document.getElementById('currentCardNumber');
   correctCount = document.getElementById('correctCount');
-  
+
   progressFill = document.getElementById('progressFill');
   progressText = document.getElementById('progressText');
   cardIndicator = document.getElementById('cardIndicator');
-  
+
   prevBtn = document.getElementById('prevBtn');
   nextBtn = document.getElementById('nextBtn');
-  
+
   console.log('✅ Todos los elementos DOM inicializados correctamente');
 }
 
@@ -140,7 +140,14 @@ function setupEventListeners() {
     downloadBtn.addEventListener('click', downloadFlashcards);
   }
 
-  const backBtn = document.querySelector('.back-btn-modern');
+  const exitBtn = document.getElementById('btnRegresar');
+  if (exitBtn) {
+    exitBtn.addEventListener('click', () => {
+      window.history.back();
+    });
+  } 
+
+  const backBtn = document.getElementById('closeBtn');
   if (backBtn) {
     backBtn.addEventListener('click', () => {
       window.history.back();
@@ -212,14 +219,19 @@ function handleKeyPress(e) {
 async function loadFlashcards() {
   try {
     showLoading();
-    
+
+    // Obtener fileName de la URL (prioridad para el título)
+    const urlParams = new URLSearchParams(window.location.search);
+    const outputId = urlParams.get('id');
+    const fileName = urlParams.get('fileName');
+
     // Primero verificar si hay datos del historial en sessionStorage
     const historialData = sessionStorage.getItem('currentFlashcards');
     if (historialData) {
       console.log('📥 Cargando flashcards desde historial...');
       try {
         const flashcardData = JSON.parse(historialData);
-        await processFlashcardData(flashcardData);
+        await processFlashcardData(flashcardData, fileName);
         // Limpiar sessionStorage después de usar
         sessionStorage.removeItem('currentFlashcards');
         return;
@@ -228,89 +240,68 @@ async function loadFlashcards() {
         sessionStorage.removeItem('currentFlashcards');
       }
     }
-    
-    // Si no hay datos del historial, usar el método original con URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const outputId = urlParams.get('id');
-    
+
     if (!outputId) {
       throw new Error('ID de contenido no encontrado en la URL');
     }
 
     console.log('📥 Cargando flashcards desde API para ID:', outputId);
-    
+
     const response = await apiCall(`/api/ai/content/${outputId}`);
-    
+
     if (!response || !response.ok) {
       throw new Error(`Error al cargar flashcards: ${response?.status || 'Sin respuesta'}`);
     }
-    
+
     const data = await response.json();
-    await processFlashcardData(data);
+    await processFlashcardData(data, fileName);
   } catch (error) {
-    console.error('❌ Error al cargar flashcards:', error);
     showError(error.message);
   }
 }
 
 // Función para procesar datos de flashcards (desde API o historial)
-async function processFlashcardData(data) {
+async function processFlashcardData(data, fileName) {
   try {
     console.log('📄 Procesando datos de flashcards:', data);
-    
-    // Si los datos vienen del historial, ya tienen la estructura correcta
-    if (data.content && data.pdf_title) {
-      console.log('📋 Datos del historial detectados');
-      const content = data.content;
-      await processFlashcardContent(content);
-      
-      // Actualizar título del documento si es posible
-      const metaElement = document.getElementById('flashcardsMeta');
-      if (metaElement && data.pdf_title) {
-        metaElement.textContent = `Estudiando: ${data.pdf_title}`;
-      }
-      return;
+
+    // Buscar el título
+    const fcTitle = document.getElementById('fcTitle');
+
+    // Prioridad: fileName de la URL > pdf_title > output.pdf_title > title
+    let pdfTitle = fileName;
+    if (!pdfTitle) {
+      pdfTitle = data.pdf_title || data.output?.pdf_title || data.title || "Flashcards sin título";
     }
-    
-    console.log('📊 Estructura de datos de API:', {
-      hasSuccess: !!data.success,
-      hasContent: !!data.content,
-      hasOutput: !!data.output,
-      keys: Object.keys(data)
-    });
-    
-    // Validar diferentes estructuras de respuesta
-    let content = null;
-    if (data.success && data.content) {
-      content = data.content;
-    } else if (data.output && data.output.content) {
-      content = data.output.content;
-    } else if (data.content) {
-      content = data.content;
-    } else if (data.output) {
-      content = data.output;
+
+    // Si existe el div, actualizarlo
+    if (fcTitle) {
+      fcTitle.textContent = `Flashcards: ${pdfTitle}`;
+      console.log('✅ Título actualizado:', pdfTitle);
     } else {
-      console.error('❌ Estructura de datos no reconocida:', data);
-      throw new Error('Contenido no encontrado o inválido');
+      console.warn('⚠️ No se encontró el elemento fcTitle');
     }
-    
-    console.log('📋 Contenido extraído:', content);
+
+    // Procesar el contenido de las flashcards
+    const content = data.content || data.output?.content;
+    if (!content) throw new Error('Contenido no encontrado en la respuesta.');
+
     await processFlashcardContent(content);
-    
+
   } catch (error) {
-    console.error('❌ Error procesando flashcards:', error);
     showError(error.message);
   }
 }
+
 
 // Función para procesar el contenido de flashcards
 async function processFlashcardContent(content) {
   try {
     // Procesar flashcards
     let cards = [];
-    
+
     console.log('🔍 Buscando flashcards en contenido:', Object.keys(content || {}));
-    
+
     if (content && content.flashcards && Array.isArray(content.flashcards)) {
       cards = content.flashcards;
       console.log('✅ Encontradas flashcards en content.flashcards');
@@ -329,7 +320,7 @@ async function processFlashcardContent(content) {
       console.log('🔍 Buscando flashcards en formato alternativo...');
       cards = extractFlashcardsFromContent(content);
     }
-    
+
     console.log('🎯 Total de tarjetas encontradas:', cards.length);
 
     if (!cards || cards.length === 0) {
@@ -346,10 +337,10 @@ async function processFlashcardContent(content) {
     }));
 
     console.log('🎴 Flashcards procesadas:', flashcardsData.length);
-    
+
     initializeStudySession();
     hideLoading();
-    
+
   } catch (error) {
     console.error('❌ Error cargando flashcards:', error);
     showError(error.message);
@@ -359,23 +350,23 @@ async function processFlashcardContent(content) {
 // Extraer flashcards de contenido alternativo
 function extractFlashcardsFromContent(content) {
   const cards = [];
-  
+
   console.log('🔍 Extrayendo de contenido alternativo:', content);
-  
+
   // Intentar con diferentes estructuras
   if (typeof content === 'object' && content !== null) {
     Object.keys(content).forEach(key => {
       const lowerKey = key.toLowerCase();
       console.log(`🔑 Examinando clave: ${key}`);
-      
-      if (lowerKey.includes('flashcard') || 
-          lowerKey.includes('tarjeta') || 
-          lowerKey.includes('card') ||
-          lowerKey.includes('pregunta') ||
-          lowerKey.includes('question')) {
+
+      if (lowerKey.includes('flashcard') ||
+        lowerKey.includes('tarjeta') ||
+        lowerKey.includes('card') ||
+        lowerKey.includes('pregunta') ||
+        lowerKey.includes('question')) {
         const value = content[key];
         console.log(`📝 Valor para ${key}:`, value);
-        
+
         if (Array.isArray(value)) {
           cards.push(...value);
           console.log(`✅ Agregadas ${value.length} tarjetas de ${key}`);
@@ -386,7 +377,7 @@ function extractFlashcardsFromContent(content) {
         }
       }
     });
-    
+
     // Si no encontramos nada específico, intentar parsear texto
     if (cards.length === 0) {
       console.log('🔤 Intentando parsear desde texto o markdown...');
@@ -397,7 +388,7 @@ function extractFlashcardsFromContent(content) {
     console.log('📄 Parseando contenido de texto...');
     cards.push(...parseTextToFlashcards(content));
   }
-  
+
   console.log(`📊 Extracción completada: ${cards.length} tarjetas`);
   return cards;
 }
@@ -405,14 +396,14 @@ function extractFlashcardsFromContent(content) {
 // Parsear texto a flashcards
 function parseTextToFlashcards(content) {
   const cards = [];
-  
+
   try {
     // Intentar parsear JSON
     if (typeof content === 'string' && content.trim().startsWith('{')) {
       const parsed = JSON.parse(content);
       return extractFlashcardsFromContent(parsed);
     }
-    
+
     // Si es un objeto, buscar propiedades de texto que contengan flashcards
     if (typeof content === 'object') {
       Object.values(content).forEach(value => {
@@ -422,7 +413,7 @@ function parseTextToFlashcards(content) {
         }
       });
     }
-    
+
     // Si es texto, intentar parsearlo como markdown
     if (typeof content === 'string') {
       const parsedCards = parseMarkdownFlashcards(content);
@@ -431,21 +422,21 @@ function parseTextToFlashcards(content) {
   } catch (error) {
     console.warn('⚠️ Error parseando contenido:', error);
   }
-  
+
   return cards;
 }
 
 // Parsear flashcards desde formato markdown o texto
 function parseMarkdownFlashcards(text) {
   const cards = [];
-  
+
   // Patrones para buscar flashcards en texto
   const patterns = [
     /(?:^|\n)(?:Pregunta|P):\s*(.+?)\n(?:Respuesta|R):\s*(.+?)(?=\n(?:Pregunta|P):|$)/gims,
     /(?:^|\n)(?:Question|Q):\s*(.+?)\n(?:Answer|A):\s*(.+?)(?=\n(?:Question|Q):|$)/gims,
     /(?:^|\n)\*\*(.+?)\*\*\n(.+?)(?=\n\*\*|$)/gims
   ];
-  
+
   patterns.forEach(pattern => {
     let match;
     while ((match = pattern.exec(text)) !== null) {
@@ -455,7 +446,7 @@ function parseMarkdownFlashcards(text) {
       });
     }
   });
-  
+
   return cards;
 }
 
@@ -464,12 +455,12 @@ function initializeStudySession() {
   currentCardIndex = 0;
   isFlipped = false;
   studyStats = { easy: 0, medium: 0, hard: 0 };
-  
+
   updateStats();
   displayCurrentCard();
   updateProgress();
   updateNavigation();
-  
+
   // Mostrar área de estudio
   document.querySelector('.flashcard-study-area').style.display = 'flex';
   document.getElementById('studySummary').style.display = 'none';
@@ -478,11 +469,11 @@ function initializeStudySession() {
 // Mostrar tarjeta actual
 function displayCurrentCard() {
   if (!flashcardsData || flashcardsData.length === 0) return;
-  
+
   const currentCard = flashcardsData[currentCardIndex];
-  
+
   console.log('📋 Mostrando tarjeta:', currentCard);
-  
+
   if (questionText) {
     questionText.textContent = currentCard.question;
     questionText.innerHTML = currentCard.question; // También como HTML por si acaso
@@ -491,13 +482,13 @@ function displayCurrentCard() {
   } else {
     console.error('❌ questionText no existe');
   }
-  
+
   if (answerText) {
     answerText.textContent = currentCard.answer;
     answerText.innerHTML = currentCard.answer; // También como HTML por si acaso
     console.log('✅ Respuesta configurada:', currentCard.answer);
     console.log('🔍 Elemento answerText:', answerText, 'visible:', answerText.offsetParent !== null);
-    
+
     // Verificar estilos del elemento
     const computedStyle = window.getComputedStyle(answerText);
     console.log('🎨 Estilos de answerText:', {
@@ -510,46 +501,47 @@ function displayCurrentCard() {
   } else {
     console.error('❌ answerText no existe');
   }
-  
+
   // Reset flip state
   isFlipped = false;
   if (flashcard) {
     flashcard.classList.remove('flipped');
     console.log('🔄 Flashcard reseteada, clase flipped removida');
   }
-  
+
   // Ocultar controles de estudio
   if (studyControls) {
     studyControls.style.display = 'none';
   }
-  
+
   updateStats();
   updateProgress();
   updateNavigation();
+  updateProgressBar();
 }
 
 // Voltear tarjeta
 function flipCard() {
   if (!flashcardsData || flashcardsData.length === 0) return;
   if (!flashcard) return;
-  
+
   isFlipped = !isFlipped;
-  
+
   console.log('🔄 Volteando tarjeta. Estado:', isFlipped ? 'Respuesta' : 'Pregunta');
   console.log('🔍 Clases actuales de flashcard:', flashcard.className);
-  
+
   if (isFlipped) {
     flashcard.classList.add('flipped');
     console.log('👀 Mostrando respuesta:', flashcardsData[currentCardIndex].answer);
     console.log('🔍 Clases después de agregar flipped:', flashcard.className);
-    
+
     // Verificar inmediatamente si la respuesta es visible
     setTimeout(() => {
       if (answerText) {
         const answerStyle = window.getComputedStyle(answerText);
         const answerParent = answerText.closest('.flashcard-back');
         const parentStyle = answerParent ? window.getComputedStyle(answerParent) : null;
-        
+
         console.log('📊 Estado de visibilidad después del flip:', {
           answerText: {
             display: answerStyle.display,
@@ -566,10 +558,10 @@ function flipCard() {
             backfaceVisibility: parentStyle.backfaceVisibility
           } : 'No encontrado'
         });
-        
+
         console.log('📋 Contenido actual de answerText:', answerText.textContent);
       }
-      
+
       if (studyControls) {
         studyControls.style.display = 'block';
         console.log('✅ Controles de estudio mostrados');
@@ -588,12 +580,12 @@ function flipCard() {
 // Calificar dificultad
 function rateDifficulty(difficulty) {
   if (!flashcardsData || flashcardsData.length === 0) return;
-  
+
   const currentCard = flashcardsData[currentCardIndex];
   currentCard.difficulty = difficulty;
   currentCard.studied = true;
   studyStats[difficulty]++;
-  
+
   // Avanzar automáticamente a la siguiente tarjeta
   setTimeout(() => {
     nextCard();
@@ -622,16 +614,16 @@ function nextCard() {
 // Mezclar tarjetas
 function shuffleCards() {
   if (!flashcardsData || flashcardsData.length === 0) return;
-  
+
   // Algoritmo Fisher-Yates shuffle
   for (let i = flashcardsData.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [flashcardsData[i], flashcardsData[j]] = [flashcardsData[j], flashcardsData[i]];
   }
-  
+
   // Reinicializar sesión
   resetStudySession();
-  
+
   showSuccess('¡Tarjetas mezcladas!');
 }
 
@@ -640,24 +632,25 @@ function resetStudySession() {
   currentCardIndex = 0;
   isFlipped = false;
   studyStats = { easy: 0, medium: 0, hard: 0 };
-  
+
   // Reset all cards
   flashcardsData.forEach(card => {
     card.difficulty = null;
     card.studied = false;
   });
-  
+
   initializeStudySession();
+  updateProgressBar();
 }
 
 // Descargar flashcards
 function downloadFlashcards() {
   if (!flashcardsData || flashcardsData.length === 0) return;
-  
+
   try {
     let content = 'Tarjetas de Estudio - StudyAI\n';
     content += '=================================\n\n';
-    
+
     flashcardsData.forEach((card, index) => {
       content += `Tarjeta ${index + 1}:\n`;
       content += `Pregunta: ${card.question}\n`;
@@ -667,7 +660,7 @@ function downloadFlashcards() {
       }
       content += '\n---\n\n';
     });
-    
+
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -677,7 +670,7 @@ function downloadFlashcards() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     showSuccess('¡Flashcards descargadas!');
   } catch (error) {
     console.error('Error descargando flashcards:', error);
@@ -704,7 +697,7 @@ function updateProgress() {
   const studied = flashcardsData.filter(card => card.studied).length;
   const total = flashcardsData.length;
   const percentage = total > 0 ? (studied / total) * 100 : 0;
-  
+
   if (progressFill) {
     progressFill.style.width = percentage + '%';
   }
@@ -716,32 +709,46 @@ function updateProgress() {
   }
 }
 
-// Actualizar navegación
+// ===== ACTUALIZAR BOTONES DE NAVEGACIÓN =====
 function updateNavigation() {
-  if (prevBtn) {
-    prevBtn.disabled = currentCardIndex === 0;
+  prevBtn.disabled = currentCardIndex === 0;
+
+  // Aplicar estilos visuales para botones deshabilitados
+  if (prevBtn.disabled) {
+    prevBtn.classList.add('disabled');
+  } else {
+    prevBtn.classList.remove('disabled');
   }
-  if (nextBtn) {
-    const isLastCard = currentCardIndex === flashcardsData.length - 1;
-    nextBtn.textContent = isLastCard ? 'Finalizar' : 'Siguiente';
-  }
+
 }
+
+
+// // Actualizar navegación
+// function updateNavigation() {
+//   if (prevBtn) {
+//     prevBtn.disabled = currentCardIndex === 0;
+//   }
+//   if (nextBtn) {
+//     const isLastCard = currentCardIndex === flashcardsData.length - 1;
+//     // nextBtn.textContent = isLastCard ? 'Finalizar' : 'Siguiente';
+//   }
+// }
 
 // Mostrar resumen de estudio
 function showStudySummary() {
   const studySummary = document.getElementById('studySummary');
   const flashcardStudyArea = document.querySelector('.flashcard-study-area');
-  
+
   if (studySummary && flashcardStudyArea) {
     flashcardStudyArea.style.display = 'none';
     studySummary.style.display = 'block';
-    
+
     // Actualizar estadísticas del resumen
     document.getElementById('totalStudied').textContent = flashcardsData.length;
     document.getElementById('easyCards').textContent = studyStats.easy;
     document.getElementById('mediumCards').textContent = studyStats.medium;
     document.getElementById('hardCards').textContent = studyStats.hard;
-    
+
     // Guardar sesión de estudio en el historial
     saveStudySession();
   }
@@ -753,7 +760,7 @@ function showLoading() {
   const errorState = document.getElementById('errorState');
   const emptyState = document.getElementById('emptyState');
   const studyArea = document.querySelector('.flashcard-study-area');
-  
+
   if (loadingState) loadingState.style.display = 'flex';
   if (errorState) errorState.style.display = 'none';
   if (emptyState) emptyState.style.display = 'none';
@@ -769,7 +776,7 @@ function showError(message) {
   const errorState = document.getElementById('errorState');
   const loadingState = document.getElementById('loadingState');
   const studyArea = document.querySelector('.flashcard-study-area');
-  
+
   if (errorState) {
     errorState.style.display = 'flex';
     const errorP = errorState.querySelector('p');
@@ -785,7 +792,7 @@ function showEmptyState() {
   const emptyState = document.getElementById('emptyState');
   const loadingState = document.getElementById('loadingState');
   const studyArea = document.querySelector('.flashcard-study-area');
-  
+
   if (emptyState) emptyState.style.display = 'flex';
   if (loadingState) loadingState.style.display = 'none';
   if (studyArea) studyArea.style.display = 'none';
@@ -810,9 +817,9 @@ function showSuccess(message) {
     font-weight: 500;
     animation: slideInRight 0.3s ease-out;
   `;
-  
+
   document.body.appendChild(notification);
-  
+
   setTimeout(() => {
     notification.remove();
   }, 3000);
@@ -823,12 +830,12 @@ async function saveStudySession() {
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const outputId = urlParams.get('id');
-    
+
     if (!outputId) {
       console.warn('❌ No se puede guardar sesión: ID de contenido no encontrado');
       return;
     }
-    
+
     // Calcular puntuación basada en dificultad
     const totalCards = flashcardsData.length;
     const easyScore = studyStats.easy * 100; // Tarjetas fáciles = 100 puntos c/u
@@ -836,14 +843,14 @@ async function saveStudySession() {
     const hardScore = studyStats.hard * 40; // Tarjetas difíciles = 40 puntos c/u
     const maxScore = totalCards * 100;
     const finalScore = Math.round(((easyScore + mediumScore + hardScore) / maxScore) * 100);
-    
+
     // Crear resumen detallado de la sesión
     const sessionDetails = {
       total_cards: totalCards,
       cards_studied: studyStats.easy + studyStats.medium + studyStats.hard,
       difficulty_breakdown: {
         easy: studyStats.easy,
-        medium: studyStats.medium, 
+        medium: studyStats.medium,
         hard: studyStats.hard
       },
       score: finalScore,
@@ -855,31 +862,31 @@ async function saveStudySession() {
         studied: card.studied
       }))
     };
-    
+
     console.log('💾 Guardando sesión de estudio:', {
       outputId,
       sessionDetails
     });
-    
+
     const requestBody = {
       output_id: parseInt(outputId),
       interaction_type: 'flashcards_study',
       score: finalScore
     };
-    
+
     console.log('📤 Enviando request body:', requestBody);
-    
+
     const response = await apiCall('/api/study/progress', {
       method: 'POST',
       body: JSON.stringify(requestBody)
     });
-    
+
     console.log('📥 Response status:', response?.status);
-    
+
     if (response && response.ok) {
       const result = await response.json();
       console.log('✅ Sesión de estudio guardada exitosamente:', result);
-      
+
       // También guardar localmente por si acaso
       const sessionData = {
         id: result.progress?.id || Date.now(),
@@ -887,22 +894,22 @@ async function saveStudySession() {
         session_details: sessionDetails,
         saved_at: new Date().toISOString()
       };
-      
+
       // Guardar en localStorage como backup
       const savedSessions = JSON.parse(localStorage.getItem('flashcard_sessions') || '[]');
       savedSessions.push(sessionData);
       localStorage.setItem('flashcard_sessions', JSON.stringify(savedSessions));
-      
+
       showSuccess('¡Sesión guardada en el historial!');
     } else {
       const errorText = await response?.text();
       console.error('❌ Error en response:', errorText);
       throw new Error(`Error ${response?.status}: ${errorText}`);
     }
-    
+
   } catch (error) {
     console.error('❌ Error guardando sesión de estudio:', error);
-    
+
     // Guardar localmente como fallback
     try {
       const sessionData = {
@@ -915,11 +922,11 @@ async function saveStudySession() {
           saved_at: new Date().toISOString()
         }
       };
-      
+
       const failedSessions = JSON.parse(localStorage.getItem('failed_sessions') || '[]');
       failedSessions.push(sessionData);
       localStorage.setItem('failed_sessions', JSON.stringify(failedSessions));
-      
+
       console.log('💾 Sesión guardada localmente como fallback');
     } catch (localError) {
       console.error('❌ Error guardando localmente:', localError);
@@ -949,7 +956,7 @@ if (!document.querySelector('#flashcards-animations')) {
 // Función de prueba para diagnosticar el problema
 function testFlashcardDisplay() {
   console.log('🧪 Iniciando test de flashcards...');
-  
+
   // Verificar elementos DOM
   const elements = {
     flashcard: document.getElementById('flashcard'),
@@ -958,38 +965,38 @@ function testFlashcardDisplay() {
     flashcardFront: document.querySelector('.flashcard-front'),
     flashcardBack: document.querySelector('.flashcard-back')
   };
-  
+
   console.log('📋 Elementos encontrados:', elements);
-  
+
   // Crear datos de prueba
   const testCard = {
     question: "¿Cuál es la capital de Francia?",
     answer: "París es la capital de Francia y una de las ciudades más importantes del mundo."
   };
-  
+
   // Configurar datos de prueba
   if (elements.questionText) {
     elements.questionText.textContent = testCard.question;
     console.log('✅ Pregunta configurada:', elements.questionText.textContent);
   }
-  
+
   if (elements.answerText) {
     elements.answerText.textContent = testCard.answer;
     console.log('✅ Respuesta configurada:', elements.answerText.textContent);
   }
-  
+
   // Probar flip
   setTimeout(() => {
     if (elements.flashcard) {
       console.log('🔄 Aplicando flip...');
       elements.flashcard.classList.add('flipped');
-      
+
       setTimeout(() => {
         console.log('🔍 Estado después del flip:');
         if (elements.answerText) {
           const answerStyle = window.getComputedStyle(elements.answerText);
           const backStyle = window.getComputedStyle(elements.flashcardBack);
-          
+
           console.log('📊 Estilos de respuesta:', {
             display: answerStyle.display,
             visibility: answerStyle.visibility,
@@ -999,7 +1006,7 @@ function testFlashcardDisplay() {
             transform: backStyle.transform,
             backfaceVisibility: backStyle.backfaceVisibility
           });
-          
+
           console.log('📋 Contenido visible:', elements.answerText.textContent);
           console.log('📐 Dimensiones:', {
             width: elements.answerText.offsetWidth,
@@ -1022,3 +1029,24 @@ window.flashcardsApp = {
 };
 
 console.log('🎴 Flashcards JavaScript cargado correctamente');
+
+// ===== BARRA DE PROGRESO TIPO VERDADERO Y FALSO =====
+function updateProgressBar() {
+  const progressFill = document.querySelector('.vf-progress-fill');
+  if (progressFill) {
+    const progress = flashcardsData.length > 0 ? ((currentCardIndex + 1) / flashcardsData.length) * 100 : 0;
+    progressFill.style.width = `${progress}%`;
+  }
+
+  // Actualizar números de progreso
+  const currentNumber = document.querySelector('.fc-progress span:first-child');
+  const totalNumber = document.querySelector('.fc-progress span:last-child');
+
+  if (currentNumber) {
+    currentNumber.textContent = flashcardsData.length > 0 ? currentCardIndex + 1 : 0;
+  }
+  if (totalNumber) {
+    totalNumber.textContent = flashcardsData.length;
+  }
+}
+

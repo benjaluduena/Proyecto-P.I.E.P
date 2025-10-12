@@ -1,0 +1,37 @@
+.overlay-loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.overlay-loading-content {
+    text-align: center;
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+    border: 2px solid #f2edfe;
+}
+
+.overlay-loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f1f1f1;
+    border-top: 4px solid #a259fa;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem auto;
+}
+
+.overlay-loading p {
+    color: #333;
+    font-weight: 600;
+    margin: 0;
+}

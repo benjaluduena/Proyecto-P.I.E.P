@@ -68,7 +68,7 @@ class SummaryModule {
         });
 
         // Elementos especiales
-        this.domElements.backBtn = document.querySelector('.back-btn');
+        this.domElements.backBtn = document.getElementById('backBtn');
         this.domElements.progressBar = document.getElementById('progressBar');
     }
 

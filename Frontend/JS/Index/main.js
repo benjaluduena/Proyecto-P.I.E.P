@@ -1,4 +1,27 @@
 let isDropdownOpen = false;
+
+// Función para actualizar el menú activo
+function actualizarMenuActivo(seccion) {
+  // Remover clase activa de todos los elementos del menú
+  document.querySelectorAll('.btn-sidebar-menu').forEach(item => {
+    item.classList.remove('active');
+  });
+  
+  // Agregar clase activa al elemento correspondiente
+  if (seccion === 'home') {
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) {
+      homeBtn.classList.add('active');
+    }
+  } else {
+    // Para otras secciones, buscar el botón que tenga el onclick correspondiente
+    const activeButton = document.querySelector(`[onclick*="cargarSeccion('${seccion}')"]`);
+    if (activeButton) {
+      activeButton.classList.add('active');
+    }
+  }
+}
+
 // Carga inicial
 function cargarSeccion(nombre) {
   console.log(`Cargando sección: ${nombre}`);
@@ -19,6 +42,9 @@ function cargarSeccion(nombre) {
     .then(html => {
       console.log(`HTML cargado para ${nombre}`);
       contenedor.innerHTML = html;
+
+      // Actualizar clases activas del menú
+      actualizarMenuActivo(nombre);
 
       // Carga el script después de insertar el HTML
       const script = document.createElement('script');
@@ -138,10 +164,6 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       console.log('Botón Home clickeado');
       cargarSeccion('home');
-      
-      // Actualizar clases activas
-      document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
-      homeBtn.classList.add('active');
     });
   }
   
@@ -286,7 +308,7 @@ function openSettings() {
 // Asignar logout al botón 'Salir' de forma robusta
 function asignarLogout() {
   // Busca el botón por el icono de logout
-  const botones = document.querySelectorAll('.sidebar-footer .menu-item');
+  const botones = document.querySelectorAll('.sidebar-footer .btn-sidebar-menu');
   for (let btn of botones) {
     const svg = btn.querySelector('use');
     if (svg && svg.getAttribute('href') && svg.getAttribute('href').includes('icon-logout')) {
@@ -444,3 +466,5 @@ function updateUserProfileTitles() {
     }
   }
 }
+
+

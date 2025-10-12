@@ -2,43 +2,35 @@
 
 /* Contenedor principal del calendario */
 #contenido .calendario-container {
-  padding: 1.5rem;
+  padding: 40px;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   display: block;
   min-height: 100vh;
   box-sizing: border-box;
 }
 
-/* Header simple y minimalista */
-#contenido .calendario-container .calendario-header-simple {
-  padding: 1.5rem 0;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid #e2e8f0;
-}
 
-.header-content {
+
+.calendario-container .header-calendario {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 2rem;
 }
 
-.header-title h1 {
+.calendario-container .header-title h1 {
   font-size: 1.75rem;
   font-weight: 600;
   color: #1e293b;
-  margin: 0 0 0.25rem 0;
 }
 
-.header-title p {
+.calendario-container .header-title p {
   font-size: 0.95rem;
   color: #64748b;
   margin: 0;
 }
 
-.btn-nuevo-evento {
+.calendario-container .btn-nuevo-evento {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -53,7 +45,7 @@
   transition: all 0.2s ease;
 }
 
-.btn-nuevo-evento:hover {
+.calendario-container .btn-nuevo-evento:hover {
   background: #2563eb;
   transform: translateY(-1px);
 }
@@ -106,39 +98,33 @@
   gap: 1rem;
 }
 
-.nav-btn {
+.calendario-container .container-month{
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: white;
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  gap: 2rem;
 }
 
-.nav-btn:hover {
-  background: #f8fafc;
-  border-color: #3b82f6;
-  color: #3b82f6;
+.calendario-container .container-buttons{
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-.month-display {
+
+
+.calendario-container .month-display {
   flex: 1;
   text-align: center;
 }
 
-.month-display h2 {
+.calendario-container .month-display h2 {
   font-size: 1.5rem;
   font-weight: 600;
   color: #1e293b;
   margin: 0;
 }
 
-.btn-hoy {
+.calendario-container .btn-hoy {
   padding: 0.5rem 1rem;
   background: #f8fafc;
   color: #64748b;
@@ -157,7 +143,7 @@
 }
 
 /* Grid del calendario */
-#contenido .calendario-container .calendario-grid-container {
+.calendario-container .calendario-grid-container {
   background: white;
   border-radius: 1rem;
   overflow: hidden;
@@ -165,14 +151,14 @@
   margin-bottom: 1rem;
 }
 
-#contenido .calendario-container .calendar-weekdays {
+.calendario-container .calendar-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  background: #f8fafc;
+  background: white;
   border-bottom: 1px solid #e2e8f0;
 }
 
-#contenido .calendario-container .weekday {
+.calendario-container .weekday {
   padding: 1rem;
   text-align: center;
   font-weight: 600;
@@ -182,14 +168,14 @@
   letter-spacing: 0.05em;
 }
 
-#contenido .calendario-container .calendar-grid {
+.calendario-container .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   min-height: calc(100vh - 350px);
   max-height: 600px;
 }
 
-#contenido .calendario-container .calendar-day {
+.calendario-container .calendar-day {
   min-height: 80px;
   border-right: 1px solid #e2e8f0;
   border-bottom: 1px solid #e2e8f0;
@@ -202,57 +188,62 @@
   background: white;
 }
 
-#contenido .calendario-container .calendar-day:hover {
+.calendario-container .calendar-day:hover {
   background: #f8fafc;
 }
 
-#contenido .calendario-container .calendar-day.selected {
-  background: linear-gradient(135deg, #eff6ff, #dbeafe);
-  border-color: #3b82f6;
+.calendario-container .calendar-day.selected {
+  background: #F6EEFF;
 }
 
-#contenido .calendario-container .calendar-day.today {
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
+.calendario-container .calendar-day.today {
+  background: white;
 }
 
-#contenido .calendario-container .calendar-day.today.selected {
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+.calendario-container .calendar-day.today.selected {
+  background: white;
 }
 
-#contenido .calendario-container .calendar-day.other-month {
+.calendario-container .calendar-day.other-month {
   background: #fafafa;
   color: #9ca3af;
 }
 
-#contenido .calendario-container .calendar-day.other-month .day-number {
+.calendario-container .calendar-day.other-month .day-number {
   opacity: 0.5;
 }
 
-#contenido .calendario-container .day-number {
+.calendario-container .day-number {
   font-weight: 600;
   font-size: 1rem;
-  color: #374151;
   margin-bottom: 0.5rem;
 }
 
-#contenido .calendario-container .calendar-day.today .day-number {
-  color: #92400e;
+.calendario-container .calendar-day.today .day-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background-color: #A259FA;
+  color: white;
   font-weight: 700;
 }
 
-#contenido .calendario-container .calendar-day.has-events .day-number {
-  color: #1d4ed8;
+.calendario-container .calendar-day.has-events .day-number {
+  color: #A259FA;
   font-weight: 700;
 }
 
-#contenido .calendario-container .day-events {
+.calendario-container .day-events {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   flex: 1;
 }
 
-#contenido .calendario-container .event-dot {
+.calendario-container .event-dot {
   height: 0.5rem;
   border-radius: 0.25rem;
   font-size: 0.7rem;
@@ -264,27 +255,27 @@
   white-space: nowrap;
 }
 
-#contenido .calendario-container .event-estudio {
+.calendario-container .event-estudio {
   background: linear-gradient(90deg, #3b82f6, #1d4ed8);
 }
 
-#contenido .calendario-container .event-examen {
+.calendario-container .event-examen {
   background: linear-gradient(90deg, #ef4444, #dc2626);
 }
 
-#contenido .calendario-container .event-tarea {
+.calendario-container .event-tarea {
   background: linear-gradient(90deg, #f59e0b, #d97706);
 }
 
-#contenido .calendario-container .event-revision {
+.calendario-container .event-revision {
   background: linear-gradient(90deg, #8b5cf6, #7c3aed);
 }
 
-#contenido .calendario-container .event-descanso {
+.calendario-container .event-descanso {
   background: linear-gradient(90deg, #10b981, #059669);
 }
 
-#contenido .calendario-container .more-events {
+.calendario-container .more-events {
   font-size: 0.7rem;
   color: #6b7280;
   font-weight: 600;
@@ -319,18 +310,12 @@
 .modal-eventos-header {
   padding: 1.5rem;
   border-bottom: 1px solid #e2e8f0;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.fecha-info h3 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #1e293b;
-}
 
 .fecha-detalle {
   font-size: 0.95rem;
@@ -365,25 +350,7 @@
   box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
 }
 
-.btn-close-modal {
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 10px;
-  background: #f8fafc;
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
-.btn-close-modal:hover {
-  background: #fee2e2;
-  color: #ef4444;
-  transform: scale(1.1);
-}
 
 /* Contenido del modal */
 .modal-eventos-content {
@@ -446,16 +413,16 @@
 }
 
 /* Estadísticas del modal */
-.modal-eventos-stats {
+.calendario-container .modal-eventos-stats {
   padding: 1.5rem;
   border-top: 1px solid #e2e8f0;
-  background: #f8fafc;
+  background: white;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
 }
 
-.stat-item {
+.calendario-container .stat-item {
   text-align: center;
   padding: 1rem;
   background: white;
@@ -463,19 +430,27 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.stat-number {
+.calendario-container .stat-item:hover{
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+}
+
+.calendario-container .stat-item svg{
+  margin-bottom: 0.35rem;
+}
+
+.calendario-container .stat-number {
   display: block;
-  font-size: 1.75rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  color: #3b82f6;
+  color: #1e293b;
   margin-bottom: 0.25rem;
 }
 
-.stat-label {
+.calendario-container .stat-label {
   font-size: 0.85rem;
   color: #64748b;
   font-weight: 500;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
@@ -628,7 +603,7 @@
   padding: 0 1rem 1rem 1rem;
 }
 
-#contenido .calendario-container .action-btn {
+.calendario-container .action-btn {
   width: 32px;
   height: 32px;
   border: none;
@@ -638,7 +613,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8fafc;
+  background: white;
   color: #64748b;
 }
 
@@ -711,7 +686,8 @@
   visibility: visible;
 }
 
-.modal-content {
+/* .modal-content {
+  font-family: 'Poppins', sans-serif;
   background: white;
   border-radius: 1rem;
   width: 90%;
@@ -721,25 +697,10 @@
   box-shadow: 0 20px 64px rgba(0, 0, 0, 0.2);
   transform: scale(0.9) translateY(20px);
   transition: all 0.3s ease;
-}
+} */
 
 .modal-overlay.show .modal-content {
   transform: scale(1) translateY(0);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1e293b;
 }
 
 .modal-close {
@@ -747,7 +708,7 @@
   height: 2rem;
   border: none;
   border-radius: 0.5rem;
-  background: #f8fafc;
+  background: #F6EEFF;
   color: #374151;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -757,11 +718,7 @@
 }
 
 .modal-close:hover {
-  background: #e2e8f0;
-}
-
-.modal-form {
-  padding: 1.5rem;
+  background: #E9D7FE;
 }
 
 .form-group {
@@ -774,15 +731,15 @@
   gap: 1rem;
 }
 
-.form-group label {
+/* .form-group label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: #374151;
   font-size: 0.9rem;
-}
+} */
 
-.form-group input,
+/* .form-group input,
 .form-group select,
 .form-group textarea {
   width: 100%;
@@ -793,14 +750,13 @@
   transition: all 0.2s ease;
   background: white;
   box-sizing: border-box;
-}
+} */
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #A259FA;
 }
 
 .form-group textarea {
@@ -827,6 +783,12 @@
   margin-top: 2rem;
   padding-top: 1rem;
   border-top: 1px solid #e2e8f0;
+}
+
+.modal-title-container{
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 /* Notificaciones */

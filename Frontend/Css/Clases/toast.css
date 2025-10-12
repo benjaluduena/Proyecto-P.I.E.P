@@ -1,0 +1,63 @@
+@import url('/Css/Clases/variables.css');
+
+/* Notifications */
+.notification {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    color: #333;
+    font-weight: 500;
+    z-index: 1000;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    max-width: 400px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.notification .notif-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+.notif-icon {
+    width: 36px;
+    height: 36px;
+}
+.notif-title {
+    font-weight: 600;
+    font-size: 16px;
+}
+.notif-text {
+    font-size: 14px;
+    color: #475569;
+}
+.notif-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #64748b;
+    margin-left: auto;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.success {
+    background-color: var(--green-light);
+    border-left: 2px solid var(--success);
+}
+
+.notification.error {
+    background: var(--red-light);
+    border-left: 2px solid var(--red);
+}
+
+.notification.warning {
+    background: var(--warning);
+}

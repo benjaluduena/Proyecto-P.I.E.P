@@ -1,0 +1,78 @@
+
+/*Sidebar Contenedor*/
+.sidebar{
+    min-height: 100vh;
+    width: 230px;
+    flex-shrink: 0;
+    background: white;
+    border-right: 2px solid #f1f1f1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0 20px 0 20px;
+    position: relative;
+}
+
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 200px;
+    }
+}
+
+.sidebar h4{
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+/*Sidebar Top*/
+.sidebar-top{
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.sidebar-logo{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.sidebar-logo img{
+    width: 40px;
+    height: 40px;
+}
+
+
+/*Sidebar Footer*/
+.sidebar-footer{
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.sidebar-menu{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sidebar-user-profile{
+    background: transparent;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+
