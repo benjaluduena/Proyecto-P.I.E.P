@@ -1312,3 +1312,11 @@ function initializeHistorial() {
 // Exponer funciones globales para compatibilidad
 window.initializeHistorial = initializeHistorial;
 window.refreshHistorial = () => historialUnified?.loadData();
+
+// Limpieza básica para permitir re-inicialización al volver a la sección
+window.cleanupHistorial = function() {
+  try {
+    historialUnified = null;
+    window.historialUnified = null;
+  } catch (_) {}
+};

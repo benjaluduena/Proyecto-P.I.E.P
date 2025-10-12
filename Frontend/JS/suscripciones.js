@@ -1,7 +1,37 @@
-document.addEventListener('DOMContentLoaded', async function() {
-  await loadSubscriptionStatus();
+// Inicialización explícita para funcionar con loader SPA y carga directa
+function initializeSuscripciones() {
+  // Cargar estado y preparar eventos solo si el DOM posee los elementos
+  loadSubscriptionStatus();
   setupEventListeners();
-});
+}
+
+// Exportar inicializador para el sistema de secciones
+window.initializeSuscripciones = initializeSuscripciones;
+
+// Limpieza básica de listeners al cambiar de sección
+window.cleanupSuscripciones = function() {
+  const ids = [
+    'btnEstudiante',
+    'btnDocente',
+    'btnManageSubscription',
+    'btnCancelSubscription',
+    'btnSyncSubscription'
+  ];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.parentNode) {
+      const clone = el.cloneNode(true);
+      el.parentNode.replaceChild(clone, el);
+    }
+  });
+};
+
+// Ejecutar tanto en carga inicial de documento como cuando el loader inserta la sección
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeSuscripciones);
+} else {
+  initializeSuscripciones();
+}
 
 async function loadSubscriptionStatus() {
   try {

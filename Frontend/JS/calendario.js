@@ -669,20 +669,51 @@ class CalendarioStudyAI {
 let calendario;
 
 function initializeCalendar() {
-  // Solo inicializar si los elementos del calendario están presentes
-  if (document.getElementById('calendarGrid') && !calendario) {
+  // Solo si los elementos del calendario están presentes
+  if (document.getElementById('calendarGrid')) {
     try {
-      calendario = new CalendarioStudyAI();
-      window.calendario = calendario;
-      console.log('Calendario inicializado correctamente');
+      if (!calendario) {
+        calendario = new CalendarioStudyAI();
+        window.calendario = calendario;
+        console.log('Calendario inicializado correctamente');
+      } else if (typeof calendario.init === 'function') {
+        // Re-inicialización segura al recargar la sección
+        console.log('Re-inicializando calendario existente...');
+        calendario.init();
+      }
     } catch (error) {
       console.error('Error inicializando calendario:', error);
     }
   }
 }
 
+function cleanupCalendar() {
+  // Remover listeners clonando elementos comunes
+  const ids = [
+    'btnAnterior','btnSiguiente','btnHoy','btnNuevoEvento','btnCerrarModal','btnCancelar',
+    'btnNuevoEventoModal','btnCerrarModalDia','formEvento'
+  ];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.parentNode) {
+      const clone = el.cloneNode(true);
+      el.parentNode.replaceChild(clone, el);
+    }
+  });
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    if (btn && btn.parentNode) {
+      const clone = btn.cloneNode(true);
+      btn.parentNode.replaceChild(clone, btn);
+    }
+  });
+  // Resetear instancia para permitir nueva init
+  calendario = null;
+  window.calendario = null;
+}
+
 // Exponer funciones globalmente
 window.initializeCalendar = initializeCalendar;
+window.cleanupCalendar = cleanupCalendar;
 window.calendario = calendario;
 
 // Auto-inicializar si los elementos ya están presentes

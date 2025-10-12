@@ -1,5 +1,5 @@
-// Funciones para manejar la interactividad
-document.addEventListener('DOMContentLoaded', function () {
+// Inicialización explícita para funcionar con loader SPA y carga directa
+function initializePerfil() {
   // Poblar datos del usuario
   populateProfileFromUser();
   
@@ -52,7 +52,34 @@ document.addEventListener('DOMContentLoaded', function () {
   loadEnhancedAnalytics();
   loadAchievements();
   loadUserGoals();
-});
+}
+
+// Exportar inicializador para el sistema de secciones
+window.initializePerfil = initializePerfil;
+
+// Limpieza básica de listeners al cambiar de sección
+window.cleanupPerfil = function() {
+  const ids = [
+    'btnBack','btnAvatarUpload','btnEditProfile','toggleEmail','toggleReminder','togglePublic','toggleDark',
+    'btnSaveChanges','btnChangePassword','btnDeleteAccount','btnCloseEditModal','btnSaveProfile','btnCancelEdit',
+    'btnManageSubscriptionFromProfile','btnSyncSubscriptionFromProfile','btnDiagnosticSubscription',
+    'btnAddGoal','btnCloseGoalModal','btnSaveGoal','btnCancelGoal'
+  ];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.parentNode) {
+      const clone = el.cloneNode(true);
+      el.parentNode.replaceChild(clone, el);
+    }
+  });
+};
+
+// Ejecutar tanto en carga inicial de documento como cuando el loader inserta la sección
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializePerfil);
+} else {
+  initializePerfil();
+}
 
 function toggleSetting(element) {
   element.classList.toggle('active');

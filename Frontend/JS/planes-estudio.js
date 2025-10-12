@@ -1867,6 +1867,25 @@ function initializeStudyPlans() {
 }
 
 function cleanupStudyPlans() {
+    try {
+        // Desacoplar listeners de controles comunes clonando nodos
+        const ids = ['searchInput','sortBy','typeFilter','priorityFilter','resetFilters','gridView','listView','prevPage','nextPage'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.parentNode) {
+                const clone = el.cloneNode(true);
+                el.parentNode.replaceChild(clone, el);
+            }
+        });
+        // Botones de filtro
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            if (btn && btn.parentNode) {
+                const clone = btn.cloneNode(true);
+                btn.parentNode.replaceChild(clone, btn);
+            }
+        });
+    } catch (_) {}
+    // Resetear singleton para permitir nueva inicialización
     window.studyPlansManager = null;
 }
 
