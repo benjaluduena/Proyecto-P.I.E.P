@@ -13,21 +13,6 @@
     </div>
   </div>
 
-  <!-- Plan Actual -->
-  <div class="current-plan-section" id="currentPlanSection">
-    <div class="current-plan-card">
-      <div class="current-plan-badge">Plan Actual</div>
-      <div class="current-plan-content">
-        <h3 id="currentPlanName">Plan Básico</h3>
-        <p id="currentPlanStatus">Activo hasta el 15 de Septiembre, 2024</p>
-        <div class="current-plan-features">
-          <span class="feature-item">✅ 10 PDFs por mes</span>
-          <span class="feature-item">✅ Contenido IA básico</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Planes Disponibles -->
   <div class="plans-section">
     <div class="plans-grid">
@@ -61,12 +46,24 @@
             <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
             </svg>
-            Preguntas simples
+            1 ejercicio por PDF
+          </div>
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            Acceso básico a Mapas Mentales
+          </div>
+          <div class="feature-item">
+            <svg class="feature-check" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+            Soporte por email
           </div>
         </div>
         
-        <button class="plan-btn plan-btn-current" data-plan="basico">
-          Plan Actual
+        <button class="plan-btn plan-btn-free" data-plan="basico">
+          Plan Gratuito
         </button>
       </div>
 
@@ -225,3 +222,7 @@
   <div class="loading-spinner"></div>
   <p id="loadingMessage">Procesando cambio de plan...</p>
 </div>
+
+<!-- Scripts necesarios para esta sección cuando se abre directamente -->
+<link rel="stylesheet" href="/Css/cambiar-plan.css">
+<script src="/JS/cambiar-plan.js"></script>
