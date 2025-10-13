@@ -188,6 +188,116 @@ async function loadMindmap() {
       alert('Markdown copiado al portapapeles');
     });
 
+    // Exportar imagen del mapa mental
+    document.getElementById('exportBtn').addEventListener('click', async () => {
+      try {
+        // Esperar un momento para asegurar que el mapa esté completamente renderizado
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const svgElement = document.getElementById('markmap');
+        if (!svgElement) {
+          alert('No se encontró el mapa mental para exportar');
+          return;
+        }
+
+        // Verificar que el SVG tenga contenido
+        if (!svgElement.children || svgElement.children.length === 0) {
+          alert('El mapa mental aún no se ha generado completamente. Espera un momento e intenta de nuevo.');
+          return;
+        }
+
+        // Obtener las dimensiones del SVG
+        const svgRect = svgElement.getBoundingClientRect();
+        const svgWidth = svgRect.width || 800;
+        const svgHeight = svgRect.height || 600;
+        
+        // Crear un nuevo SVG para exportar con estilos inline
+        const exportSvg = svgElement.cloneNode(true);
+        exportSvg.setAttribute('width', svgWidth);
+        exportSvg.setAttribute('height', svgHeight);
+        exportSvg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+        exportSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        
+        // Agregar estilos CSS inline al SVG
+        const styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+        styleElement.textContent = `
+          .markmap-node > circle { fill: #4285f4; stroke: #fff; stroke-width: 2px; }
+          .markmap-node text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; fill: #333; }
+          .markmap-link { fill: none; stroke: #4285f4; stroke-width: 2px; }
+          .markmap-node--depth-0 > circle { fill: #ea4335; }
+          .markmap-node--depth-1 > circle { fill: #fbbc04; }
+          .markmap-node--depth-2 > circle { fill: #34a853; }
+          .markmap-node--depth-3 > circle { fill: #4285f4; }
+        `;
+        exportSvg.insertBefore(styleElement, exportSvg.firstChild);
+
+        // Crear canvas para convertir a PNG
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = svgWidth;
+        canvas.height = svgHeight;
+        
+        // Fondo blanco
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Convertir SVG a string y crear data URL directamente
+        const serializer = new XMLSerializer();
+        const svgString = serializer.serializeToString(exportSvg);
+        const svgDataUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+        
+        // Crear imagen y dibujar en canvas
+        const img = new Image();
+        
+        img.onload = function() {
+          // Dibujar el SVG en el canvas
+          ctx.drawImage(img, 0, 0);
+          
+          // Convertir canvas a blob y descargar
+          canvas.toBlob(function(blob) {
+            if (blob) {
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `${(titulo || 'mapa-mental').replace(/\s+/g, '_')}.png`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            } else {
+              alert('Error al generar la imagen. Intenta de nuevo.');
+            }
+          }, 'image/png', 1.0);
+        };
+        
+        img.onerror = function() {
+          // Si falla la carga de imagen, intentar descargar como SVG
+          console.warn('No se pudo convertir a PNG, descargando como SVG');
+          const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+          const url = URL.createObjectURL(svgBlob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${(titulo || 'mapa-mental').replace(/\s+/g, '_')}.svg`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        };
+        
+        // Cargar la imagen
+        img.src = svgDataUrl;
+        
+      } catch (error) {
+        console.error('Error al exportar imagen:', error);
+        alert('Error al exportar la imagen. Intenta de nuevo.');
+      }
+    });
+
+    // Botón para volver al inicio
+    document.getElementById('homeBtn').addEventListener('click', () => {
+      window.location.href = '/index.html';
+    });
+
   } catch (err) {
     console.error(err);
     const wrapper = document.getElementById('markmapWrapper');
@@ -196,8 +306,5 @@ async function loadMindmap() {
 }
 
 document.addEventListener('DOMContentLoaded', loadMindmap);
-document.querySelector('.back-btn').addEventListener('click', function () {
-  window.location.href = '/index.html';
-});
 
 

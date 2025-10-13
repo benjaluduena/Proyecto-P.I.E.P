@@ -346,13 +346,22 @@ class HistorialUnified {
    * Procesamiento optimizado de datos
    */
   processData() {
-    this.state.data = this.state.data.map(item => ({
-      ...item,
-      searchText: this.generateSearchText(item),
-      isFavorite: this.state.favorites.includes(item.id),
-      formattedDate: this.formatDate(item.created_at),
-      contentPreview: this.generateContentPreview(item.content, item.type)
-    }));
+    this.state.data = this.state.data.map(item => {
+      // Detectar mapas mentales guardados incorrectamente como flashcards
+      let effectiveType = item.type;
+      if (item.type === 'flashcards' && item.content && item.content.__type === 'mapa_mental') {
+        effectiveType = 'mapa_mental';
+      }
+      
+      return {
+        ...item,
+        type: effectiveType, // Usar el tipo efectivo
+        searchText: this.generateSearchText({...item, type: effectiveType}),
+        isFavorite: this.state.favorites.includes(item.id),
+        formattedDate: this.formatDate(item.created_at),
+        contentPreview: this.generateContentPreview(item.content, effectiveType)
+      };
+    });
   }
 
   /**

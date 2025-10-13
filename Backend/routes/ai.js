@@ -289,7 +289,7 @@ router.post('/generate/:pdfId', authMiddleware, validate(pdfIdParam, 'params'), 
     const { type } = req.body;
     // Normalizar tipo (permitir alias con guion)
     const normalizedType = (type || '').toString().trim().replace(/-/g, '_');
-    const storageType = normalizedType === 'mapa_mental' ? 'flashcards' : normalizedType;
+    const storageType = normalizedType; // Usar el tipo normalizado directamente
 
     // Validar tipo de contenido
     const validTypes = [
@@ -571,7 +571,7 @@ router.post('/regenerate/:outputId', authMiddleware, async (req, res) => {
     const pdfText = await extractTextFromPDF(safePath);
 
     // Generar nuevo contenido
-    const isMindmapAlias = existingOutput.type === 'flashcards' && existingOutput.content && existingOutput.content.__type === 'mapa_mental';
+    const isMindmapAlias = (existingOutput.type === 'flashcards' && existingOutput.content && existingOutput.content.__type === 'mapa_mental') || existingOutput.type === 'mapa_mental';
     const effectiveType = isMindmapAlias ? 'mapa_mental' : existingOutput.type;
     const newContent = await generateEducationalContent(
       pdfText,
