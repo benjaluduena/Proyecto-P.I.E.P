@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Perfil - StudyAI</title>
+  <title>Mi Perfil - P.I.E.P.</title>
   <link rel="icon" type="image/png" href="/Assets/Imagenes/PIEP-LOGOS.png">
   <link rel="shortcut icon" type="image/png" href="/Assets/Imagenes/PIEP-LOGOS.png">
   <link rel="apple-touch-icon" href="/Assets/Imagenes/PIEP-LOGOS.png">
@@ -19,11 +19,17 @@
 <body>
   <div class="header">
     <div class="header-content">
-      <img class="logo" src="/Assets/Imagenes/Logo.png" alt="">
-      <button class="back-btn" id="btnBack">
+      <div class="brand">
+        <img class="logo" src="/Assets/Imagenes/PIEP-LOGOS.png" alt="PIEP">
+        <div class="brand-text">
+          <span class="brand-name">P.I.E.P.</span>
+          <span class="brand-subtitle">Plataforma Inteligente de Estudio Personalizado</span>
+        </div>
+      </div>
+      <button class="btn btn-secondary" id="btnBack">
         <span class="buttons-ico">
-          <svg>
-            <use href="/Assets/sprite.svg#icon-back"></use>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M9 15l-3-3m0 0l3-3m-3 3h9a4 4 0 110 8h-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           Regresar
         </span>
@@ -52,7 +58,7 @@
         <div class="user-role-container">
           <span class="user-role" id="userRole">Estudiante</span>
 
-          <button class="edit-profile-btn" id="btnEditProfile">
+          <button class="btn btn-primary" id="btnEditProfile">
             <span class="buttons-ico">
               <svg>
                 <use href="/Assets/sprite.svg#icon-edit"></use>
@@ -182,9 +188,9 @@
             <div class="chart-bar" data-value="0"></div>
             <span class="chart-label">M</span>
           </div>
-          <div class="chart-day" data-day="X">
+          <div class="chart-day" data-day="M">
             <div class="chart-bar" data-value="0"></div>
-            <span class="chart-label">X</span>
+            <span class="chart-label">M</span>
           </div>
           <div class="chart-day" data-day="J">
             <div class="chart-bar" data-value="0"></div>
@@ -290,11 +296,7 @@
         </div>
       </div>
       
-      <div class="subscription-actions">
-        <button class="btn btn-primary" id="btnManageSubscriptionFromProfile">Gestionar Suscripción</button>
-        <button class="btn btn-secondary" id="btnSyncSubscriptionFromProfile">Sincronizar</button>
-        <button class="btn btn-secondary" id="btnDiagnosticSubscription">Diagnóstico</button>
-      </div>
+
     </div>
 
     <!-- Settings Section -->

@@ -450,10 +450,26 @@ class App {
             }, 500);
           }
           break;
-          
+
+        case 'calendario':
+          if (window.initializeCalendar) {
+            const safeInit = () => {
+              try { window.initializeCalendar(); } catch (_) {}
+            };
+            // Primer intento
+            setTimeout(safeInit, 200);
+            // Segundo intento por si el DOM tarda en renderizar
+            setTimeout(safeInit, 600);
+          }
+          break;
+
         case 'historial':
           if (window.initializeHistorial) {
-            setTimeout(() => window.initializeHistorial(), 200);
+            const safeInit = () => {
+              try { window.initializeHistorial(); } catch (_) {}
+            };
+            setTimeout(safeInit, 200);
+            setTimeout(safeInit, 600);
           }
           break;
           
@@ -465,7 +481,23 @@ class App {
           
         case 'planes-estudio':
           if (window.initializeStudyPlans) {
-            setTimeout(() => window.initializeStudyPlans(), 200);
+            const safeInit = () => {
+              try { window.initializeStudyPlans(); } catch (_) {}
+            };
+            setTimeout(safeInit, 200);
+            setTimeout(safeInit, 600);
+          }
+          break;
+
+        case 'suscripciones':
+          if (window.initializeSuscripciones) {
+            setTimeout(() => window.initializeSuscripciones(), 200);
+          }
+          break;
+
+        case 'perfil':
+          if (window.initializePerfil) {
+            setTimeout(() => window.initializePerfil(), 200);
           }
           break;
           
@@ -569,9 +601,37 @@ class App {
       
       console.log('🧹 Limpieza del carousel del home realizada');
     }
-    
+
+    if (window.activeScript === 'calendario') {
+      if (window.cleanupCalendar) {
+        try { window.cleanupCalendar(); } catch (_) {}
+      }
+    }
+
+    if (window.activeScript === 'suscripciones') {
+      if (window.cleanupSuscripciones) {
+        try { window.cleanupSuscripciones(); } catch (_) {}
+      }
+    }
+
+    if (window.activeScript === 'perfil') {
+      if (window.cleanupPerfil) {
+        try { window.cleanupPerfil(); } catch (_) {}
+      }
+    }
+
+    if (window.activeScript === 'planes-estudio') {
+      if (window.cleanupStudyPlans) {
+        try { window.cleanupStudyPlans(); } catch (_) {}
+      }
+    }
+
     // Limpiar variables globales específicas de historial
     if (window.activeScript === 'historial') {
+      // Intentar limpieza explícita si el módulo la expone
+      if (window.cleanupHistorial) {
+        try { window.cleanupHistorial(); } catch (_) {}
+      }
       // Primero limpiar cualquier loading específico del historial que pueda estar activo
       const contentGrid = document.getElementById('contentGrid') || document.querySelector('.content-grid');
       if (contentGrid) {
@@ -632,6 +692,10 @@ class App {
       }
       
       console.log('🧹 Limpieza completa del historial realizada');
+      // Resetear instancia para permitir nueva inicialización
+      if (window.cleanupHistorial) {
+        try { window.cleanupHistorial(); } catch (_) {}
+      }
     }
   }
 
