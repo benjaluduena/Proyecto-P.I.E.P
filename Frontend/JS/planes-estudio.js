@@ -29,19 +29,17 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         const addTaskBtn = document.getElementById('addTaskBtn');
         if (addTaskBtn) addTaskBtn.addEventListener('click', () => this.addTaskToForm());
         
-        // Agregar event listener global para los botones "Ver detalles"
+        // Agregar event listener global para botones "Ver detalles" (expandir tarjeta, no modal)
         document.addEventListener('click', (e) => {
             const viewBtn = e.target.closest('.action-btn.view-plan');
             if (viewBtn) {
                 e.preventDefault();
                 e.stopPropagation();
                 const card = viewBtn.closest('.study-plan-card');
-                if (card) {
-                    const planId = card.getAttribute('data-plan-id');
-                    if (planId) {
-                        console.log('Ver detalles clicked, planId:', planId);
-                        this.viewPlanDetails(planId);
-                    }
+                const planId = card?.getAttribute('data-plan-id');
+                const plan = this.studyPlans.find(p => String(p.id) === String(planId));
+                if (card && plan) {
+                    this.expandCard(card, plan);
                 }
             }
         });
@@ -83,15 +81,16 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
 
         // Delegación de eventos global para garantizar funcionamiento de botones dinámicos
         document.addEventListener('click', (e) => {
-            // Ver detalles de tarjeta (abrir modal)
+            // Ver detalles de tarjeta (expandir en la tarjeta, sin modal)
             const viewBtn = e.target.closest('.view-btn');
             if (viewBtn) {
                 e.preventDefault();
                 e.stopPropagation();
                 const card = viewBtn.closest('.study-plan-card');
                 const planId = card?.getAttribute('data-plan-id');
-                if (planId) {
-                    this.viewPlanDetails(planId);
+                const plan = this.studyPlans.find(p => String(p.id) === String(planId));
+                if (card && plan) {
+                    this.expandCard(card, plan);
                     return;
                 }
             }
@@ -127,9 +126,22 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
             const viewTaskBtn = e.target.closest('.btn-view-task');
             if (viewTaskBtn) {
                 e.preventDefault();
+                e.stopPropagation();
                 const card = viewTaskBtn.closest('.study-plan-card');
                 const planId = card?.getAttribute('data-plan-id');
-                if (planId) this.viewPlanDetails(planId);
+                const plan = this.studyPlans.find(p => String(p.id) === String(planId));
+                if (card && plan) {
+                    // Activar pestaña de Tareas dentro de la misma tarjeta
+                    const tasksTabBtn = card.querySelector('.tab-btn[data-tab="tasks"]');
+                    if (tasksTabBtn) {
+                        tasksTabBtn.click();
+                        // Intentar centrar el elemento de tarea en la vista
+                        const taskItem = viewTaskBtn.closest('.task-item');
+                        setTimeout(() => {
+                            if (taskItem) taskItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 100);
+                    }
+                }
                 return;
             }
 
@@ -402,7 +414,15 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
             item.querySelector('.btn-edit-task')?.addEventListener('click', () => this.editTask(taskId));
             item.querySelector('.btn-toggle-task')?.addEventListener('click', () => this.toggleTaskCompletion(taskId));
             item.querySelector('.btn-delete-task')?.addEventListener('click', () => this.deleteTask(taskId));
-            item.querySelector('.btn-view-task')?.addEventListener('click', () => this.viewPlanDetails(plan.id));
+            // Evitar modal: activar pestaña de tareas y enfocar elemento
+            item.querySelector('.btn-view-task')?.addEventListener('click', () => {
+                const tasksTabBtn = cardElement.querySelector('.tab-btn[data-tab="tasks"]');
+                if (tasksTabBtn) tasksTabBtn.click();
+                setTimeout(() => {
+                    const currentItem = cardElement.querySelector(`.task-item[data-task-id="${taskId}"]`);
+                    if (currentItem) currentItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            });
         });
     }
 
@@ -903,9 +923,9 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 e.preventDefault();
                 e.stopPropagation();
                 const planId = card.getAttribute('data-plan-id');
-                console.log('Ver detalles clicked, planId:', planId);
                 if (planId) {
-                    this.viewPlanDetails(planId);
+                    // Abrir vista expandida en la tarjeta en lugar del modal
+                    this.expandCard(card, plan);
                 }
             });
         }
