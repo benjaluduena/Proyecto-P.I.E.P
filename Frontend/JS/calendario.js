@@ -3,6 +3,7 @@ class CalendarioStudyAI {
   constructor() {
     this.currentDate = new Date();
     this.selectedDate = new Date(); // Seleccionar hoy por defecto
+    this.listenersAttached = false; // Evitar adjuntar listeners múltiples veces
     this.eventos = this.loadEventos();
     if (!this.eventos || this.eventos.length === 0) {
       this.eventos = this.createSampleEvents();
@@ -19,6 +20,24 @@ class CalendarioStudyAI {
   }
 
   setupEventListeners() {
+    // Reiniciar posibles listeners previos (SPA) clonando elementos clave
+    const ids = [
+      'btnAnterior','btnSiguiente','btnHoy','btnNuevoEvento','btnCerrarModal','btnCancelar',
+      'btnNuevoEventoModal','btnCerrarModalDia','formEvento'
+    ];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.parentNode) {
+        const clone = el.cloneNode(true);
+        el.parentNode.replaceChild(clone, el);
+      }
+    });
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      if (btn && btn.parentNode) {
+        const clone = btn.cloneNode(true);
+        btn.parentNode.replaceChild(clone, btn);
+      }
+    });
     // Navegación del calendario
     document.getElementById('btnAnterior')?.addEventListener('click', () => this.navigateMonth(-1));
     document.getElementById('btnSiguiente')?.addEventListener('click', () => this.navigateMonth(1));
@@ -54,9 +73,14 @@ class CalendarioStudyAI {
     // Auto-calcular hora fin al cambiar duración
     document.getElementById('eventoDuracion')?.addEventListener('input', () => this.updateEndTime());
     document.getElementById('eventoHoraInicio')?.addEventListener('input', () => this.updateEndTime());
+
+    // Marcar listeners como adjuntos
+    this.listenersAttached = true;
   }
 
   navigateMonth(direction) {
+    // Evitar saltos de mes por días fuera de rango (ej: 31)
+    this.currentDate.setDate(1);
     this.currentDate.setMonth(this.currentDate.getMonth() + direction);
     this.renderCalendar();
     this.updateCurrentMonthDisplay();
