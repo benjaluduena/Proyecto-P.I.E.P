@@ -1690,3 +1690,218 @@ template *,
   padding: 16px;
   color: #6b7280;
 }
+/* =============================
+   Mejora visual de tareas (override)
+   ============================= */
+.tasks-list-expanded {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.tasks-list-expanded .task-item {
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.task-title {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.task-status {
+  padding: 4px 10px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+}
+.task-item.completed .task-status {
+  color: #157a2f;
+  background: #e7f6ec;
+}
+
+.task-actions {
+  display: flex;
+  gap: 8px;
+}
+.task-actions .btn {
+  padding: 6px 10px;
+  font-size: var(--font-size-xs);
+}
+
+.task-form-inline {
+  background: var(--bg-primary);
+  border: 1px solid var(--bg-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+}
+.task-form-inline .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+.task-form-inline .form-actions {
+  margin-top: var(--spacing-md);
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* Controles de filtros y orden en header */
+.tasks-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.tasks-controls .task-filter {
+  padding: 6px 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #fff;
+}
+
+/* Panel de detalles de tarea */
+.task-details {
+  grid-column: 1 / -1;
+  background: #fafafa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.task-details.collapsed { display: none; }
+.task-details .detail-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px;
+  margin: 4px 0;
+}
+.task-details .label { color: #6c757d; font-size: 12px; }
+.task-details .value { color: #2c3e50; font-weight: 500; }
+
+/* Días restantes junto a la fecha */
+.task-details .days-remaining-inline {
+  margin-left: 6px;
+  font-size: 12px;
+  color: #6c757d;
+}
+
+/* Badge de prioridad junto al estado */
+.priority-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  margin-left: 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+.priority-badge.high { background: #e74c3c; }
+.priority-badge.medium { background: #f1c40f; color: #333; }
+.priority-badge.low { background: #2ecc71; }
+
+/* Barra de añadido rápido */
+.task-quick-add {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 12px 0 16px 0;
+}
+.task-quick-add input[type="text"],
+.task-quick-add input[type="date"],
+.task-quick-add select {
+  padding: 6px 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+}
+
+/* =============================
+   Estética: Pestaña Editar
+   ============================= */
+.expanded-view .tab-panel[data-panel="edit"] .edit-plan-form {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.expanded-view .tab-panel[data-panel="edit"] .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.expanded-view .tab-panel[data-panel="edit"] .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.expanded-view .tab-panel[data-panel="edit"] label {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.expanded-view .tab-panel[data-panel="edit"] input[type="text"],
+.expanded-view .tab-panel[data-panel="edit"] input[type="date"],
+.expanded-view .tab-panel[data-panel="edit"] textarea,
+.expanded-view .tab-panel[data-panel="edit"] select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e3e6ea;
+  border-radius: 10px;
+  background: #fff;
+  color: #1f2937;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.expanded-view .tab-panel[data-panel="edit"] textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.expanded-view .tab-panel[data-panel="edit"] input[type="text"]:focus,
+.expanded-view .tab-panel[data-panel="edit"] input[type="date"]:focus,
+.expanded-view .tab-panel[data-panel="edit"] textarea:focus,
+.expanded-view .tab-panel[data-panel="edit"] select:focus {
+  border-color: #7A99D4;
+  box-shadow: 0 0 0 3px rgba(122,153,212,0.18);
+  background: #fbfcff;
+}
+
+.expanded-view .tab-panel[data-panel="edit"] .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f2f5;
+}
+
+.expanded-view .tab-panel[data-panel="edit"] .btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+.expanded-view .tab-panel[data-panel="edit"] .btn-secondary:hover {
+  background: #e9ecef;
+}
+.expanded-view .tab-panel[data-panel="edit"] .btn-primary {
+  box-shadow: 0 8px 20px rgba(30,64,175,0.16);
+}
+
+/* Responsive para Editar */
+@media (max-width: 768px) {
+  .expanded-view .tab-panel[data-panel="edit"] .form-row { grid-template-columns: 1fr; }
+  .expanded-view .tab-panel[data-panel="edit"] .edit-plan-form { padding: 14px; border-radius: 14px; }
+  .expanded-view .tab-panel[data-panel="edit"] input,
+  .expanded-view .tab-panel[data-panel="edit"] textarea,
+  .expanded-view .tab-panel[data-panel="edit"] select { font-size: 14px; }
+  .expanded-view .tab-panel[data-panel="edit"] .form-actions { flex-direction: column; align-items: stretch; }
+}

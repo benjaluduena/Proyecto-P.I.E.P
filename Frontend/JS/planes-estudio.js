@@ -385,11 +385,90 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         // Botón para agregar tarea
         const addTaskBtn = cardElement.querySelector('.add-task-btn');
         if (addTaskBtn) {
-            // Se mantiene por compatibilidad, pero existe delegación global
-            addTaskBtn.onclick = () => this.openAddTaskForm(cardElement, plan);
+            // Asegurar un único manejador para evitar dobles invocaciones
+            addTaskBtn.onclick = null;
         }
 
-        const tasks = plan.plan_tasks || [];
+        // Inyectar controles de filtro/orden una sola vez en el header
+        const header = tasksPanel?.querySelector('.tasks-header');
+        if (header && !header.querySelector('.tasks-controls')) {
+            const controls = document.createElement('div');
+            controls.className = 'tasks-controls';
+            controls.innerHTML = `
+                <select class="task-filter" id="taskStatusFilter">
+                    <option value="">Estado</option>
+                    <option value="pending">Pendiente</option>
+                    <option value="completed">Completada</option>
+                </select>
+                <select class="task-filter" id="taskPriorityFilter">
+                    <option value="">Prioridad</option>
+                    <option value="high">Alta</option>
+                    <option value="medium" selected>Media</option>
+                    <option value="low">Baja</option>
+                </select>
+                <select class="task-filter" id="taskSortBy">
+                    <option value="due_date" selected>Orden: Fecha límite</option>
+                    <option value="title">Orden: Título</option>
+                </select>
+            `;
+            header.insertBefore(controls, header.querySelector('.add-task-btn'));
+
+            // Estado simple de filtros a nivel de instancia
+            this.taskFilter = this.taskFilter || { status: '', priority: '', sortBy: 'due_date' };
+
+            const statusSel = controls.querySelector('#taskStatusFilter');
+            const prioSel = controls.querySelector('#taskPriorityFilter');
+            const sortSel = controls.querySelector('#taskSortBy');
+
+            // Inicializar valores actuales
+            statusSel.value = this.taskFilter.status || '';
+            prioSel.value = this.taskFilter.priority || '';
+            sortSel.value = this.taskFilter.sortBy || 'due_date';
+
+            const rerender = () => this.loadTasksTab(cardElement, plan);
+            statusSel.addEventListener('change', (e) => { this.taskFilter.status = e.target.value; rerender(); });
+            prioSel.addEventListener('change', (e) => { this.taskFilter.priority = e.target.value; rerender(); });
+            sortSel.addEventListener('change', (e) => { this.taskFilter.sortBy = e.target.value; rerender(); });
+        }
+
+        // Inyectar barra de añadido rápido (simple) si no existe
+        if (tasksPanel && !tasksPanel.querySelector('.task-quick-add')) {
+            const quick = document.createElement('div');
+            quick.className = 'task-quick-add';
+            quick.innerHTML = `
+                <input type="text" id="quickTaskTitle" placeholder="Nueva tarea (título)" />
+                <input type="date" id="quickTaskDueDate" />
+                <select id="quickTaskPriority">
+                    <option value="low">Baja</option>
+                    <option value="medium" selected>Media</option>
+                    <option value="high">Alta</option>
+                </select>
+                <button class="btn btn-sm btn-primary" id="quickTaskSaveBtn">Guardar</button>
+            `;
+            tasksPanel.insertBefore(quick, tasksContainer);
+            quick.querySelector('#quickTaskSaveBtn')?.addEventListener('click', () => this.saveQuickTask(cardElement, plan, quick));
+        }
+
+        // Solo mostrar tareas reales (excluir las creadas para alojar contenido generado)
+        let tasks = this.getUserTasks(plan);
+        // Aplicar filtros si existen
+        const filter = this.taskFilter || { status: '', priority: '', sortBy: 'due_date' };
+        if (filter.status) {
+            tasks = tasks.filter(t => filter.status === 'completed' ? !!t.completed : !t.completed);
+        }
+        if (filter.priority) {
+            tasks = tasks.filter(t => (t.priority || 'medium') === filter.priority);
+        }
+        // Ordenar
+        tasks = tasks.slice().sort((a, b) => {
+            const sortBy = filter.sortBy || 'due_date';
+            if (sortBy === 'title') {
+                return (a.title || '').localeCompare(b.title || '');
+            }
+            const da = a.due_date ? new Date(a.due_date) : new Date(0);
+            const db = b.due_date ? new Date(b.due_date) : new Date(0);
+            return da - db;
+        });
         if (!tasks.length) {
             tasksContainer.innerHTML = '<p class="empty-message">No hay tareas registradas en este plan.</p>';
             return;
@@ -397,13 +476,18 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
 
         tasksContainer.innerHTML = tasks.map(task => `
             <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
-                <span class="task-title">${task.title}</span>
+                <span class="task-title">${this.escapeHtml(task.title || '')}</span>
                 <span class="task-status">${task.completed ? 'Completada' : 'Pendiente'}</span>
+                <span class="priority-badge ${task.priority || 'medium'}">${this.getPriorityText(task.priority || 'medium')}</span>
                 <div class="task-actions">
+                    <button class="btn btn-sm btn-secondary btn-details-task">Detalles</button>
                     <button class="btn btn-sm btn-outline-primary btn-edit-task">Editar</button>
                     <button class="btn btn-sm ${task.completed ? 'btn-warning' : 'btn-success'} btn-toggle-task">${task.completed ? 'Desmarcar' : 'Completar'}</button>
                     <button class="btn btn-sm btn-danger btn-delete-task">Eliminar</button>
-                    <button class="btn btn-sm btn-secondary btn-view-task">Ver</button>
+                </div>
+                <div class="task-details collapsed">
+                    <div class="detail-row"><span class="label">Fecha límite:</span><span class="value">${this.formatDate(task.due_date)} <span class="days-remaining-inline">(${this.calculateDaysRemaining(task.due_date)} días restantes)</span></span></div>
+                    ${task.description ? `<div class="detail-row"><span class="label">Descripción:</span><span class="value">${this.escapeHtml(task.description)}</span></div>` : ''}
                 </div>
             </div>
         `).join('');
@@ -411,18 +495,16 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         // Conectar acciones
         tasksContainer.querySelectorAll('.task-item').forEach(item => {
             const taskId = item.getAttribute('data-task-id');
+            item.querySelector('.btn-details-task')?.addEventListener('click', () => {
+                const panel = item.querySelector('.task-details');
+                if (!panel) return;
+                const isCollapsed = panel.classList.toggle('collapsed');
+                const btn = item.querySelector('.btn-details-task');
+                if (btn) btn.textContent = isCollapsed ? 'Detalles' : 'Ocultar';
+            });
             item.querySelector('.btn-edit-task')?.addEventListener('click', () => this.editTask(taskId));
             item.querySelector('.btn-toggle-task')?.addEventListener('click', () => this.toggleTaskCompletion(taskId));
             item.querySelector('.btn-delete-task')?.addEventListener('click', () => this.deleteTask(taskId));
-            // Evitar modal: activar pestaña de tareas y enfocar elemento
-            item.querySelector('.btn-view-task')?.addEventListener('click', () => {
-                const tasksTabBtn = cardElement.querySelector('.tab-btn[data-tab="tasks"]');
-                if (tasksTabBtn) tasksTabBtn.click();
-                setTimeout(() => {
-                    const currentItem = cardElement.querySelector(`.task-item[data-task-id="${taskId}"]`);
-                    if (currentItem) currentItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 100);
-            });
         });
     }
 
@@ -1014,8 +1096,9 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         if (endDate) endDate.textContent = this.formatDate(plan.end_date);
 
         // Estadísticas de tareas
-        const totalTasks = plan.plan_tasks ? plan.plan_tasks.length : 0;
-        const completed = plan.plan_tasks ? plan.plan_tasks.filter(task => task.completed).length : 0;
+        const userTasks = this.getUserTasks(plan);
+        const totalTasks = userTasks.length;
+        const completed = userTasks.filter(task => task.completed).length;
         const progress = totalTasks > 0 ? Math.round((completed / totalTasks) * 100) : 0;
 
         if (tasksCount) tasksCount.textContent = totalTasks;
@@ -1154,9 +1237,10 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
     }
 
     calculateProgress(plan) {
-        if (!plan.plan_tasks || plan.plan_tasks.length === 0) return 0;
-        const completed = plan.plan_tasks.filter(task => task.completed).length;
-        return Math.round((completed / plan.plan_tasks.length) * 100);
+        const userTasks = this.getUserTasks(plan);
+        if (userTasks.length === 0) return 0;
+        const completed = userTasks.filter(task => task.completed).length;
+        return Math.round((completed / userTasks.length) * 100);
     }
 
     getStatusText(status) {
@@ -1298,11 +1382,11 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         if (statusSelect) statusSelect.value = plan.status || 'active';
         if (prioritySelect) prioritySelect.value = plan.priority || 'medium';
 
-        // Cargar tareas existentes
+        // Cargar tareas existentes (solo las reales, sin las vinculadas a contenido)
         const tasksContainer = document.getElementById('tasksContainer');
         if (tasksContainer && plan.plan_tasks) {
             tasksContainer.innerHTML = '';
-            plan.plan_tasks.forEach(task => {
+            this.getUserTasks(plan).forEach(task => {
                 this.addTaskToForm(task);
             });
         }
@@ -1507,7 +1591,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         }
 
         if (tasksList) {
-            this.populateTasksList(plan.plan_tasks || []);
+            this.populateTasksList(this.getUserTasks(plan));
         }
     }
 
@@ -1554,13 +1638,65 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         return taskDiv;
     }
 
+    // Utilidad para separar tareas de contenido
+    getUserTasks(plan) {
+        const list = plan?.plan_tasks || [];
+        return list.filter(t => !t.output_id);
+    }
+
     getPriorityText(priority) {
         const priorityMap = {
             'high': 'Alta',
             'medium': 'Media',
             'low': 'Baja'
         };
-        return priorityMap[priority] || priority;
+        return priorityMap[priority] || 'Media';
+    }
+
+    async saveQuickTask(cardElement, plan, form) {
+        const title = form.querySelector('#quickTaskTitle')?.value?.trim();
+        const dueDate = form.querySelector('#quickTaskDueDate')?.value || null;
+        const priority = form.querySelector('#quickTaskPriority')?.value || 'medium';
+
+        if (!title || !dueDate) {
+            this.showError('Título y fecha de vencimiento son requeridos.');
+            return;
+        }
+
+        try {
+            const saveBtn = form.querySelector('#quickTaskSaveBtn');
+            if (saveBtn) this.setButtonLoading(saveBtn, true, 'Guardando...');
+            const token = this.getAuthToken();
+            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+            const res = await fetch(`${base}/api/study/plans/${plan.id}/tasks`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ title, description: '', due_date: dueDate, priority })
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || data.message || 'Error al crear la tarea');
+            }
+
+            // Actualizar el plan en memoria
+            plan.plan_tasks = Array.isArray(plan.plan_tasks) ? [ ...plan.plan_tasks, data ] : [ data ];
+            form.querySelector('#quickTaskTitle').value = '';
+            form.querySelector('#quickTaskDueDate').value = '';
+            form.querySelector('#quickTaskPriority').value = 'medium';
+            this.showSuccess('Tarea creada exitosamente');
+            // Re-render de la pestaña para reflejar filtros/sort y nueva tarea
+            this.loadTasksTab(cardElement, plan);
+        } catch (err) {
+            console.error('saveQuickTask error:', err);
+            this.showError(err.message || 'No se pudo crear la tarea');
+        } finally {
+            const saveBtn = form.querySelector('#quickTaskSaveBtn');
+            if (saveBtn) this.setButtonLoading(saveBtn, false, 'Guardar');
+        }
     }
 
     async togglePlanStatus(planId) {
@@ -1703,8 +1839,116 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
     }
 
     async editTask(taskId) {
-        console.log('Editar tarea:', taskId);
-        this.editCurrentPlan();
+        // Buscar el elemento visual y el plan
+        const taskItem = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
+        const card = taskItem?.closest('.study-plan-card');
+        const planId = card?.getAttribute('data-plan-id');
+        const plan = this.studyPlans.find(p => String(p.id) === String(planId));
+
+        if (!plan) {
+            this.showError('No se encontró el plan para esta tarea');
+            return;
+        }
+
+        const task = (plan.plan_tasks || []).find(t => String(t.id) === String(taskId));
+        if (!task) {
+            this.showError('Tarea no encontrada');
+            return;
+        }
+        if (task.output_id) {
+            this.showError('Esta tarea está vinculada a contenido y no se puede editar aquí');
+            return;
+        }
+
+        // Renderizar formulario inline de edición
+        const container = card.querySelector('.tasks-list-expanded') || card.querySelector('.tasks-list');
+        if (!container) return;
+
+        // Evitar múltiples formularios abiertos (solo edición)
+        container.querySelectorAll('.task-form-inline-edit, .task-form-inline-new').forEach(f => f.remove());
+
+        const form = document.createElement('div');
+        form.className = 'task-form-inline task-form-inline-edit';
+        form.innerHTML = `
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Título</label>
+                    <input type="text" id="editTaskTitle" value="${this.escapeHtml(task.title)}" />
+                </div>
+                <div class="form-field">
+                    <label>Descripción</label>
+                    <textarea id="editTaskDescription">${this.escapeHtml(task.description || '')}</textarea>
+                </div>
+                <div class="form-field">
+                    <label>Fecha límite</label>
+                    <input type="date" id="editTaskDueDate" value="${task.due_date || ''}" />
+                </div>
+                <div class="form-field">
+                    <label>Prioridad</label>
+                    <select id="editTaskPriority">
+                        <option value="low" ${task.priority === 'low' ? 'selected' : ''}>Baja</option>
+                        <option value="medium" ${task.priority === 'medium' ? 'selected' : ''}>Media</option>
+                        <option value="high" ${task.priority === 'high' ? 'selected' : ''}>Alta</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn primary" id="saveEditTaskBtn">Guardar</button>
+                <button class="btn secondary" id="cancelEditTaskBtn">Cancelar</button>
+            </div>
+        `;
+
+        // Insertar el formulario justo antes del listado
+        container.prepend(form);
+
+        form.querySelector('#cancelEditTaskBtn').onclick = () => form.remove();
+        form.querySelector('#saveEditTaskBtn').onclick = async () => {
+            const title = form.querySelector('#editTaskTitle')?.value?.trim();
+            const description = form.querySelector('#editTaskDescription')?.value?.trim();
+            const dueDate = form.querySelector('#editTaskDueDate')?.value || null;
+            const priority = form.querySelector('#editTaskPriority')?.value || 'medium';
+
+            if (!title) {
+                this.showError('El título de la tarea es requerido.');
+                return;
+            }
+
+            try {
+                const saveBtn = form.querySelector('#saveEditTaskBtn');
+                if (saveBtn) this.setButtonLoading(saveBtn, true, 'Guardando...');
+                const token = this.getAuthToken();
+                const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+                const res = await fetch(`${base}/api/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    },
+                    body: JSON.stringify({ title, description, due_date: dueDate, priority })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data?.error || 'No se pudo actualizar la tarea');
+                }
+
+                // Actualizar en memoria
+                const idx = (plan.plan_tasks || []).findIndex(t => String(t.id) === String(taskId));
+                if (idx >= 0) {
+                    plan.plan_tasks[idx] = { ...plan.plan_tasks[idx], title, description, due_date: dueDate, priority };
+                }
+
+                form.remove();
+                this.loadTasksTab(card, plan);
+                this.showSuccess('Tarea actualizada correctamente');
+            } catch (error) {
+                console.error('Error actualizando tarea:', error);
+                this.showError(error.message || 'Error al actualizar la tarea');
+            } finally {
+                const saveBtn = form.querySelector('#saveEditTaskBtn');
+                if (saveBtn) this.setButtonLoading(saveBtn, false);
+            }
+        };
     }
 
     async deleteTask(taskId) {
@@ -1918,8 +2162,15 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         const tasksContainer = cardElement.querySelector('.tasks-list-expanded') || cardElement.querySelector('.tasks-list');
         if (!tasksContainer) return;
 
+        // Evitar múltiples formularios NUEVOS abiertos: si ya existe uno, solo enfocarlo
+        const existingForm = tasksContainer.querySelector('.task-form-inline-new');
+        if (existingForm) {
+            existingForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
         const form = document.createElement('div');
-        form.className = 'task-form-inline';
+        form.className = 'task-form-inline task-form-inline-new';
         form.innerHTML = `
             <div class="form-grid">
                 <div class="form-field">
@@ -1961,8 +2212,9 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         const dueDate = form.querySelector('#newTaskDueDate')?.value || null;
         const priority = form.querySelector('#newTaskPriority')?.value || 'medium';
 
-        if (!title) {
-            this.showError('El título de la tarea es requerido.');
+        // Validar requeridos según backend: título y fecha de vencimiento
+        if (!title || !dueDate) {
+            this.showError('Título y fecha de vencimiento son requeridos.');
             return;
         }
 
@@ -1977,7 +2229,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                     'Content-Type': 'application/json',
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 },
-                body: JSON.stringify({ title, description, dueDate, priority })
+                body: JSON.stringify({ title, description, due_date: dueDate, priority })
             });
 
             const data = await res.json();
