@@ -492,7 +492,7 @@ body {
 .qa-input-footer {
     margin-top: 12px;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
 }
 
 .qa-input-hint {
@@ -628,6 +628,30 @@ body {
     .qa-input-container {
         padding: 16px;
     }
+}
+
+/* Botón copiar en respuestas */
+.qa-copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(162, 89, 250, 0.12);
+    border: 1px solid rgba(162, 89, 250, 0.35);
+    color: #6b46c1;
+    font-size: 12px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.qa-copy-btn:hover { background: rgba(162, 89, 250, 0.2); }
+.qa-copy-btn.copied { background: #48bb78; color: white; border-color: #48bb78; }
+
+/* Mensaje de error dentro del chat */
+.qa-message-content.qa-error {
+    background: #fff5f5;
+    border-color: #feb2b2;
+    color: #c53030;
 }
 
 /* Animaciones de entrada suaves */

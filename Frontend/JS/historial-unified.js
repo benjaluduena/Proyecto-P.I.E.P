@@ -544,6 +544,14 @@ class HistorialUnified {
       </div>
       
       <div class="card-content">
+        <div class="card-file" title="PDF origen">
+          <span class="file-pill">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,9H18V20H6V4H13V9Z"/>
+            </svg>
+            ${this.escapeHtml(item.pdf_name || item.pdf_title || 'Documento')}
+          </span>
+        </div>
         <h3 class="card-title">${this.escapeHtml(item.pdf_title || 'Sin título')}</h3>
         <div class="card-preview">${item.contentPreview}</div>
         <div class="card-meta">

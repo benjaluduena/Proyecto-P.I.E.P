@@ -4,7 +4,7 @@ let planData = {
   basico: {
     name: 'Básico',
     price: 0,
-    features: ['5 PDFs por mes', 'Resúmenes básicos', 'Preguntas simples'],
+    features: ['5 PDFs por mes', 'Resúmenes básicos', '1 ejercicio por PDF', 'Acceso básico a Mapas Mentales', 'Soporte por email'],
     status: 'Gratis para siempre'
   },
   premium: {
@@ -24,18 +24,35 @@ async function apiCall(url, options = {}) {
   const getAuthHeaders = () => {
     const session = localStorage.getItem('session');
     if (session) {
-      const sessionData = JSON.parse(session);
-      const token = sessionData.access_token;
-      return {
-        'Content-Type': 'application/json',
-        // Solo incluir Authorization si existe token
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-      };
+      try {
+        const sessionData = JSON.parse(session);
+        const token = sessionData.access_token;
+        if (token) {
+          return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          };
+        }
+      } catch (error) {
+        console.error('[apiCall] Error parsing session:', error);
+        localStorage.removeItem('session');
+      }
     }
-    return { 'Content-Type': 'application/json' };
+    
+    // Si no hay token válido, mostrar error y redirigir
+    console.warn('[apiCall] No hay token de autenticación válido');
+    showError('Debes iniciar sesión para realizar esta acción.');
+    setTimeout(() => {
+      window.location.replace('/login.html');
+    }, 2000);
+    return null;
   };
 
   const headers = getAuthHeaders();
+  if (!headers) {
+    return null; // No hay autenticación válida
+  }
+  
   let finalHeaders = { ...headers, ...options.headers };
   
   if (options.body instanceof FormData) {
@@ -49,18 +66,24 @@ async function apiCall(url, options = {}) {
 
   try {
     const baseUrl = window.location.origin;
+    console.log('[apiCall] Request:', { url: baseUrl + url, config });
     const response = await fetch(baseUrl + url, config);
+    console.log('[apiCall] Response status:', response.status);
     
     if (response.status === 401) {
       localStorage.removeItem('session');
       localStorage.removeItem('user');
-      window.location.replace('/login.html');
+      showError('Tu sesión ha expirado. Redirigiendo al login...');
+      setTimeout(() => {
+        window.location.replace('/login.html');
+      }, 2000);
       return null;
     }
     
     return response;
   } catch (error) {
     console.error('Error en llamada a API:', error);
+    showError('No se pudo conectar con el servidor. Verifica que el backend esté activo en 5500.');
     throw error;
   }
 }
@@ -165,37 +188,59 @@ function updatePlanButtons() {
 function setupEventListeners() {
   console.log('🔧 Configurando event listeners...');
   
-  // Usar delegación de eventos para botones de cambiar plan
+  // Delegación de eventos (para contenido dinámico)
   document.addEventListener('click', function(event) {
-    // Verificar si el click fue en un botón de upgrade
     if (event.target.matches('.plan-btn-upgrade') || event.target.closest('.plan-btn-upgrade')) {
       event.preventDefault();
       event.stopPropagation();
-      
       const button = event.target.matches('.plan-btn-upgrade') ? event.target : event.target.closest('.plan-btn-upgrade');
       console.log('🔄 Botón de upgrade clickeado:', button);
-      
       handlePlanUpgrade(event);
     }
   });
+
+  // Enlace directo a los botones existentes (fallback por si la delegación falla)
+  const upgradeButtons = document.querySelectorAll('.plan-btn-upgrade');
+  upgradeButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('🧲 Click directo en botón de upgrade:', btn);
+      handlePlanUpgrade(e);
+    });
+  });
   
-  console.log('✅ Event listeners configurados con delegación');
+  console.log('✅ Event listeners configurados con delegación y enlace directo');
 }
 
 // Manejar actualización de plan
 async function handlePlanUpgrade(event) {
-  const button = event.target.matches('.plan-btn-upgrade') ? event.target : event.target.closest('.plan-btn-upgrade');
-  const planCard = button.closest('.plan-card');
-  const newPlan = planCard.dataset.plan;
+  const button = event.target.closest('.plan-btn-upgrade');
+  if (!button) return;
+  const newPlan = button.dataset.plan;
+
+  console.log(`[handlePlanUpgrade] Iniciando actualización a plan: ${newPlan}`);
   
-  if (newPlan === currentUserPlan) return;
+  // Validar que el plan sea válido
+  const validPlans = ['basico', 'premium', 'pro'];
+  if (!validPlans.includes(newPlan)) {
+    showError('Plan no válido seleccionado.');
+    return;
+  }
   
-  console.log(`Iniciando proceso de actualización a plan: ${newPlan}`);
+  const planDataItem = planData[newPlan];
+  if (!planDataItem) {
+    showError('Datos del plan no encontrados.');
+    return;
+  }
+
+  window.app?.uiModule?.showNotification(`Procesando cambio al plan ${newPlan}...`, 'info', 3000);
   
   // Mostrar solo confirmación simple y directa
   const confirmedUpgrade = await showSimpleConfirmationModal(newPlan);
   if (!confirmedUpgrade) {
-    console.log('❌ Usuario canceló la actualización');
+    console.log('[handlePlanUpgrade] Usuario canceló la actualización');
+    window.app?.uiModule?.showNotification('Se canceló la actualización de plan', 'warning', 3000);
     return;
   }
   
@@ -204,8 +249,8 @@ async function handlePlanUpgrade(event) {
     showLoading('Redirigiendo a MercadoPago...');
     await createSubscription(newPlan);
   } catch (error) {
-    console.error('Error actualizando plan:', error);
-    showError('Error al procesar el cambio de plan. Inténtalo de nuevo.');
+    console.error('[handlePlanUpgrade] Error:', error);
+    showError('Error al procesar la actualización del plan. Por favor, inténtalo de nuevo.');
   } finally {
     hideLoading();
   }
@@ -214,45 +259,86 @@ async function handlePlanUpgrade(event) {
 // Crear suscripción
 async function createSubscription(planType) {
   const plan = planData[planType];
-  
   const subscriptionData = {
     reason: `Suscripción mensual P.I.E.P. - Plan ${plan.name}`,
     amount: plan.price,
     currency: 'ARS',
     frequency: 1,
     frequencyType: 'months',
-    plan: planType
+    plan: planType,
+    backUrl: `${window.location.origin}/perfil.html`
   };
-  
+
+  console.log('[createSubscription] Payload:', subscriptionData);
+  window.app?.uiModule?.showNotification('Creando suscripción en MercadoPago...', 'info', 3000);
+
   const response = await apiCall('/api/payments/mp/create-subscription', {
     method: 'POST',
     body: JSON.stringify(subscriptionData)
   });
-  
-  if (!response || !response.ok) {
-    throw new Error('Error al crear la suscripción');
+
+  if (!response) {
+    // apiCall ya manejó el error de autenticación
+    return;
   }
-  
+
+  if (!response.ok) {
+    const status = response.status;
+    console.warn('[createSubscription] Error status:', status);
+
+    try {
+      const errorData = await response.json();
+      console.error('[createSubscription] Error data:', errorData);
+      
+      let errorMessage = 'Error al crear la suscripción';
+      
+      if (status === 400) {
+        errorMessage = errorData.message || errorData.error || 'Datos de suscripción inválidos';
+      } else if (status === 401) {
+        errorMessage = 'No tienes autorización para realizar esta acción';
+      } else if (status === 500) {
+        errorMessage = 'Error interno del servidor. Por favor, inténtalo más tarde';
+      } else {
+        errorMessage = errorData.message || errorData.error || `Error ${status}: No se pudo procesar la suscripción`;
+      }
+      
+      showError(errorMessage);
+    } catch (parseError) {
+      console.error('[createSubscription] Error parsing response:', parseError);
+      showError(`Error ${status}: No se pudo procesar la suscripción. Por favor, inténtalo de nuevo.`);
+    }
+    return;
+  }
+
   const data = await response.json();
-  
-  if (data.init_point) {
-    // Redirigir a MercadoPago
-    showSuccess('Redirigiendo a MercadoPago...');
+  console.log('[createSubscription] Response JSON:', data);
+  const initUrl = data.init_point || data.sandbox_init_point;
+  if (initUrl) {
+    console.log('➡️ Redirigiendo a MercadoPago:', initUrl);
+    window.app?.uiModule?.showNotification('Redirigiendo a MercadoPago...', 'success', 2000);
+    
+    // Mostrar mensaje de confirmación antes de redirigir
+    showSuccess('¡Perfecto! Te estamos redirigiendo a MercadoPago para completar tu suscripción.');
+    
+    // Pequeña pausa para que el usuario vea el mensaje
     setTimeout(() => {
-      window.location.href = data.init_point;
+      window.location.assign(initUrl);
     }, 1500);
-  } else {
-    throw new Error('No se recibió el enlace de pago');
+    return;
   }
+  showError('No se recibió el enlace de pago desde MercadoPago. Por favor, inténtalo de nuevo.');
+  throw new Error('No se recibió el enlace de pago');
 }
 
 // Modal simple de confirmación
 function showSimpleConfirmationModal(planType) {
   return new Promise((resolve) => {
+    console.log('[modal] Creando modal de confirmación para plan:', planType);
     const plan = planData[planType];
     
     const modal = document.createElement('div');
-    modal.className = 'modal-overlay simple-confirmation-modal';
+    // Añadimos la clase 'show' para evitar reglas globales que ocultan .modal-overlay
+    modal.className = 'modal-overlay simple-confirmation-modal show';
     modal.innerHTML = `
       <div class="modal-content simple-modal-content">
         <div class="modal-header">
@@ -285,14 +371,18 @@ function showSimpleConfirmationModal(planType) {
     `;
     
     document.body.appendChild(modal);
+    console.log('[modal] Modal insertado en DOM:', modal);
+    console.log('[modal] Total modales .simple-confirmation-modal:', document.querySelectorAll('.simple-confirmation-modal').length);
     
     // Event listeners
     modal.querySelector('.modal-cancel').addEventListener('click', () => {
+      console.log('[modal] Cancelado por botón Cancelar');
       document.body.removeChild(modal);
       resolve(false);
     });
     
     modal.querySelector('.modal-confirm').addEventListener('click', () => {
+      console.log('[modal] Confirmado por botón Continuar a MercadoPago');
       document.body.removeChild(modal);
       resolve(true);
     });
@@ -300,6 +390,7 @@ function showSimpleConfirmationModal(planType) {
     // Cerrar con click fuera del modal
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
+        console.log('[modal] Cerrado por click fuera del contenido');
         document.body.removeChild(modal);
         resolve(false);
       }
@@ -308,6 +399,7 @@ function showSimpleConfirmationModal(planType) {
     // Cerrar con ESC
     const handleEsc = (e) => {
       if (e.key === 'Escape') {
+        console.log('[modal] Cerrado por tecla ESC');
         document.body.removeChild(modal);
         document.removeEventListener('keydown', handleEsc);
         resolve(false);
@@ -501,6 +593,11 @@ function addSimpleModalStyles() {
       margin: auto;
     }
     
+    .simple-confirmation-modal {
+      z-index: 10000; /* por encima de otros overlays */
+      pointer-events: all;
+    }
+    
     .simple-modal-content .modal-header {
       text-align: center;
       padding: 30px 30px 20px;
@@ -673,21 +770,45 @@ function hideLoading() {
 }
 
 function showError(message) {
-  // Implementar notificación de error
   console.error(message);
-  alert(message); // Temporal - mejorar con toast notification
+  if (window.app?.uiModule) {
+    window.app.uiModule.showNotification(message, 'error');
+  } else {
+    alert(message);
+  }
 }
 
 function showSuccess(message) {
-  // Implementar notificación de éxito
   console.log(message);
-  alert(message); // Temporal - mejorar con toast notification
+  if (window.app?.uiModule) {
+    window.app.uiModule.showNotification(message, 'success');
+  } else {
+    alert(message);
+  }
 }
 
 // Funciones globales para integración con main.js
 window.initializeCambiarPlan = function() {
-  // Ya inicializado con DOMContentLoaded
-  console.log('Cambiar plan ya inicializado');
+  // Evitar doble inicialización si ya se ejecutó previamente
+  if (window.cambiarPlanSetupDone) {
+    console.log('Cambiar plan ya inicializado');
+    return;
+  }
+  window.cambiarPlanSetupDone = true;
+  
+  console.log('Inicializando sección Cambiar Plan...');
+  
+  // Asegurar estilos y listeners cuando la sección se carga dinámicamente
+  try {
+    addSimpleModalStyles();
+    setupEventListeners();
+    // Cargar estado actual del plan para habilitar/inhabilitar botones
+    loadCurrentPlan();
+    setupFAQ();
+    console.log('✅ Sección Cambiar Plan inicializada');
+  } catch (err) {
+    console.error('Error inicializando Cambiar Plan:', err);
+  }
 };
 
 // Limpiar recursos al cambiar de sección

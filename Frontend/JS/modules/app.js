@@ -244,7 +244,7 @@ class App {
           const link = document.createElement('link');
           link.id = 'historial-unified-css';
           link.rel = 'stylesheet';
-          link.href = '/Css/historial-unified.css';
+          link.href = `/Css/historial-unified.css?t=${new Date().getTime()}`;
           document.head.appendChild(link);
         }
 

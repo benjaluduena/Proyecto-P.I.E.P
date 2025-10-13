@@ -14,7 +14,7 @@ function getMpClient() {
 }
 
 // Crear suscripción (preapproval)
-// Protegido con auth para conocer el usuario
+// En desarrollo se permite bypass de auth con ENABLE_DEV_BYPASS=true
 router.post('/mp/create-subscription', supabaseAuth, async (req, res) => {
   try {
     if (!process.env.MP_ACCESS_TOKEN) {
@@ -32,19 +32,49 @@ router.post('/mp/create-subscription', supabaseAuth, async (req, res) => {
 
     // Validar y forzar back_url a ser HTTPS válido
     let backUrl = process.env.MP_BACK_URL || 'https://www.mercadopago.com.ar';
+    
+    // Si se proporciona un backUrl en el body, validarlo
+    if (bodyBackUrl) {
+      try {
+        const candidate = new URL(bodyBackUrl);
+        if (candidate.protocol === 'https:' && candidate.hostname !== 'localhost') {
+          backUrl = candidate.href;
+        }
+      } catch (_) {
+        // Ignorar; usamos el de entorno o fallback https
+      }
+    }
+
+    // En desarrollo, permitir localhost; en producción, forzar HTTPS
     try {
-      const candidate = new URL(bodyBackUrl || '');
-      if (candidate.protocol === 'https:') {
-        backUrl = candidate.href;
+      const envCandidate = new URL(backUrl);
+      // Solo forzar HTTPS si NO estamos en desarrollo y NO es localhost
+      if (process.env.NODE_ENV === 'production' && envCandidate.protocol !== 'https:') {
+        backUrl = 'https://www.mercadopago.com.ar';
       }
     } catch (_) {
-      // Ignorar; usamos el de entorno o fallback https
+      // Si hay error parseando la URL, usar fallback
+      backUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://www.mercadopago.com.ar' 
+        : 'http://localhost:5500/cambiar-plan.html?status=success';
+    }
+
+    // Determinar usuario (ahora siempre debe estar autenticado)
+    const user = req.user;
+    if (!user || !user.email) {
+      return res.status(401).json({ 
+        error: 'Usuario no autenticado o sin email',
+        message: 'Debe estar autenticado con un email válido para crear una suscripción'
+      });
     }
 
     const client = getMpClient();
     const preApproval = new PreApproval(client);
 
+    // Usar el email del usuario autenticado
+    const payerEmail = user.email;
     console.log('MP back_url usado:', backUrl);
+    console.log('MP payer_email usado:', payerEmail);
 
     const result = await preApproval.create({
       body: {
@@ -53,11 +83,14 @@ router.post('/mp/create-subscription', supabaseAuth, async (req, res) => {
           frequency,
           frequency_type: frequencyType,
           transaction_amount: Number(amount),
-          currency_id: currency
+          currency_id: currency,
+          start_date: new Date(Date.now() + 60000).toISOString(), // Comenzar en 1 minuto
+          end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // Terminar en 1 año
         },
         back_url: backUrl,
-        external_reference: req.user.id,
-        payer_email: req.user.email
+        external_reference: user.id,
+        payer_email: payerEmail,
+        status: 'pending'
       }
     });
 
@@ -66,7 +99,7 @@ router.post('/mp/create-subscription', supabaseAuth, async (req, res) => {
       await supabase
         .from('subscriptions')
         .upsert({
-          user_id: req.user.id,
+          user_id: user.id,
           mp_preapproval_id: result.id,
           status: result.status || 'pending',
           reason,
@@ -87,13 +120,16 @@ router.post('/mp/create-subscription', supabaseAuth, async (req, res) => {
       ok: true,
       id: result.id,
       init_point: result.init_point,
-      status: result.status
+      sandbox_init_point: result.sandbox_init_point, // Agregar sandbox_init_point para desarrollo
+      status: result.status,
+      external_reference: result.external_reference
     });
   } catch (error) {
     console.error('Error creando suscripción MP:', error);
     const status = Number(error?.status) || 500;
     const message = typeof error?.message === 'string' ? error.message : 'No se pudo crear la suscripción';
-    return res.status(status).json({ error: message });
+    const cause = Array.isArray(error?.cause) ? error.cause : undefined;
+    return res.status(status).json({ error: message, cause });
   }
 });
 
