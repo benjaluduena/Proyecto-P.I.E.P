@@ -1086,10 +1086,16 @@ router.get('/plans/:planId/content', authMiddleware, async (req, res) => {
     let contents = (tasksWithOutputs || [])
       .filter(item => item.study_outputs)
       .map(item => ({
+        // ID de la tarea del plan asociada
         id: item.id,
-        content_type: item.study_outputs.type,
+        // ID del output para referencias futuras
+        output_id: item.study_outputs?.id || null,
+        // Tipo y datos del contenido
+        content_type: item.study_outputs?.type,
+        content: item.study_outputs?.content || null,
+        // Metadatos y relaciones
         title: item.title || (item.study_outputs?.pdf_uploads?.title) || 'Sin título',
-        created_at: item.created_at || item.study_outputs.created_at,
+        created_at: item.created_at || item.study_outputs?.created_at,
         plan_tasks: { id: item.id, title: item.title },
         pdf_uploads: item.study_outputs?.pdf_uploads || null
       }));

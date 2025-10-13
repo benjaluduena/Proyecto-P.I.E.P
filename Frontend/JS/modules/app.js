@@ -37,6 +37,55 @@ class App {
       // 1. Inicializar UI
       this.uiModule.initialize();
 
+      // 1.1 Normalización global de textos con tildes (mojibake)
+      (function setupGlobalTextNormalization(){
+        const normalizeText = (str) => {
+          if (typeof str !== 'string' || !str) return str;
+          const looksLikeUrl = /^(https?:\/\/|data:)/.test(str);
+          const looksLikeBase64 = /^[A-Za-z0-9+/=]+$/.test(str) && str.length > 32;
+          if (looksLikeUrl || looksLikeBase64) return str;
+          if (/Ã|Â|¢|€|™/.test(str)) {
+            try {
+              const fixed = decodeURIComponent(escape(str));
+              if (fixed) return fixed;
+            } catch(_){}
+            const map = {
+              'Ã¡':'á','Ã©':'é','Ã­':'í','Ã³':'ó','Ãº':'ú','Ã±':'ñ',
+              'Ã':'Á','Ã':'É','Ã':'Í','Ã':'Ó','Ã':'Ú','Ã':'Ñ',
+              'Â¡':'¡','Â¿':'¿'
+            };
+            let res = str; Object.entries(map).forEach(([k,v])=>{res=res.split(k).join(v);});
+            return res;
+          }
+          return str;
+        };
+
+        const normalizeDeep = (val) => {
+          if (val == null) return val;
+          if (typeof val === 'string') return normalizeText(val);
+          if (Array.isArray(val)) return val.map(v=>normalizeDeep(v));
+          if (typeof val === 'object') {
+            const out = {}; for (const k in val) out[k] = normalizeDeep(val[k]);
+            return out;
+          }
+          return val;
+        };
+
+        // Exponer helpers globales
+        window.normalizeText = window.normalizeText || normalizeText;
+        window.normalizeStringsDeep = window.normalizeStringsDeep || normalizeDeep;
+
+        // Patch global Response.json para normalizar todo JSON de fetch
+        const originalJson = Response.prototype.json;
+        if (!Response.prototype.__normalizedJsonPatched) {
+          Response.prototype.json = async function(){
+            const data = await originalJson.call(this);
+            try { return normalizeDeep(data); } catch(_) { return data; }
+          };
+          Response.prototype.__normalizedJsonPatched = true;
+        }
+      })();
+
       // 2. Inicializar Supabase
       await this.initializeSupabase();
 
