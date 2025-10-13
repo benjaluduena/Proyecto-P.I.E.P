@@ -471,30 +471,130 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                     const type = item.content_type || 'contenido';
                     const taskTitle = item.plan_tasks?.title || '';
                     const pdfTitle = item.pdf_uploads?.title || '';
-                    const title = item.title || taskTitle || pdfTitle || 'Sin título';
+                    // Arreglar posibles problemas de codificación (mojibake) en títulos
+                    const fixMojibake = (str) => {
+                        if (!str || typeof str !== 'string') return str || '';
+                        // Si contiene patrones típicos de mojibake, intentar decodificar
+                        if (/Ã|Â|¢|€|™/.test(str)) {
+                            try { return decodeURIComponent(escape(str)); } catch (_) { /* noop */ }
+                        }
+                        return str;
+                    };
+                    const rawTitle = item.title || taskTitle || pdfTitle || 'Sin título';
+                    const title = fixMojibake(rawTitle);
                     const created = item.created_at ? new Date(item.created_at).toLocaleString() : '';
+                    const hasContent = item.content != null;
+                    const isPdf = item.pdf_uploads && item.pdf_uploads.file_name;
+                    const pdfFile = isPdf ? item.pdf_uploads.file_name : '';
+                    let bodyHtml = '';
+                    if (hasContent) {
+                        // Intentar parsear JSON y priorizar campos importantes
+                        let parsed = null;
+                        if (typeof item.content === 'object' && item.content) {
+                            parsed = item.content;
+                        } else if (typeof item.content === 'string') {
+                            try {
+                                parsed = JSON.parse(item.content);
+                            } catch (_) {
+                                parsed = null;
+                            }
+                        }
+
+                        if (parsed && typeof parsed === 'object') {
+                            const esc = (v) => this.escapeHtml(String(v));
+                            const resumen = parsed.resumen_general || parsed.resumen || parsed.summary || '';
+                            const conceptos = Array.isArray(parsed.conceptos_clave) ? parsed.conceptos_clave : (Array.isArray(parsed.key_concepts) ? parsed.key_concepts : []);
+                            const aplicaciones = Array.isArray(parsed.aplicaciones_practicas) ? parsed.aplicaciones_practicas : (Array.isArray(parsed.aplicaciones) ? parsed.aplicaciones : []);
+                            const conclusiones = parsed.conclusiones || parsed.conclusions || '';
+
+                            const sections = `
+                                ${resumen ? `
+                                    <div class="content-section section-summary">
+                                        <div class="section-title">Resumen</div>
+                                        <div class="section-text content-text">${esc(resumen)}</div>
+                                    </div>
+                                ` : ''}
+                                ${conceptos.length ? `
+                                    <div class="content-section section-concepts">
+                                        <div class="section-title">Conceptos clave</div>
+                                        <div class="chips">${conceptos.map(c => `<span class="chip">${esc(c)}</span>`).join('')}</div>
+                                    </div>
+                                ` : ''}
+                                ${aplicaciones.length ? `
+                                    <div class="content-section section-apps">
+                                        <div class="section-title">Aplicaciones prácticas</div>
+                                        <ul class="list">${aplicaciones.map(a => `<li>${esc(a)}</li>`).join('')}</ul>
+                                    </div>
+                                ` : ''}
+                                ${conclusiones ? `
+                                    <div class="content-section section-conclusions">
+                                        <div class="section-title">Conclusiones</div>
+                                        <div class="section-text">${esc(conclusiones)}</div>
+                                    </div>
+                                ` : ''}
+                            `;
+
+                            bodyHtml = `
+                                <div class="content-body">
+                                    <div class="content-sections">${sections}</div>
+                                </div>
+                            `;
+                        } else {
+                            const contentStr = typeof item.content === 'string' ? item.content : JSON.stringify(item.content, null, 2);
+                            bodyHtml = `
+                                <div class="content-body">
+                                    <div class="content-text">${this.escapeHtml(String(contentStr))}</div>
+                                </div>
+                            `;
+                        }
+                    } else if (isPdf) {
+                        bodyHtml = `
+                            <div class="content-body">
+                                <a class="btn primary btn-sm" target="_blank" href="${base}/api/pdfs/file/${pdfFile}">Ver PDF</a>
+                            </div>
+                        `;
+                    } else {
+                        bodyHtml = `
+                            <div class="content-body"><em>Sin contenido disponible para vista previa.</em></div>
+                        `;
+                    }
+
                     return `
-                    <div class="content-card">
+                    <div class="content-card" data-output-id="${item.output_id || ''}">
                         <div class="content-card-main">
                             <span class="badge type">${type}</span>
                             <div class="title">${title}</div>
                             ${created ? `<div class="meta">${created}</div>` : ''}
                         </div>
                         <div class="content-card-actions">
-                            <button class="btn secondary btn-sm view-content-btn" data-content-id="${item.id}">Abrir</button>
+                            <button class="btn secondary btn-sm toggle-content-btn">${hasContent || isPdf ? 'Ver' : 'Detalles'}</button>
                         </div>
+                        ${bodyHtml}
                     </div>
                 `;
                 }).join('');
 
                 contentContainer.innerHTML = html;
 
-                // Acciones
-                contentContainer.querySelectorAll('.view-content-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        this.openContentManager(plan.id);
-                    });
+                // Acciones inline: expandir/contraer
+                contentContainer.querySelectorAll('.content-card').forEach(card => {
+                    const toggleBtn = card.querySelector('.toggle-content-btn');
+                    const text = card.querySelector('.content-text');
+                    // Estado inicial: colapsado
+                    card.classList.add('collapsed');
+                    if (toggleBtn && text) {
+                        toggleBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const expanded = card.classList.toggle('expanded');
+                            if (expanded) {
+                                card.classList.remove('collapsed');
+                                toggleBtn.textContent = 'Ocultar';
+                            } else {
+                                card.classList.add('collapsed');
+                                toggleBtn.textContent = 'Ver';
+                            }
+                        });
+                    }
                 });
             })
             .catch(err => {
@@ -509,6 +609,16 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 const inlineBtn = contentContainer.querySelector('.inline-add-content');
                 if (inlineBtn) inlineBtn.onclick = () => this.openHistoryPicker(cardElement, plan);
             });
+    }
+
+    // Utilidad simple para evitar inyección al renderizar contenido
+    escapeHtml(str) {
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 
     // Selector inline para elegir contenido desde historial del usuario y adjuntarlo al plan

@@ -1565,3 +1565,128 @@ template *,
     font-size: 13px;
     opacity: 0.9;
 }
+/* ====== Contenido en vista expandida: Mejoras de legibilidad ====== */
+.content-list-expanded {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.content-card {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+}
+
+.content-card-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.content-card .badge.type {
+  background: #eef2ff;
+  color: #3f51b5;
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.content-card .title {
+  font-weight: 600;
+  color: #1f2937;
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Al expandir, mostrar el título completo (sin elipsis) */
+.content-card.expanded .title {
+  display: block;
+  white-space: normal;
+  overflow: visible;
+}
+
+.content-card .meta {
+  margin-left: auto;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.content-card-actions {
+  margin-top: 10px;
+}
+
+.content-card .toggle-content-btn {
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.content-body {
+  margin-top: 10px;
+  background: #fafafa;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.content-text {
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #374151;
+}
+
+/* Estado colapsado: limitar líneas para vista previa */
+.content-card.collapsed .content-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Estado expandido: mostrar todo el texto */
+.content-card.expanded .content-text {
+  display: block;
+}
+
+/* Secciones estructuradas del contenido (cuando el texto es JSON) */
+.content-sections { display: grid; gap: 12px; }
+.content-section .section-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+.content-section .section-text { color: #374151; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  background: #f3f4f6;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #374151;
+}
+.list { margin: 0; padding-left: 18px; }
+.list li { color: #374151; line-height: 1.5; }
+
+/* En modo colapsado, mostrar solo el resumen */
+.content-card.collapsed .content-section:not(.section-summary) { display: none; }
+.content-card.collapsed .raw-json, .content-card.collapsed .show-raw-btn { display: none; }
+.raw-json.hidden { display: none; }
+
+/* Empty state dentro de contenido */
+.content-empty {
+  background: #fff;
+  border: 1px dashed rgba(0,0,0,0.15);
+  border-radius: 12px;
+  padding: 16px;
+  color: #6b7280;
+}
