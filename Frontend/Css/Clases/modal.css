@@ -45,7 +45,7 @@
     padding: 1.5rem 2rem;
     border-top: 1px solid var(--gray-200);
     display: flex;
-    gap: 1rem 16px;
+    gap: 1rem;
     justify-content: flex-end;
     background: var(--gray-50);
 }

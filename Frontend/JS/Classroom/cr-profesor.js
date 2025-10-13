@@ -216,12 +216,29 @@ function selectClass(classId, event) {
 
 // FUNCIONES ORIGINALES MANTENIDAS
 function openCreateClassroomModal() {
-    document.getElementById('createClassroomModal').style.display = 'block';
+    const modal = document.getElementById('createClassroomModal');
+    modal.style.display = 'flex';
+    const modalContent = modal.querySelector('.modal-content-create');
+    if (modalContent) {
+        modalContent.classList.remove('animate-fadeOut');
+        modalContent.classList.add('animate-fadeIn');
+    }
 }
 
 function closeCreateClassroomModal() {
-    document.getElementById('createClassroomModal').style.display = 'none';
-    document.getElementById('createClassroomForm').reset();
+    const modal = document.getElementById('createClassroomModal');
+    const modalContent = modal.querySelector('.modal-content-create');
+    if (modalContent) {
+        modalContent.classList.remove('animate-fadeIn');
+        modalContent.classList.add('animate-fadeOut');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.getElementById('createClassroomForm').reset();
+        }, 300);
+    } else {
+        modal.style.display = 'none';
+        document.getElementById('createClassroomForm').reset();
+    }
 }
 
 function viewClassroom(classroomId) {

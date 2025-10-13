@@ -98,13 +98,13 @@
   gap: 1rem;
 }
 
-.calendario-container .container-month{
+.calendario-container .container-month {
   display: flex;
   align-items: center;
   gap: 2rem;
 }
 
-.calendario-container .container-buttons{
+.calendario-container .container-buttons {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -423,20 +423,43 @@
 }
 
 .calendario-container .stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   padding: 1rem;
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(102, 126, 234, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
-.calendario-container .stat-item:hover{
+.calendario-container .stat-item:hover {
   transform: translateY(-4px) scale(1.02);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
 }
 
-.calendario-container .stat-item svg{
+.calendario-container .stat-item svg {
   margin-bottom: 0.35rem;
+}
+
+.calendario-container .stat-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #A259FA;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.calendario-container .stat-item:hover::before {
+    opacity: 1;
 }
 
 .calendario-container .stat-number {
@@ -538,8 +561,15 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* Contenido de la tarjeta */
@@ -785,7 +815,7 @@
   border-top: 1px solid #e2e8f0;
 }
 
-.modal-title-container{
+.modal-title-container {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -821,6 +851,7 @@
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -832,27 +863,27 @@
   #contenido .calendario-container {
     padding: 0.5rem;
   }
-  
+
   #contenido .calendario-container .calendario-header {
     flex-direction: column;
     gap: 1rem;
     margin-bottom: 1rem;
   }
-  
+
   #contenido .calendario-container .page-title {
     font-size: 1.5rem;
   }
-  
+
   #contenido .calendario-container .title-icon {
     width: 2rem;
     height: 2rem;
   }
-  
+
   #contenido .calendario-container .header-actions {
     width: 100%;
     justify-content: center;
   }
-  
+
   #contenido .calendario-container .calendario-nav {
     flex-direction: column;
     gap: 1rem;
@@ -860,34 +891,34 @@
     padding: 0.75rem;
     margin-bottom: 1rem;
   }
-  
+
   #contenido .calendario-container .nav-controls {
     justify-content: center;
   }
-  
+
   #contenido .calendario-container .calendar-grid {
     min-height: 300px;
   }
-  
+
   #contenido .calendario-container .calendar-day {
     min-height: 60px;
     padding: 0.25rem;
   }
-  
+
   #contenido .calendario-container .day-number {
     font-size: 0.9rem;
     margin-bottom: 0.25rem;
   }
-  
+
   .form-row {
     grid-template-columns: 1fr;
   }
-  
+
   .modal-content {
     width: 95%;
     margin: 1rem;
   }
-  
+
   /* Modal de eventos responsive */
   #modalEventosDia .modal-eventos-dia {
     width: 95%;
@@ -895,60 +926,60 @@
     max-height: 90vh;
     margin: 1rem;
   }
-  
+
   .modal-eventos-header {
     flex-direction: column;
     gap: 1rem;
     text-align: center;
     padding: 1rem;
   }
-  
+
   .modal-eventos-actions {
     width: 100%;
     justify-content: center;
   }
-  
+
   .modal-eventos-stats {
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
-  
+
   .stat-item {
     padding: 0.75rem;
   }
-  
+
   .stat-number {
     font-size: 1.5rem;
   }
-  
+
   /* Header simple responsive */
   .header-content {
     flex-direction: column;
     gap: 1rem;
     text-align: center;
   }
-  
+
   .header-title h1 {
     font-size: 1.5rem;
   }
-  
+
   .btn-nuevo-evento {
     width: 100%;
     justify-content: center;
   }
-  
+
   /* Navegación simple responsive */
   #contenido .calendario-container .calendario-nav-simple {
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.75rem;
   }
-  
+
   .month-display {
     order: -1;
     width: 100%;
   }
-  
+
   .month-display h2 {
     font-size: 1.25rem;
   }

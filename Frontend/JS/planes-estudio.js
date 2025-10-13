@@ -7,7 +7,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         this.isLoading = false;
         this.authModule = null;
         this.apiModule = null;
-        
+
         this.init();
     }
 
@@ -28,6 +28,23 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
 
         const addTaskBtn = document.getElementById('addTaskBtn');
         if (addTaskBtn) addTaskBtn.addEventListener('click', () => this.addTaskToForm());
+        
+        // Agregar event listener global para los botones "Ver detalles"
+        document.addEventListener('click', (e) => {
+            const viewBtn = e.target.closest('.action-btn.view-plan');
+            if (viewBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                const card = viewBtn.closest('.study-plan-card');
+                if (card) {
+                    const planId = card.getAttribute('data-plan-id');
+                    if (planId) {
+                        console.log('Ver detalles clicked, planId:', planId);
+                        this.viewPlanDetails(planId);
+                    }
+                }
+            }
+        });
 
         const cancelBtn = document.getElementById('cancelBtn');
         if (cancelBtn) cancelBtn.addEventListener('click', () => this.closeModal());
@@ -66,16 +83,15 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
 
         // Delegación de eventos global para garantizar funcionamiento de botones dinámicos
         document.addEventListener('click', (e) => {
-            // Ver detalles de tarjeta (expandir)
+            // Ver detalles de tarjeta (abrir modal)
             const viewBtn = e.target.closest('.view-btn');
             if (viewBtn) {
                 e.preventDefault();
                 e.stopPropagation();
                 const card = viewBtn.closest('.study-plan-card');
                 const planId = card?.getAttribute('data-plan-id');
-                const plan = this.studyPlans.find(p => String(p.id) === String(planId));
-                if (card && plan) {
-                    this.expandCard(card, plan);
+                if (planId) {
+                    this.viewPlanDetails(planId);
                     return;
                 }
             }
@@ -281,18 +297,18 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const targetTab = btn.getAttribute('data-tab');
-                
+
                 // Remover clase active de todos los botones y paneles
                 tabBtns.forEach(b => b.classList.remove('active'));
                 tabPanels.forEach(p => p.classList.remove('active'));
-                
+
                 // Activar el botón y panel seleccionado
                 btn.classList.add('active');
                 const targetPanel = cardElement.querySelector(`[data-panel="${targetTab}"]`);
                 if (targetPanel) {
                     targetPanel.classList.add('active');
                 }
-                
+
                 // Persistir pestaña activa para este plan
                 this.setPersistedTab(plan.id, targetTab);
 
@@ -322,7 +338,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         // Barra de progreso grande
         const progressFillLarge = cardElement.querySelector('.progress-fill-large');
         const progressTextLarge = cardElement.querySelector('.progress-text-large');
-        
+
         if (progressFillLarge) progressFillLarge.style.width = `${plan.progress || 0}%`;
         if (progressTextLarge) progressTextLarge.textContent = `${plan.progress || 0}% Completado`;
 
@@ -416,28 +432,28 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             }
         })
-        .then(res => res.ok ? res.json() : Promise.reject(res))
-        .then(data => {
-            const items = Array.isArray(data) ? data : (data && data.contents) ? data.contents : [];
-            if (!items.length) {
-                contentContainer.innerHTML = `
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(data => {
+                const items = Array.isArray(data) ? data : (data && data.contents) ? data.contents : [];
+                if (!items.length) {
+                    contentContainer.innerHTML = `
                     <div class="content-empty">
                         No hay contenido en este plan aún.
                         <button class="btn primary btn-sm inline-add-content">Agregar desde historial</button>
                     </div>
                 `;
-                const inlineBtn = contentContainer.querySelector('.inline-add-content');
-                if (inlineBtn) inlineBtn.onclick = () => this.openHistoryPicker(cardElement, plan);
-                return;
-            }
+                    const inlineBtn = contentContainer.querySelector('.inline-add-content');
+                    if (inlineBtn) inlineBtn.onclick = () => this.openHistoryPicker(cardElement, plan);
+                    return;
+                }
 
-            const html = items.map(item => {
-                const type = item.content_type || 'contenido';
-                const taskTitle = item.plan_tasks?.title || '';
-                const pdfTitle = item.pdf_uploads?.title || '';
-                const title = item.title || taskTitle || pdfTitle || 'Sin título';
-                const created = item.created_at ? new Date(item.created_at).toLocaleString() : '';
-                return `
+                const html = items.map(item => {
+                    const type = item.content_type || 'contenido';
+                    const taskTitle = item.plan_tasks?.title || '';
+                    const pdfTitle = item.pdf_uploads?.title || '';
+                    const title = item.title || taskTitle || pdfTitle || 'Sin título';
+                    const created = item.created_at ? new Date(item.created_at).toLocaleString() : '';
+                    return `
                     <div class="content-card">
                         <div class="content-card-main">
                             <span class="badge type">${type}</span>
@@ -449,30 +465,30 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                         </div>
                     </div>
                 `;
-            }).join('');
+                }).join('');
 
-            contentContainer.innerHTML = html;
+                contentContainer.innerHTML = html;
 
-            // Acciones
-            contentContainer.querySelectorAll('.view-content-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.openContentManager(plan.id);
+                // Acciones
+                contentContainer.querySelectorAll('.view-content-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.openContentManager(plan.id);
+                    });
                 });
-            });
-        })
-        .catch(err => {
-            console.error('Error cargando contenido del plan:', err);
-            // En caso de error de carga, mostrar un estado amistoso con acción
-            contentContainer.innerHTML = `
+            })
+            .catch(err => {
+                console.error('Error cargando contenido del plan:', err);
+                // En caso de error de carga, mostrar un estado amistoso con acción
+                contentContainer.innerHTML = `
                 <div class="content-empty">
                     No pudimos cargar el contenido ahora.
                     <button class="btn primary btn-sm inline-add-content">Agregar desde historial</button>
                 </div>
             `;
-            const inlineBtn = contentContainer.querySelector('.inline-add-content');
-            if (inlineBtn) inlineBtn.onclick = () => this.openHistoryPicker(cardElement, plan);
-        });
+                const inlineBtn = contentContainer.querySelector('.inline-add-content');
+                if (inlineBtn) inlineBtn.onclick = () => this.openHistoryPicker(cardElement, plan);
+            });
     }
 
     // Selector inline para elegir contenido desde historial del usuario y adjuntarlo al plan
@@ -516,22 +532,22 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             }
         })
-        .then(res => res.ok ? res.json() : Promise.reject(res))
-        .then(outputs => {
-            const listEl = picker.querySelector('.picker-list');
-            if (!Array.isArray(outputs) || !outputs.length) {
-                listEl.innerHTML = `<div class="content-empty">No tienes contenido en tu historial aún</div>`;
-                return;
-            }
+            .then(res => res.ok ? res.json() : Promise.reject(res))
+            .then(outputs => {
+                const listEl = picker.querySelector('.picker-list');
+                if (!Array.isArray(outputs) || !outputs.length) {
+                    listEl.innerHTML = `<div class="content-empty">No tienes contenido en tu historial aún</div>`;
+                    return;
+                }
 
-            let all = outputs;
+                let all = outputs;
 
-            const render = (items) => {
-                listEl.innerHTML = items.map(o => {
-                    const title = o.pdf_title || `Contenido ${o.type}`;
-                    const created = o.created_at ? new Date(o.created_at).toLocaleString() : '';
-                    const snippet = typeof o.content === 'string' ? o.content.slice(0, 120) : JSON.stringify(o.content).slice(0, 120);
-                    return `
+                const render = (items) => {
+                    listEl.innerHTML = items.map(o => {
+                        const title = o.pdf_title || `Contenido ${o.type}`;
+                        const created = o.created_at ? new Date(o.created_at).toLocaleString() : '';
+                        const snippet = typeof o.content === 'string' ? o.content.slice(0, 120) : JSON.stringify(o.content).slice(0, 120);
+                        return `
                         <div class="history-item" data-output-id="${o.id}">
                             <div class="history-item-body">
                                 <div class="history-title">${title}</div>
@@ -543,40 +559,40 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                             </div>
                         </div>
                     `;
-                }).join('');
+                    }).join('');
 
-                // Wire up attach buttons
-                listEl.querySelectorAll('.attach-output-btn').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        e.preventDefault();
-                        const outputId = btn.getAttribute('data-output-id');
-                        await this.attachHistoryOutputToPlan(cardElement, plan, outputId, picker, btn);
+                    // Wire up attach buttons
+                    listEl.querySelectorAll('.attach-output-btn').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.preventDefault();
+                            const outputId = btn.getAttribute('data-output-id');
+                            await this.attachHistoryOutputToPlan(cardElement, plan, outputId, picker, btn);
+                        });
                     });
-                });
-            };
+                };
 
-            // Initial render
-            render(all);
+                // Initial render
+                render(all);
 
-            // Filtro simple (solo búsqueda)
-            const searchInput = picker.querySelector('#historySearch');
-            const applyFilters = () => {
-                const q = (searchInput.value || '').toLowerCase();
-                const filtered = all.filter(o => {
-                    const title = (o.pdf_title || '').toLowerCase();
-                    const typeStr = (o.type || '').toLowerCase();
-                    const contentStr = typeof o.content === 'string' ? o.content.toLowerCase() : JSON.stringify(o.content).toLowerCase();
-                    return !q || title.includes(q) || typeStr.includes(q) || contentStr.includes(q);
-                });
-                render(filtered);
-            };
-            searchInput.addEventListener('input', applyFilters);
-        })
-        .catch(err => {
-            console.error('Error cargando historial:', err);
-            const listEl = picker.querySelector('.picker-list');
-            listEl.innerHTML = `<div class="content-error">Error al cargar tu historial</div>`;
-        });
+                // Filtro simple (solo búsqueda)
+                const searchInput = picker.querySelector('#historySearch');
+                const applyFilters = () => {
+                    const q = (searchInput.value || '').toLowerCase();
+                    const filtered = all.filter(o => {
+                        const title = (o.pdf_title || '').toLowerCase();
+                        const typeStr = (o.type || '').toLowerCase();
+                        const contentStr = typeof o.content === 'string' ? o.content.toLowerCase() : JSON.stringify(o.content).toLowerCase();
+                        return !q || title.includes(q) || typeStr.includes(q) || contentStr.includes(q);
+                    });
+                    render(filtered);
+                };
+                searchInput.addEventListener('input', applyFilters);
+            })
+            .catch(err => {
+                console.error('Error cargando historial:', err);
+                const listEl = picker.querySelector('.picker-list');
+                listEl.innerHTML = `<div class="content-error">Error al cargar tu historial</div>`;
+            });
     }
 
     async attachHistoryOutputToPlan(cardElement, plan, outputId, pickerEl, btnEl) {
@@ -753,13 +769,13 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
     async loadStudyPlans() {
         try {
             this.showLoading(true);
-            
+
             const token = this.getAuthToken();
             const base = this.getBaseUrl();
             const response = await fetch(`${base}/api/study/plans`, {
                 headers: token ? { 'Authorization': `Bearer ${token}` } : {}
             });
-            
+
             if (response.ok) {
                 this.studyPlans = await response.json();
                 this.renderStudyPlans();
@@ -804,7 +820,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         const emptyState = document.getElementById('emptyState');
         const emptyMessage = document.getElementById('emptyMessage');
         const loadingIndicator = document.getElementById('loadingIndicator');
-        
+
         if (grid) grid.style.display = 'none';
         if (loadingIndicator) loadingIndicator.style.display = 'none';
         if (emptyState) {
@@ -816,17 +832,17 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
     renderStudyPlans() {
         const grid = document.getElementById('studyPlansGrid');
         const emptyState = document.getElementById('emptyState');
-        
+
         if (!this.studyPlans || this.studyPlans.length === 0) {
             this.showEmptyState('No tienes planes de estudio creados aún');
             return;
         }
-        
+
         if (emptyState) emptyState.style.display = 'none';
         if (grid) {
             grid.style.display = 'grid';
             grid.innerHTML = ''; // Limpiar el grid
-            
+
             // Crear y agregar cada tarjeta individualmente
             this.studyPlans.forEach(plan => {
                 const cardElement = this.createPlanCard(plan);
@@ -846,12 +862,12 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
 
         const cardElement = template.content.cloneNode(true);
         const card = cardElement.querySelector('.study-plan-card');
-        
+
         // Establecer el ID del plan
         if (card) {
             card.setAttribute('data-plan-id', plan.id);
         }
-        
+
         // Datos básicos
         const title = cardElement.querySelector('.plan-title');
         const description = cardElement.querySelector('.plan-description');
@@ -866,26 +882,31 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         if (description) description.textContent = plan.description || 'Sin descripción';
         if (startDate) startDate.textContent = this.formatDate(plan.start_date);
         if (endDate) endDate.textContent = this.formatDate(plan.end_date);
-        
+
         // Estadísticas de tareas
         const totalTasks = plan.plan_tasks ? plan.plan_tasks.length : 0;
         const completed = plan.plan_tasks ? plan.plan_tasks.filter(task => task.completed).length : 0;
         const progress = totalTasks > 0 ? Math.round((completed / totalTasks) * 100) : 0;
-        
+
         if (tasksCount) tasksCount.textContent = totalTasks;
         if (completedTasks) completedTasks.textContent = completed;
         if (progressPercentage) progressPercentage.textContent = `${progress}%`;
         if (progressBarFill) progressBarFill.style.width = `${progress}%`;
 
         // Event listeners
-        const viewBtn = cardElement.querySelector('.view-btn');
+        const viewBtn = cardElement.querySelector('.action-btn.view-plan');
         const statusSelect = cardElement.querySelector('.status-select');
         const closeBtn = cardElement.querySelector('.close-expanded-btn');
 
         if (viewBtn) {
             viewBtn.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
-                this.expandCard(card, plan);
+                const planId = card.getAttribute('data-plan-id');
+                console.log('Ver detalles clicked, planId:', planId);
+                if (planId) {
+                    this.viewPlanDetails(planId);
+                }
             });
         }
 
@@ -895,7 +916,14 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 e.stopPropagation();
                 const newStatus = e.target.value;
                 this.setPlanStatus(plan.id, newStatus);
+
+                // Aplicar clase de color según el estado seleccionado
+                statusSelect.classList.remove('completed', 'active', 'paused');
+                statusSelect.classList.add(newStatus);
             });
+            // Inicializar la clase de color al crear la tarjeta
+            statusSelect.classList.remove('completed', 'active', 'paused');
+            statusSelect.classList.add(statusSelect.value);
         }
 
         if (closeBtn) {
@@ -935,27 +963,27 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         // Mostrar la vista expandida y ocultar la normal
         const normalView = cardElement.querySelector('.normal-view');
         const expandedView = cardElement.querySelector('.expanded-view');
-        
+
         if (normalView) normalView.style.display = 'none';
         if (expandedView) expandedView.style.display = 'block';
 
         // Expandir la tarjeta actual
         cardElement.classList.add('pre-expand');
-        
+
         setTimeout(() => {
             cardElement.classList.remove('pre-expand');
             cardElement.classList.add('expanded');
-            
+
             // Scroll suave hacia la tarjeta expandida
-            cardElement.scrollIntoView({ 
-                behavior: 'smooth', 
+            cardElement.scrollIntoView({
+                behavior: 'smooth',
                 block: 'start',
                 inline: 'nearest'
             });
-            
+
             // Actualizar datos de la vista expandida
             this.populateExpandedView(cardElement, plan);
-            
+
             // Activar pestaña persistida o la primera por defecto
             const persistedTab = this.getPersistedTab(plan.id) || 'overview';
             const targetBtn = cardElement.querySelector(`.tab-btn[data-tab="${persistedTab}"]`) || cardElement.querySelector('.tab-btn');
@@ -983,13 +1011,13 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         // Mostrar la vista normal y ocultar la expandida
         const normalView = cardElement.querySelector('.normal-view');
         const expandedView = cardElement.querySelector('.expanded-view');
-        
+
         if (normalView) normalView.style.display = 'block';
         if (expandedView) expandedView.style.display = 'none';
 
         // Aplicar animación de colapso
         cardElement.classList.add('collapsing');
-        
+
         setTimeout(() => {
             cardElement.classList.remove('expanded', 'collapsing');
         }, 300);
@@ -1012,7 +1040,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
     }
 
     filterPlans(searchTerm) {
-        const filteredPlans = this.studyPlans.filter(plan => 
+        const filteredPlans = this.studyPlans.filter(plan =>
             plan.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             plan.description.toLowerCase().includes(searchTerm.toLowerCase())
         );
@@ -1024,38 +1052,38 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         const statusFilter = document.getElementById('statusFilter');
         const sortBy = document.getElementById('sortBy');
         const priorityFilter = document.getElementById('priorityFilter');
-        
+
         if (searchInput) searchInput.value = '';
         if (statusFilter) statusFilter.value = '';
         if (sortBy) sortBy.value = 'created_desc';
         if (priorityFilter) priorityFilter.value = '';
-        
+
         this.renderStudyPlans();
     }
 
     applyFilters() {
         let filteredPlans = [...this.studyPlans];
-        
+
         const searchTerm = document.getElementById('searchInput')?.value || '';
         const statusFilter = document.getElementById('statusFilter')?.value || '';
         const sortBy = document.getElementById('sortBy')?.value || 'created_desc';
         const priorityFilter = document.getElementById('priorityFilter')?.value || '';
-        
+
         if (searchTerm) {
-            filteredPlans = filteredPlans.filter(plan => 
+            filteredPlans = filteredPlans.filter(plan =>
                 plan.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 plan.description.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
-        
+
         if (statusFilter) {
             filteredPlans = filteredPlans.filter(plan => plan.status === statusFilter);
         }
-        
+
         if (priorityFilter) {
             filteredPlans = filteredPlans.filter(plan => plan.priority === priorityFilter);
         }
-        
+
         // Ordenar
         filteredPlans.sort((a, b) => {
             switch (sortBy) {
@@ -1066,7 +1094,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 default: return 0;
             }
         });
-        
+
         this.renderFilteredPlans(filteredPlans);
     }
 
@@ -1074,7 +1102,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         const grid = document.getElementById('studyPlansGrid');
         if (grid) {
             grid.innerHTML = ''; // Limpiar el grid
-            
+
             // Crear y agregar cada tarjeta individualmente
             plans.forEach(plan => {
                 const cardElement = this.createPlanCard(plan);
@@ -1088,19 +1116,19 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
     openCreateModal() {
         this.currentEditingPlan = null;
         this.resetForm();
-        
+
         const modal = document.getElementById('studyPlanModal');
         const modalTitle = document.getElementById('modalTitle');
         const saveBtn = document.getElementById('saveBtn');
-        
+
         if (modalTitle) modalTitle.textContent = 'Crear Nuevo Plan de Estudio';
         if (saveBtn) saveBtn.textContent = 'Crear Plan';
-        
+
         if (modal) {
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('show'), 10);
         }
-        
+
         const titleInput = document.getElementById('title');
         if (titleInput) titleInput.focus();
     }
@@ -1108,17 +1136,17 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
     async editPlan(planId) {
         const plan = this.studyPlans.find(p => p.id === planId);
         if (!plan) return;
-        
+
         this.currentEditingPlan = plan;
         this.populateForm(plan);
-        
+
         const modal = document.getElementById('studyPlanModal');
         const modalTitle = document.getElementById('modalTitle');
         const saveBtn = document.getElementById('saveBtn');
-        
+
         if (modalTitle) modalTitle.textContent = 'Editar Plan de Estudio';
         if (saveBtn) saveBtn.textContent = 'Actualizar Plan';
-        
+
         if (modal) {
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('show'), 10);
@@ -1132,14 +1160,14 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         const endDateInput = document.getElementById('endDate');
         const statusSelect = document.getElementById('status');
         const prioritySelect = document.getElementById('priority');
-        
+
         if (titleInput) titleInput.value = plan.title || '';
         if (descriptionInput) descriptionInput.value = plan.description || '';
         if (startDateInput) startDateInput.value = plan.start_date || '';
         if (endDateInput) endDateInput.value = plan.end_date || '';
         if (statusSelect) statusSelect.value = plan.status || 'active';
         if (prioritySelect) prioritySelect.value = plan.priority || 'medium';
-        
+
         // Cargar tareas existentes
         const tasksContainer = document.getElementById('tasksContainer');
         if (tasksContainer && plan.plan_tasks) {
@@ -1153,31 +1181,31 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
     resetForm() {
         const form = document.getElementById('studyPlanForm');
         if (form) form.reset();
-        
+
         const tasksContainer = document.getElementById('tasksContainer');
         if (tasksContainer) tasksContainer.innerHTML = '';
-        
+
         this.addTaskToForm();
     }
 
     addTaskToForm(taskData = null) {
         const tasksContainer = document.getElementById('tasksContainer');
         if (!tasksContainer) return;
-        
+
         const taskDiv = document.createElement('div');
         taskDiv.className = 'task-input-group';
         taskDiv.innerHTML = `
             <div class="form-group">
-                <input type="text" class="form-control task-title" placeholder="Título de la tarea" 
+                <input type="text" class="input-white task-title" placeholder="Título de la tarea" 
                        value="${taskData?.title || ''}" required>
             </div>
             <div class="form-group">
-                <textarea class="form-control task-description" placeholder="Descripción de la tarea" 
+                <textarea class="input-white task-description" placeholder="Descripción de la tarea" 
                           rows="2">${taskData?.description || ''}</textarea>
             </div>
             <div class="form-row">
                 <div class="form-group col-md-6">
-                    <select class="form-control task-priority">
+                    <select class="combo-white task-priority">
                         <option value="low" ${taskData?.priority === 'low' ? 'selected' : ''}>Baja</option>
                         <option value="medium" ${taskData?.priority === 'medium' || !taskData ? 'selected' : ''}>Media</option>
                         <option value="high" ${taskData?.priority === 'high' ? 'selected' : ''}>Alta</option>
@@ -1190,21 +1218,21 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 </div>
             </div>
         `;
-        
+
         const removeBtn = taskDiv.querySelector('.remove-task');
         removeBtn.addEventListener('click', () => taskDiv.remove());
-        
+
         tasksContainer.appendChild(taskDiv);
     }
 
     validateDates() {
         const startDate = document.getElementById('startDate');
         const endDate = document.getElementById('endDate');
-        
+
         if (startDate && endDate && startDate.value && endDate.value) {
             const start = new Date(startDate.value);
             const end = new Date(endDate.value);
-            
+
             if (end <= start) {
                 endDate.setCustomValidity('La fecha de fin debe ser posterior a la fecha de inicio');
                 return false;
@@ -1218,28 +1246,28 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
 
     async handleFormSubmit(e) {
         e.preventDefault();
-        
+
         if (!this.validateDates()) {
             this.showError('Por favor, corrige las fechas del plan');
             return;
         }
-        
+
         const planData = this.getFormData();
         const isEdit = !!this.currentEditingPlan;
         const planId = this.currentEditingPlan?.id;
-        
+
         await this.createOrUpdatePlan(planData, isEdit, planId);
     }
 
     async createOrUpdatePlan(planData, isEdit = false, planId = null) {
         try {
             this.setFormLoading(true);
-            
+
             const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
             const url = isEdit ? `${base}/api/study/plans/${planId}` : `${base}/api/study/plans`;
             const method = isEdit ? 'PUT' : 'POST';
             const token = this.getAuthToken();
-            
+
             // Forzar estado activo en creación por lógica de negocio
             if (!isEdit) {
                 planData.status = 'active';
@@ -1253,7 +1281,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 },
                 body: JSON.stringify(planData)
             });
-            
+
             if (response.ok) {
                 const result = await response.json();
                 this.showSuccess(isEdit ? 'Plan actualizado correctamente' : 'Plan creado correctamente');
@@ -1263,7 +1291,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 const error = await response.json();
                 throw new Error(error.message || 'Error al procesar la solicitud');
             }
-            
+
         } catch (error) {
             console.error('Error:', error);
             this.showError(error.message || 'Error al guardar el plan');
@@ -1279,14 +1307,14 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         const endDate = document.getElementById('endDate')?.value;
         const status = document.getElementById('status')?.value;
         const priority = document.getElementById('priority')?.value;
-        
+
         // Recopilar tareas
         const taskInputs = document.querySelectorAll('.task-input-group');
         const tasks = Array.from(taskInputs).map(taskDiv => {
             const title = taskDiv.querySelector('.task-title')?.value;
             const description = taskDiv.querySelector('.task-description')?.value;
             const priority = taskDiv.querySelector('.task-priority')?.value;
-            
+
             if (title) {
                 return {
                     title,
@@ -1297,7 +1325,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
             }
             return null;
         }).filter(task => task !== null);
-        
+
         return {
             title,
             description: description || '',
@@ -1312,10 +1340,10 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
     async viewPlanDetails(planId) {
         const plan = this.studyPlans.find(p => p.id === planId);
         if (!plan) return;
-        
+
         this.currentEditingPlan = plan;
         this.populateDetailsModal(plan);
-        
+
         const modal = document.getElementById('planDetailsModal');
         if (modal) {
             modal.style.display = 'flex';
@@ -1331,7 +1359,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         const priority = document.getElementById('detailPriority');
         const progress = document.getElementById('detailProgress');
         const tasksList = document.getElementById('detailTasksList');
-        
+
         if (title) title.textContent = plan.title;
         if (description) description.textContent = plan.description || 'Sin descripción';
         if (dates) dates.textContent = `${this.formatDate(plan.start_date)} - ${this.formatDate(plan.end_date)}`;
@@ -1347,7 +1375,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
             const progressValue = this.calculateProgress(plan);
             progress.textContent = `${progressValue}%`;
         }
-        
+
         if (tasksList) {
             this.populateTasksList(plan.plan_tasks || []);
         }
@@ -1356,12 +1384,12 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
     populateTasksList(tasks) {
         const tasksList = document.getElementById('detailTasksList');
         if (!tasksList) return;
-        
+
         if (tasks.length === 0) {
             tasksList.innerHTML = '<p class="no-tasks">No hay tareas asignadas a este plan</p>';
             return;
         }
-        
+
         tasksList.innerHTML = tasks.map(task => this.createTaskDetailElement(task).outerHTML).join('');
     }
 
@@ -1487,7 +1515,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 },
                 body: JSON.stringify({ completed: !currentCompleted })
             });
-            
+
             if (response.ok) {
                 await this.loadStudyPlans();
                 this.showSuccess('Tarea actualizada correctamente');
@@ -1553,7 +1581,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         if (!confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
             return;
         }
-        
+
         try {
             const deleteBtn = document.querySelector(`.task-item[data-task-id="${taskId}"] .btn-delete-task`);
             if (deleteBtn) this.setButtonLoading(deleteBtn, true, 'Eliminando...');
@@ -1565,11 +1593,11 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 }
             });
-            
+
             if (response.ok) {
                 this.showSuccess('Tarea eliminada correctamente');
                 await this.loadStudyPlans();
-                
+
                 if (this.currentEditingPlan) {
                     this.populateDetailsModal(this.currentEditingPlan);
                 }
@@ -1593,7 +1621,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 modal.style.display = 'none';
             }, 300);
         }
-        
+
         this.currentEditingPlan = null;
         this.resetForm();
     }
@@ -1606,7 +1634,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 modal.style.display = 'none';
             }, 300);
         }
-        
+
         this.currentEditingPlan = null;
     }
 
@@ -1614,7 +1642,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         const saveBtn = document.getElementById('saveBtn');
         const saveBtnText = document.getElementById('saveBtnText');
         const spinner = saveBtn?.querySelector('.btn-spinner');
-        
+
         if (saveBtn) saveBtn.disabled = loading;
         if (saveBtnText) saveBtnText.style.display = loading ? 'none' : 'inline';
         if (spinner) spinner.style.display = loading ? 'inline-block' : 'none';
@@ -1653,7 +1681,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
             window.showError(message);
         } else {
             console.error('Error:', message);
-            
+
             const notification = document.createElement('div');
             notification.className = 'error-notification-planes';
             notification.style.cssText = `
@@ -1697,7 +1725,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
             window.showSuccess(message);
         } else {
             console.log('Success:', message);
-            
+
             const notification = document.createElement('div');
             notification.className = 'success-notification-planes';
             notification.style.cssText = `
@@ -1738,7 +1766,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
 
     openContentManager(planId) {
         console.log('Abriendo gestor de contenido para plan:', planId);
-        
+
         if (typeof openPlanContentModal === 'function') {
             openPlanContentModal(planId);
         } else {

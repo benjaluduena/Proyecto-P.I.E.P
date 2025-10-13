@@ -74,21 +74,29 @@
 
     <!-- Modal para crear classroom -->
     <div id="createClassroomModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeCreateClassroomModal()">&times;</span>
-            <h2 class="modal-title">Crear Nuevo Classroom</h2>
-            <form id="createClassroomForm">
+        <div class="modal-content modal-content-create animate-fadeIn">
+            <div class="modal-header">
+                <h2 class="modal-title">Nuevo Classroom</h2>
+                <button class="btn-close-modal" onclick="closeCreateClassroomModal()">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <form class="modal-body" id="createClassroomForm">
                 <div class="form-group">
-                    <label class="form-label" for="classroomName">Nombre del Classroom *</label>
-                    <input type="text" id="classroomName" class="form-input" required>
+                    <label class="label-title" for="classroomName">Nombre del Classroom *</label>
+                    <input class="input-white" placeholder="Ej: Tercer año" type="text" id="classroomName" class="form-input" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="classroomSubject">Materia</label>
-                    <input type="text" id="classroomSubject" class="form-input">
+                    <label class="label-title" for="classroomSubject">Materia</label>
+                    <input class="input-white" placeholder="Ej: Gestión de proyectos" type="text" id="classroomSubject" class="form-input">
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="classroomGrade">Nivel Educativo</label>
-                    <select id="classroomGrade" class="form-input">
+                    <label class="label-title" for="classroomGrade">Nivel Educativo</label>
+                    <select class="combo-white" id="classroomGrade" class="form-input">
                         <option value="">Seleccionar nivel</option>
                         <option value="secundario">Secundario</option>
                         <option value="terciario">Terciario</option>
@@ -97,15 +105,17 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="classroomDescription">Descripción</label>
-                    <textarea id="classroomDescription" class="form-input form-textarea" maxlength="150"></textarea>
+                    <label class="label-title" for="classroomDescription">Descripción</label>
+                    <textarea class="input-white" placeholder="Detalles adicionales de la clase..." id="classroomDescription"
+                        maxlength="150"></textarea>
                     <div id="charCount">0 / 150</div>
                 </div>
-                <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                    <button type="button" class="btn-secondary" onclick="closeCreateClassroomModal()">Cancelar</button>
-                    <button type="submit" class="btn-primary">Crear Classroom</button>
-                </div>
             </form>
+            <div class="modal-footer">
+                <button type="button" class="btn-purple-secondary"
+                    onclick="closeCreateClassroomModal()">Cancelar</button>
+                <button type="submit" class="btn-purple">Crear Classroom</button>
+            </div>
         </div>
     </div>
     <div id="deleteClassroomModal" class="modal">

@@ -1,151 +1,163 @@
 <!-- Contenido de Planes de Estudio para cargar dinámicamente -->
-<div class="planes-estudio-content">
+<div class="planes-estudio-content bg-color">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-            <div class="study-plans-container">
-                <div class="study-plans-header">
-                    <h1>Planes de Estudio</h1>
-                    <p>Organiza y gestiona tus planes de estudio de manera eficiente</p>
-                    <button class="btn-primary" id="createPlanBtn">
-                        <i class="fas fa-plus"></i>
-                        Crear Nuevo Plan
-                    </button>
-                </div>
-
-                <!-- Controles y filtros -->
-                <div class="controls-section">
-                    <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Buscar planes de estudio...">
-                    </div>
-                    
-                    <div class="filters">
-                        <div class="filter-group">
-                            <label for="statusFilter">Estado</label>
-                            <select id="statusFilter">
-                                <option value="">Todos los estados</option>
-                                <option value="active">Activo</option>
-                                <option value="completed">Completado</option>
-                                <option value="paused">Pausado</option>
-                            </select>
-                        </div>
-                        
-                        <div class="filter-group">
-                            <label for="sortBy">Ordenar por</label>
-                            <select id="sortBy">
-                                <option value="created_at">Fecha de creación</option>
-                                <option value="start_date">Fecha de inicio</option>
-                                <option value="end_date">Fecha de fin</option>
-                                <option value="title">Nombre</option>
-                            </select>
-                        </div>
-                        
-                        <div class="filter-group">
-                            <label for="priorityFilter">Prioridad</label>
-                            <select id="priorityFilter">
-                                <option value="">Todas las prioridades</option>
-                                <option value="high">Alta</option>
-                                <option value="medium">Media</option>
-                                <option value="low">Baja</option>
-                            </select>
-                        </div>
-                        
-                        <button class="filter-reset-btn" id="resetFilters">
-                            <i class="fas fa-times"></i>
-                            Limpiar filtros
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Loading indicator -->
-                <div class="loading" id="loadingIndicator" style="display: none;">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <span>Cargando planes de estudio...</span>
-                </div>
-
-                <!-- Plans grid -->
-                <div class="study-plans-grid" id="studyPlansGrid">
-                    <!-- Los planes se cargarán dinámicamente aquí -->
-                </div>
-
-                <!-- Empty state -->
-                <div class="empty-state" id="emptyState" style="display: none;">
-                    <i class="fas fa-book-open"></i>
-                    <h3>No hay planes de estudio</h3>
-                    <p id="emptyMessage">Crea tu primer plan de estudio para comenzar a organizar tu aprendizaje</p>
-                    <button class="btn-primary" id="createFirstPlanBtn">
-                        <i class="fas fa-plus"></i>
-                        Crear Mi Primer Plan
-                    </button>
-                </div>
+    <div class="study-plans-container">
+        <div class="study-plans-header">
+            <div class="study-plans-header-title">
+                <h1>Planes de Estudio</h1>
+                <p>Organiza y gestiona tus planes de estudio de manera eficiente</p>
             </div>
+        </div>
+        <!-- Controles y filtros -->
+        <div class="container-controls-section">
+            <div class="header-controls-section">
+                <h4>Filtrar por</h2>
+            </div>
+            <div class="controls-section">
+                <div class="filters">
+                    <div class="filter-group">
+                        <select class="combo-white" id="statusFilter">
+                            <option value="">Estado</option>
+                            <option value="active">Activo</option>
+                            <option value="completed">Completado</option>
+                            <option value="paused">Pausado</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <select class="combo-white" id="sortBy">
+                            <option value="created_at">Fecha de creación</option>
+                            <option value="start_date">Fecha de inicio</option>
+                            <option value="end_date">Fecha de fin</option>
+                            <option value="title">Nombre</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <select class="combo-white" id="priorityFilter">
+                            <option value="">Prioridad</option>
+                            <option value="high">Alta</option>
+                            <option value="medium">Media</option>
+                            <option value="low">Baja</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="controls-buttons">
+                    <button class="btn-white" id="resetFilters">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M8.58564 8.85449L3.63589 13.8042L8.83021 18.9985L9.99985 18.9978V18.9966H11.1714L14.9496 15.2184L8.58564 8.85449ZM9.99985 7.44027L16.3638 13.8042L19.1922 10.9758L12.8283 4.61185L9.99985 7.44027ZM13.9999 18.9966H20.9999V20.9966H11.9999L8.00229 20.9991L1.51457 14.5113C1.12405 14.1208 1.12405 13.4877 1.51457 13.0971L12.1212 2.49053C12.5117 2.1 13.1449 2.1 13.5354 2.49053L21.3136 10.2687C21.7041 10.6592 21.7041 11.2924 21.3136 11.6829L13.9999 18.9966Z">
+                            </path>
+                        </svg>
+                        Limpiar
+                    </button>
+                    <button class="btn-purple" id="createPlanBtn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6z"></path>
+                        </svg>
+                        Nuevo Plan
+                    </button>
+                </div>
+                <!-- <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Buscar planes de estudio...">
+                </div> -->
+            </div>
+        </div>
+
+        <!-- Loading indicator -->
+        <div class="loading" id="loadingIndicator" style="display: none;">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Cargando planes de estudio...</span>
+        </div>
+
+        <!-- Plans grid -->
+        <div class="study-plans-grid" id="studyPlansGrid">
+            <!-- Los planes se cargarán dinámicamente aquí -->
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <i class="fas fa-book-open"></i>
+            <h3>No hay planes de estudio</h3>
+            <p id="emptyMessage">Crea tu primer plan de estudio para comenzar a organizar tu aprendizaje</p>
+            <button class="btn-primary" id="createFirstPlanBtn">
+                <i class="fas fa-plus"></i>
+                Crear Mi Primer Plan
+            </button>
+        </div>
+    </div>
 
     <!-- Modal para crear/editar plan -->
     <div class="modal" id="studyPlanModal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle">Crear Nuevo Plan de Estudio</h2>
-                <button class="close-btn" id="closeModalBtn">
-                    <i class="fas fa-times"></i>
+                <button class="btn-close-modal" id="closeModalBtn">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z">
+                        </path>
+                    </svg>
                 </button>
             </div>
-            
+
             <form id="studyPlanForm" class="modal-body">
                 <div class="form-section">
-                    <h3>Información Básica</h3>
-                    
                     <div class="form-group">
-                        <label for="title">Título del Plan *</label>
-                        <input type="text" id="title" name="title" required placeholder="Ej: Preparación para Examen de Matemáticas">
+                        <label class="label-title" for="title">Título del Plan *</label>
+                        <input class="input-white" type="text" id="title" name="title" required
+                            placeholder="Ej: Preparación para Examen de Matemáticas">
                     </div>
-                    
+
                     <div class="form-group">
-                        <label for="description">Descripción</label>
-                        <textarea id="description" name="description" rows="3" placeholder="Describe brevemente los objetivos de este plan de estudio"></textarea>
+                        <label class="label-title" for="description">Descripción</label>
+                        <textarea class="input-white" id="description" name="description" rows="3"
+                            placeholder="Describe brevemente los objetivos de este plan de estudio"></textarea>
                     </div>
-                    
+
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="startDate">Fecha de Inicio *</label>
-                            <input type="date" id="startDate" name="start_date" required>
+                            <label class="label-title" for="startDate">Fecha de Inicio *</label>
+                            <input class="input-white" type="date" id="startDate" name="start_date" required>
                         </div>
-                        
+
                         <div class="form-group">
-                            <label for="endDate">Fecha de Finalización *</label>
-                            <input type="date" id="endDate" name="end_date" required>
+                            <label class="label-title" for="endDate">Fecha de Finalización *</label>
+                            <input class="input-white" type="date" id="endDate" name="end_date" required>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
-                        <label for="status">Estado</label>
-                        <select id="status" name="status" disabled>
+                        <label class="label-title" for="status">Estado</label>
+                        <select class="combo-white" id="status" name="status" disabled>
                             <option value="active" selected>Activo</option>
                             <option value="paused">Pausado</option>
                             <option value="completed">Completado</option>
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="form-section">
                     <div class="section-header">
                         <h3>Tareas del Plan</h3>
-                        <button type="button" class="add-task-btn" id="addTaskBtn">
+                        <button type="button" class="btn-purple" id="addTaskBtn">
                             <i class="fas fa-plus"></i>
                             Agregar Tarea
                         </button>
                     </div>
-                    
+
                     <div class="tasks-container" id="tasksContainer">
                         <!-- Las tareas se agregarán dinámicamente aquí -->
                     </div>
                 </div>
-                
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" id="cancelBtn">Cancelar</button>
-                    <button type="submit" class="btn-primary" id="saveBtn">
-                        <span id="saveBtnText">Crear Plan</span>
-                        <i class="fas fa-spinner fa-spin" id="saveSpinner" style="display: none;"></i>
-                    </button>
-                </div>
             </form>
+            <div class="modal-footer">
+                <button type="button" class="btn-purple-secondary" id="cancelBtn">Cancelar</button>
+                <button type="submit" class="btn-purple" id="saveBtn">
+                    <span id="saveBtnText">Crear Plan</span>
+                    <i class="fas fa-spinner fa-spin" id="saveSpinner" style="display: none;"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -166,7 +178,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <div class="modal-body">
                 <div class="plan-info">
                     <div class="info-grid">
@@ -174,22 +186,22 @@
                             <label>Descripción:</label>
                             <p id="detailDescription">-</p>
                         </div>
-                        
+
                         <div class="info-item">
                             <label>Estado:</label>
                             <span class="status-badge" id="detailStatus">-</span>
                         </div>
-                        
+
                         <div class="info-item">
                             <label>Fecha de Inicio:</label>
                             <p id="detailStartDate">-</p>
                         </div>
-                        
+
                         <div class="info-item">
                             <label>Fecha de Fin:</label>
                             <p id="detailEndDate">-</p>
                         </div>
-                        
+
                         <div class="info-item">
                             <label>Progreso:</label>
                             <div class="progress-container">
@@ -201,7 +213,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="tasks-section">
                     <h3>Tareas del Plan</h3>
                     <div class="tasks-list" id="detailTasksList">
@@ -232,10 +244,10 @@
                     </button>
                 </div>
             </div>
-            
+
             <div class="card-body">
                 <p class="plan-description"></p>
-                
+
                 <div class="plan-dates">
                     <div class="date-item">
                         <i class="fas fa-calendar-alt"></i>
@@ -246,7 +258,7 @@
                         <span class="end-date"></span>
                     </div>
                 </div>
-                
+
                 <div class="tasks-preview">
                     <h4 class="tasks-title">Tareas Asignadas</h4>
                     <ul class="tasks-list">
@@ -258,10 +270,10 @@
                     </button>
                 </div>
             </div>
-            
+
             <div class="card-footer">
-                 <div class="status-badge"></div>
-             </div>
+                <div class="status-badge"></div>
+            </div>
         </div>
     </template>
 
@@ -272,15 +284,28 @@
             <button class="close-expanded-btn" title="Cerrar vista expandida" style="display: none;">
                 <i class="fas fa-times"></i>
             </button>
-            
+
             <div class="card-header">
-                <div class="header-content">
-                    <h3 class="plan-title"></h3>
-                    <p class="plan-description"></p>
+                <div class="header-left">
+                    <div class="plan-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M21 18H6C5.44772 18 5 18.4477 5 19C5 19.5523 5.44772 20 6 20H21V22H6C4.34315 22 3 20.6569 3 19V4C3 2.89543 3.89543 2 5 2H21V18ZM5 16.05C5.16156 16.0172 5.32877 16 5.5 16H19V4H5V16.05ZM16 9H8V7H16V9Z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div class="header-content">
+                        <h3 class="plan-title"></h3>
+                        <p class="plan-description"></p>
+                    </div>
                 </div>
                 <div class="card-actions">
-                    <button class="action-btn view-btn" title="Ver detalles">
-                        <i class="fas fa-eye"></i>
+                    <button class="action-btn view-plan" title="Ver detalles">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M1.18164 12C2.12215 6.87976 6.60812 3 12.0003 3C17.3924 3 21.8784 6.87976 22.8189 12C21.8784 17.1202 17.3924 21 12.0003 21C6.60812 21 2.12215 17.1202 1.18164 12ZM12.0003 17C14.7617 17 17.0003 14.7614 17.0003 12C17.0003 9.23858 14.7617 7 12.0003 7C9.23884 7 7.00026 9.23858 7.00026 12C7.00026 14.7614 9.23884 17 12.0003 17ZM12.0003 15C10.3434 15 9.00026 13.6569 9.00026 12C9.00026 10.3431 10.3434 9 12.0003 9C13.6571 9 15.0003 10.3431 15.0003 12C15.0003 13.6569 13.6571 15 12.0003 15Z">
+                            </path>
+                        </svg>
                     </button>
                     <select class="action-select status-select" title="Estado del plan">
                         <option value="active">Activo</option>
@@ -289,201 +314,228 @@
                     </select>
                 </div>
             </div>
-            
+
             <div class="card-content">
                 <!-- Vista normal (compacta) -->
                 <div class="normal-view">
                     <div class="plan-dates">
                         <div class="date-item">
-                            <span class="date-label">
-                                <i class="fas fa-play"></i>
-                                Inicio
-                            </span>
+                            <div class="date-label">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path
+                                        d="M9 1V3H15V1H17V3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3H7V1H9ZM20 11H4V19H20V11ZM8 14V16H6V14H8ZM18 14V16H10V14H18ZM7 5H4V9H20V5H17V7H15V5H9V7H7V5Z">
+                                    </path>
+                                </svg>
+                                Inicio:
+                            </div>
                             <span class="date-value start-date"></span>
                         </div>
                         <div class="date-item">
-                            <span class="date-label">
-                                <i class="fas fa-flag-checkered"></i>
-                                Fin
-                            </span>
+                            <div class="date-label">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path
+                                        d="M7 3V1H9V3H15V1H17V3H21C21.5523 3 22 3.44772 22 4V9H20V5H17V7H15V5H9V7H7V5H4V19H10V21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3H7ZM17 12C14.7909 12 13 13.7909 13 16C13 18.2091 14.7909 20 17 20C19.2091 20 21 18.2091 21 16C21 13.7909 19.2091 12 17 12ZM11 16C11 12.6863 13.6863 10 17 10C20.3137 10 23 12.6863 23 16C23 19.3137 20.3137 22 17 22C13.6863 22 11 19.3137 11 16ZM16 13V16.4142L18.2929 18.7071L19.7071 17.2929L18 15.5858V13H16Z">
+                                    </path>
+                                </svg>
+                                Fin:
+                            </div>
                             <span class="date-value end-date"></span>
                         </div>
                     </div>
-                    
-                    <div class="plan-stats">
-                        <div class="stat-item">
-                            <span class="stat-number tasks-count">0</span>
-                            <span class="stat-label">Tareas</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number completed-tasks">0</span>
-                            <span class="stat-label">Completadas</span>
-                        </div>
-                    </div>
-                    
                     <div class="card-progress">
-                        <div class="progress-header">
+                        <!-- <div class="progress-header">
                             <span class="progress-label">Progreso</span>
+                        </div> -->
+                        <div class="container-progress">
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" style="width: 0%"></div>
+                            </div>
                             <span class="progress-percentage">0%</span>
                         </div>
-                        <div class="progress-bar-container">
-                            <div class="progress-bar-fill" style="width: 0%"></div>
+
+                    </div>
+                    <div class="plan-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#7A99D4">
+                                    <path
+                                        d="M20 2C20.5523 2 21 2.44772 21 3V6.757L19 8.757V4H5V20H19V17.242L21 15.242V21C21 21.5523 20.5523 22 20 22H4C3.44772 22 3 21.5523 3 21V3C3 2.44772 3.44772 2 4 2H20ZM21.7782 8.80761L23.1924 10.2218L15.4142 18L13.9979 17.9979L14 16.5858L21.7782 8.80761ZM13 12V14H8V12H13ZM16 8V10H8V8H16Z">
+                                    </path>
+                                </svg>
+                                Tareas:
+                            </div>
+                            <span class="stat-number tasks-count">0</span>
+                        </div>
+                        <div class="stat-item">
+
+                            <div class="stat-label">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#5BAF8B">
+                                    <path
+                                        d="M4 12C4 7.58172 7.58172 4 12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12ZM12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM17.4571 9.45711L16.0429 8.04289L11 13.0858L8.20711 10.2929L6.79289 11.7071L11 15.9142L17.4571 9.45711Z">
+                                    </path>
+                                </svg>
+                                Completadas:
+                                </span>
+                            </div>
+                            <span class="stat-number completed-tasks">0</span>
+                        </div>
+
+
+                    </div>
+
+                    <!-- Vista expandida -->
+                    <div class="expanded-view" style="display: none;">
+                        <!-- Navegación de pestañas -->
+                        <div class="expanded-tabs">
+                            <button class="tab-btn active" data-tab="overview">
+                                <i class="fas fa-chart-pie"></i>
+                                Resumen
+                            </button>
+                            <button class="tab-btn" data-tab="tasks">
+                                <i class="fas fa-tasks"></i>
+                                Tareas
+                            </button>
+                            <button class="tab-btn" data-tab="content">
+                                <i class="fas fa-brain"></i>
+                                Contenido
+                            </button>
+                            <button class="tab-btn" data-tab="edit">
+                                <i class="fas fa-edit"></i>
+                                Editar
+                            </button>
+                        </div>
+
+                        <!-- Contenido de pestañas -->
+                        <div class="tab-content">
+                            <!-- Pestaña Resumen -->
+                            <div class="tab-panel active" data-panel="overview">
+                                <div class="overview-stats">
+                                    <div class="stat-card">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-tasks"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <span class="stat-value tasks-total">0</span>
+                                            <span class="stat-title">Total Tareas</span>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-check-circle"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <span class="stat-value tasks-completed">0</span>
+                                            <span class="stat-title">Completadas</span>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-clock"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <span class="stat-value tasks-pending">0</span>
+                                            <span class="stat-title">Pendientes</span>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-icon">
+                                            <i class="fas fa-calendar-day"></i>
+                                        </div>
+                                        <div class="stat-info">
+                                            <span class="stat-value days-remaining">0</span>
+                                            <span class="stat-title">Días Restantes</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="progress-section">
+                                    <h4>Progreso General</h4>
+                                    <div class="progress-bar-large">
+                                        <div class="progress-fill-large" style="width: 0%"></div>
+                                        <span class="progress-text-large">0%</span>
+                                    </div>
+                                </div>
+
+                                <div class="recent-activity">
+                                    <h4>Actividad Reciente</h4>
+                                    <div class="activity-list">
+                                        <!-- Se llenará dinámicamente -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pestaña Tareas -->
+                            <div class="tab-panel" data-panel="tasks">
+                                <div class="tasks-header">
+                                    <h4>Gestión de Tareas</h4>
+                                    <button class="btn-primary add-task-btn">
+                                        <i class="fas fa-plus"></i>
+                                        Nueva Tarea
+                                    </button>
+                                </div>
+                                <div class="tasks-list-expanded">
+                                    <!-- Las tareas se cargarán dinámicamente -->
+                                </div>
+                            </div>
+
+                            <!-- Pestaña Contenido -->
+                            <div class="tab-panel" data-panel="content">
+                                <div class="content-header">
+                                    <h4>Gestión de Contenido</h4>
+                                    <button class="btn-primary add-content-btn">
+                                        <i class="fas fa-plus"></i>
+                                        Agregar Contenido
+                                    </button>
+                                </div>
+                                <div class="content-list-expanded">
+                                    <!-- El contenido se cargará dinámicamente -->
+                                </div>
+                            </div>
+
+                            <!-- Pestaña Editar -->
+                            <div class="tab-panel" data-panel="edit">
+                                <form class="edit-plan-form">
+                                    <div class="form-group">
+                                        <label>Título del Plan</label>
+                                        <input type="text" class="edit-title" placeholder="Título del plan">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Descripción</label>
+                                        <textarea class="edit-description" rows="3"
+                                            placeholder="Descripción del plan"></textarea>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Fecha de Inicio</label>
+                                            <input type="date" class="edit-start-date">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Fecha de Fin</label>
+                                            <input type="date" class="edit-end-date">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Estado</label>
+                                        <select class="edit-status">
+                                            <option value="active">Activo</option>
+                                            <option value="paused">Pausado</option>
+                                            <option value="completed">Completado</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="button" class="btn-secondary cancel-edit">Cancelar</button>
+                                        <button type="submit" class="btn-primary save-edit">Guardar Cambios</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Vista expandida -->
-                <div class="expanded-view" style="display: none;">
-                    <!-- Navegación de pestañas -->
-                    <div class="expanded-tabs">
-                        <button class="tab-btn active" data-tab="overview">
-                            <i class="fas fa-chart-pie"></i>
-                            Resumen
-                        </button>
-                        <button class="tab-btn" data-tab="tasks">
-                            <i class="fas fa-tasks"></i>
-                            Tareas
-                        </button>
-                        <button class="tab-btn" data-tab="content">
-                            <i class="fas fa-brain"></i>
-                            Contenido
-                        </button>
-                        <button class="tab-btn" data-tab="edit">
-                            <i class="fas fa-edit"></i>
-                            Editar
-                        </button>
-                    </div>
-                    
-                    <!-- Contenido de pestañas -->
-                    <div class="tab-content">
-                        <!-- Pestaña Resumen -->
-                        <div class="tab-panel active" data-panel="overview">
-                            <div class="overview-stats">
-                                <div class="stat-card">
-                                    <div class="stat-icon">
-                                        <i class="fas fa-tasks"></i>
-                                    </div>
-                                    <div class="stat-info">
-                                        <span class="stat-value tasks-total">0</span>
-                                        <span class="stat-title">Total Tareas</span>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon">
-                                        <i class="fas fa-check-circle"></i>
-                                    </div>
-                                    <div class="stat-info">
-                                        <span class="stat-value tasks-completed">0</span>
-                                        <span class="stat-title">Completadas</span>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon">
-                                        <i class="fas fa-clock"></i>
-                                    </div>
-                                    <div class="stat-info">
-                                        <span class="stat-value tasks-pending">0</span>
-                                        <span class="stat-title">Pendientes</span>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon">
-                                        <i class="fas fa-calendar-day"></i>
-                                    </div>
-                                    <div class="stat-info">
-                                        <span class="stat-value days-remaining">0</span>
-                                        <span class="stat-title">Días Restantes</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="progress-section">
-                                <h4>Progreso General</h4>
-                                <div class="progress-bar-large">
-                                    <div class="progress-fill-large" style="width: 0%"></div>
-                                    <span class="progress-text-large">0%</span>
-                                </div>
-                            </div>
-                            
-                            <div class="recent-activity">
-                                <h4>Actividad Reciente</h4>
-                                <div class="activity-list">
-                                    <!-- Se llenará dinámicamente -->
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Pestaña Tareas -->
-                        <div class="tab-panel" data-panel="tasks">
-                            <div class="tasks-header">
-                                <h4>Gestión de Tareas</h4>
-                                <button class="btn-primary add-task-btn">
-                                    <i class="fas fa-plus"></i>
-                                    Nueva Tarea
-                                </button>
-                            </div>
-                            <div class="tasks-list-expanded">
-                                <!-- Las tareas se cargarán dinámicamente -->
-                            </div>
-                        </div>
-                        
-                        <!-- Pestaña Contenido -->
-                        <div class="tab-panel" data-panel="content">
-                            <div class="content-header">
-                                <h4>Gestión de Contenido</h4>
-                                <button class="btn-primary add-content-btn">
-                                    <i class="fas fa-plus"></i>
-                                    Agregar Contenido
-                                </button>
-                            </div>
-                            <div class="content-list-expanded">
-                                <!-- El contenido se cargará dinámicamente -->
-                            </div>
-                        </div>
-                        
-                        <!-- Pestaña Editar -->
-                        <div class="tab-panel" data-panel="edit">
-                            <form class="edit-plan-form">
-                                <div class="form-group">
-                                    <label>Título del Plan</label>
-                                    <input type="text" class="edit-title" placeholder="Título del plan">
-                                </div>
-                                <div class="form-group">
-                                    <label>Descripción</label>
-                                    <textarea class="edit-description" rows="3" placeholder="Descripción del plan"></textarea>
-                                </div>
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label>Fecha de Inicio</label>
-                                        <input type="date" class="edit-start-date">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Fecha de Fin</label>
-                                        <input type="date" class="edit-end-date">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Estado</label>
-                                    <select class="edit-status">
-                                        <option value="active">Activo</option>
-                                        <option value="paused">Pausado</option>
-                                        <option value="completed">Completado</option>
-                                    </select>
-                                </div>
-                                <div class="form-actions">
-                                    <button type="button" class="btn-secondary cancel-edit">Cancelar</button>
-                                    <button type="submit" class="btn-primary save-edit">Guardar Cambios</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+
+                <!-- <div class="card-footer">
+                    <div class="status-badge"></div>
+                </div> -->
             </div>
-            
-            <div class="card-footer">
-                <div class="status-badge"></div>
-            </div>
-        </div>
     </template>
 
     <!-- Template para detalles de tareas -->

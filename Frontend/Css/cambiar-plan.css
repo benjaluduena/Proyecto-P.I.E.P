@@ -15,10 +15,10 @@
   margin-bottom: 40px;
 }
 
-.header-content {
+/* .header-content {
   max-width: 600px;
   margin: 0 auto;
-}
+} */
 
 .page-title {
   font-size: 2rem;
@@ -162,11 +162,11 @@
   margin-bottom: 32px;
 }
 
-.plan-icon {
+/* .plan-icon {
   font-size: 3rem;
   margin-bottom: 16px;
   display: block;
-}
+} */
 
 .plan-name {
   font-size: 1.8rem;
