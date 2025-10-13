@@ -1,19 +1,14 @@
 /* Cambiar Plan - Estilos */
 .cambiar-plan-container {
-  padding: 20px;
+  padding: 40px;
   width: 100%;
-  background: linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%);
-  min-height: 100vh;
   box-sizing: border-box;
   max-width: 1200px;
   margin: 0 auto;
 }
 
 /* Header */
-.plan-header {
-  text-align: center;
-  margin-bottom: 40px;
-}
+
 
 /* .header-content {
   max-width: 600px;
@@ -24,11 +19,6 @@
   font-size: 2rem;
   font-weight: 700;
   color: #2d3748;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
 }
 
 .title-icon {
@@ -118,20 +108,21 @@
 /* Tarjetas de Planes */
 .plan-card {
   background: white;
-  border: 2px solid #e2e8f0;
-  border-radius: 24px;
-  padding: 40px 32px;
+  border: 2px solid #f1f1f1;
+  border-radius: 15px;
+  padding: 40px 30px;
   position: relative;
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
+  text-align: center;
   height: auto;
   min-height: 500px;
 }
 
 .plan-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
 }
 
 .plan-card.popular {
@@ -144,18 +135,6 @@
   transform: scale(1.02) translateY(-8px);
 }
 
-.plan-badge {
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(135deg, #a259fa 0%, #667eea 100%);
-  color: white;
-  padding: 8px 24px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
 
 .plan-header-card {
   text-align: center;
@@ -169,10 +148,10 @@
 } */
 
 .plan-name {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #2d3748;
+  font-size: 1.5rem;
+  font-weight: 600;
   margin-bottom: 16px;
+  color: #333;
 }
 
 .plan-price {
@@ -185,20 +164,20 @@
 
 .currency {
   font-size: 1.2rem;
-  font-weight: 600;
-  color: #718096;
+  font-weight: 500;
+  color: #666;
 }
 
 .amount {
   font-size: 3rem;
   font-weight: 700;
-  color: #2d3748;
+  color: #333;
 }
 
 .period {
   font-size: 1rem;
-  color: #718096;
   font-weight: 500;
+  color: #666;
 }
 
 /* Características del Plan */
@@ -210,11 +189,11 @@
 .feature-item {
   display: flex;
   align-items: center;
+  text-align: left;
   gap: 12px;
   padding: 12px 0;
   color: #4a5568;
   font-weight: 500;
-  border-bottom: 1px solid #f7fafc;
 }
 
 .feature-item:last-child {
@@ -222,17 +201,17 @@
 }
 
 .feature-check {
-  color: #38a169;
+  color: #a259fa;
   flex-shrink: 0;
 }
 
 /* Botones de Plan */
 .plan-btn {
   width: 100%;
-  padding: 16px 24px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 12px;
-  font-size: 1.1rem;
+  border-radius: 10px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -245,30 +224,13 @@
   cursor: not-allowed;
 }
 
-.plan-btn-free {
-  background: linear-gradient(135deg, #68d391 0%, #38a169 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(104, 211, 145, 0.3);
-}
-
-.plan-btn-free:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(104, 211, 145, 0.4);
-}
-
-.plan-btn-free:active {
-  transform: translateY(0);
-}
-
 .plan-btn-upgrade {
-  background: linear-gradient(135deg, #a259fa 0%, #667eea 100%);
+  background: #a259fa;
   color: white;
-  box-shadow: 0 4px 15px rgba(162, 89, 250, 0.3);
 }
 
 .plan-btn-upgrade:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(162, 89, 250, 0.4);
+  background-color: #8f47e8;
 }
 
 .plan-btn-upgrade:active {
@@ -276,9 +238,7 @@
 }
 
 /* Colores específicos por plan */
-.plan-basico {
-  border-color: #68d391;
-}
+
 
 .plan-basico .plan-icon {
   color: #38a169;
@@ -290,10 +250,6 @@
 
 .plan-premium .plan-icon {
   color: #a259fa;
-}
-
-.plan-pro {
-  border-color: #fd9800;
 }
 
 .plan-pro .plan-icon {
@@ -312,6 +268,9 @@
 }
 
 .info-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background: white;
   padding: 32px;
   border-radius: 16px;
@@ -326,8 +285,21 @@
 }
 
 .info-icon {
-  font-size: 2.5rem;
-  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  padding: 20px;
+  background-color: #a259fa;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+}
+
+.info-icon svg {
+  width: 32px;
+  height: 32px;
 }
 
 .info-card h4 {
@@ -349,7 +321,6 @@
   padding: 50px;
   border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  animation: slideInUp 0.6s ease-out;
 }
 
 .faq-title {
@@ -358,7 +329,6 @@
   font-weight: 700;
   color: #2d3748;
   margin-bottom: 40px;
-  animation: fadeInDown 0.8s ease-out;
 }
 
 .faq-list {
@@ -369,29 +339,10 @@
 .faq-item {
   border-bottom: 1px solid #e2e8f0;
   padding: 24px 0;
-  transition: all 0.3s ease;
-  border-radius: 12px;
-  margin-bottom: 8px;
-  animation: fadeInUp 0.6s ease-out;
-  animation-fill-mode: both;
 }
-
-.faq-item:nth-child(1) { animation-delay: 0.1s; }
-.faq-item:nth-child(2) { animation-delay: 0.2s; }
-.faq-item:nth-child(3) { animation-delay: 0.3s; }
-.faq-item:nth-child(4) { animation-delay: 0.4s; }
-.faq-item:nth-child(5) { animation-delay: 0.5s; }
 
 .faq-item:last-child {
   border-bottom: none;
-}
-
-.faq-item:hover {
-  background: linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%);
-  padding-left: 20px;
-  padding-right: 20px;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(162, 89, 250, 0.1);
 }
 
 .faq-question {
@@ -403,98 +354,40 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.faq-question:hover {
-  color: #a259fa;
-  transform: translateX(5px);
 }
 
 .faq-question:after {
   content: '+';
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   color: #a259fa;
-  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  background: linear-gradient(135deg, #a259fa, #7c3aed);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: bold;
+  transition: transform 0.3s ease;
 }
 
 .faq-item.active .faq-question:after {
-  transform: rotate(45deg) scale(1.2);
-  color: #7c3aed;
-}
-
-.faq-item.active .faq-question {
-  color: #a259fa;
-  transform: translateX(5px);
+  transform: rotate(45deg);
 }
 
 .faq-answer {
   color: #718096;
   line-height: 1.6;
   padding-left: 0;
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateY(-10px);
+  display: none;
 }
 
 .faq-item.active .faq-answer {
-  max-height: 200px;
-  opacity: 1;
-  transform: translateY(0);
-  padding-top: 12px;
-  animation: slideInContent 0.5s ease-out;
+  display: block;
+  animation: fadeIn 0.3s ease;
 }
 
-/* Animaciones mejoradas */
-@keyframes fadeInUp {
-  from { 
-    opacity: 0; 
-    transform: translateY(30px);
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
-  to { 
-    opacity: 1; 
+
+  to {
+    opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes fadeInDown {
-  from { 
-    opacity: 0; 
-    transform: translateY(-30px);
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInUp {
-  from { 
-    opacity: 0; 
-    transform: translateY(50px);
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInContent {
-  from { 
-    opacity: 0; 
-    transform: translateY(-15px) scale(0.95);
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0) scale(1);
   }
 }
 
@@ -525,8 +418,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-overlay p {
@@ -540,28 +438,28 @@
   .cambiar-plan-container {
     padding: 20px;
   }
-  
+
   .page-title {
     font-size: 2rem;
   }
-  
+
   .plans-grid {
     grid-template-columns: 1fr;
     gap: 30px;
   }
-  
+
   .plan-card.popular {
     transform: none;
   }
-  
+
   .plan-card.popular:hover {
     transform: translateY(-8px);
   }
-  
+
   .info-cards {
     grid-template-columns: 1fr;
   }
-  
+
   .faq-section {
     padding: 30px;
   }
@@ -571,11 +469,11 @@
   .current-plan-card {
     padding: 20px;
   }
-  
+
   .plan-card {
     padding: 30px 20px;
   }
-  
+
   .amount {
     font-size: 2.5rem;
   }
@@ -611,6 +509,7 @@
     opacity: 0;
     transform: translateY(-50px) scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -669,19 +568,31 @@
 }
 
 .plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 50px;
+}
+
+.plan-header img {
+  width: 150px;
+  height: 150px;
 }
 
 .plan-badge {
   display: inline-block;
-  padding: 4px 12px;
+  padding: 8px 20px;
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   margin-bottom: 10px;
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #a259fa;
+  color: white;
 }
 
 .plan-badge.current {
@@ -707,10 +618,10 @@
   color: #3b82f6;
 }
 
-.plan-price span {
+/* .plan-price span {
   font-size: 0.9rem;
   color: #718096;
-}
+} */
 
 .plan-features {
   space-y: 8px;
@@ -871,11 +782,6 @@
   border: 1px solid rgba(59, 130, 246, 0.1);
 }
 
-.info-icon {
-  font-size: 1.5rem;
-  flex-shrink: 0;
-}
-
 .info-content h5 {
   margin: 0 0 4px;
   font-size: 1rem;
@@ -939,12 +845,13 @@
 
 /* Responsive para modales */
 @media (max-width: 768px) {
+
   .comparison-modal-content,
   .payment-modal-content {
     width: 95%;
     max-height: 90vh;
   }
-  
+
   .comparison-modal-content .modal-header,
   .comparison-modal-content .modal-body,
   .comparison-modal-content .modal-actions,
@@ -954,24 +861,24 @@
     padding-left: 20px;
     padding-right: 20px;
   }
-  
+
   .plans-comparison {
     flex-direction: column;
     gap: 20px;
   }
-  
+
   .comparison-arrow {
     transform: rotate(90deg);
   }
-  
+
   .benefits-list {
     grid-template-columns: 1fr;
   }
-  
+
   .modal-actions {
     flex-direction: column;
   }
-  
+
   .btn-secondary,
   .btn-primary {
     width: 100%;

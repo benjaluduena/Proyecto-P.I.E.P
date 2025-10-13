@@ -234,13 +234,13 @@ async function handlePlanUpgrade(event) {
     return;
   }
 
-  window.app?.uiModule?.showNotification(`Procesando cambio al plan ${newPlan}...`, 'info', 3000);
+  // window.app?.uiModule?.showNotification(`Procesando cambio al plan ${newPlan}...`, 'info', 3000);
   
   // Mostrar solo confirmación simple y directa
   const confirmedUpgrade = await showSimpleConfirmationModal(newPlan);
   if (!confirmedUpgrade) {
     console.log('[handlePlanUpgrade] Usuario canceló la actualización');
-    window.app?.uiModule?.showNotification('Se canceló la actualización de plan', 'warning', 3000);
+    // window.app?.uiModule?.showNotification('Se canceló la actualización de plan', 'warning', 3000);
     return;
   }
   
@@ -318,7 +318,7 @@ async function createSubscription(planType) {
     window.app?.uiModule?.showNotification('Redirigiendo a MercadoPago...', 'success', 2000);
     
     // Mostrar mensaje de confirmación antes de redirigir
-    showSuccess('¡Perfecto! Te estamos redirigiendo a MercadoPago para completar tu suscripción.');
+    // showSuccess('¡Perfecto! Te estamos redirigiendo a MercadoPago para completar tu suscripción.');
     
     // Pequeña pausa para que el usuario vea el mensaje
     setTimeout(() => {
@@ -342,7 +342,7 @@ function showSimpleConfirmationModal(planType) {
     modal.innerHTML = `
       <div class="modal-content simple-modal-content">
         <div class="modal-header">
-          <h3>🚀 Confirmar Actualización</h3>
+          <h3>Confirmar Actualización</h3>
           <p>¿Deseas actualizar a Plan ${plan.name}?</p>
         </div>
         <div class="modal-body">
@@ -353,19 +353,27 @@ function showSimpleConfirmationModal(planType) {
                 <div class="plan-price-display">$${plan.price}/mes</div>
               </div>
               <div class="plan-highlights">
-                ${plan.features.slice(0, 3).map(feature => `<div class="highlight">✨ ${feature}</div>`).join('')}
+                ${plan.features.slice(0, 3).map(feature => `<div class="highlight">${feature}</div>`).join('')}
               </div>
             </div>
             
             <div class="payment-note">
-              <div class="note-icon">💳</div>
+              <div class="note-icon">
+                <img src="/Assets/Imagenes/mercado-pago.png" alt="MercadoPago" style="height: 50px;">
+              </div>
               <p>Serás redirigido a MercadoPago para completar el pago de forma segura</p>
             </div>
           </div>
         </div>
         <div class="modal-actions">
-          <button class="btn-secondary modal-cancel">Cancelar</button>
-          <button class="btn-primary modal-confirm">Continuar a MercadoPago</button>
+          <button class="btn-white modal-cancel">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20ZM12 10.5858L14.8284 7.75736L16.2426 9.17157L13.4142 12L16.2426 14.8284L14.8284 16.2426L12 13.4142L9.17157 16.2426L7.75736 14.8284L10.5858 12L7.75736 9.17157L9.17157 7.75736L12 10.5858Z">
+              </path>
+            </svg>
+            Cancelar
+          </button>
+          <button class="btn-purple modal-confirm">Continuar a MercadoPago</button>
         </div>
       </div>
     `;
@@ -589,8 +597,7 @@ function addSimpleModalStyles() {
   style.id = 'simple-modal-styles';
   style.textContent = `
     .simple-confirmation-modal .modal-content {
-      max-width: 500px;
-      margin: auto;
+      
     }
     
     .simple-confirmation-modal {
