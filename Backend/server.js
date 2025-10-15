@@ -121,7 +121,8 @@ app.use(
         imgSrc: [
           "'self'",
           'data:',
-          'https://lh3.googleusercontent.com'
+          'https://lh3.googleusercontent.com',
+          'https://fqmpmseabhtvahzdavej.supabase.co'
         ],
         connectSrc: [
           "'self'",
