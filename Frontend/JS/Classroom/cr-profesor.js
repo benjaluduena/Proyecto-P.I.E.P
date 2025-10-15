@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Actualizar sidebar con nombre
         const welcomeEl = document.getElementById('welcomeUser');
-        if (welcomeEl) welcomeEl.textContent = `Bienvenido ${profile.name}`;
+        if (welcomeEl) welcomeEl.textContent = `${profile.name}`;
         if (profile.name.length > 16) {
             welcomeEl.classList.add('small');
         } else {
