@@ -11,7 +11,6 @@ let vfFeedback = document.getElementById('vfFeedback');
 let feedbackText = document.getElementById('feedbackText');
 let explanationLink = document.getElementById('explanationLink');
 let vfExplanation = document.getElementById('vfExplanation');
-let continueContainer = document.getElementById('continueContainer');
 let continueBtn = document.getElementById('continueBtn');
 const closeBtn = document.getElementById('closeBtn');
 const quizTitle = document.getElementById('quizTitle');
@@ -19,6 +18,10 @@ const printBtn = document.getElementById('printBtn');
 const shareBtn = document.getElementById('shareBtn');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
+const backToAnswerBtn = document.getElementById('backToAnswerBtn');
+const questionContent = document.querySelector('.vf-question-content');
+const explanationContent = document.querySelector('.vf-explanation-content');
+
 
 // ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', function() {
@@ -157,7 +160,12 @@ function setupEventListeners() {
     });
 
     // Event listener para el enlace de explicación
-    explanationLink.addEventListener('click', toggleExplanation);
+    explanationLink.addEventListener('click', showExplanationView);
+
+    // Event listener para volver a la respuesta
+    if (backToAnswerBtn) {
+        backToAnswerBtn.addEventListener('click', hideExplanationView);
+    }
 
     // Event listener para el botón continuar
     continueBtn.addEventListener('click', function() {
@@ -228,12 +236,12 @@ function handleOptionClick(event) {
     
     // Mostrar enlace de explicación
     if (explanationLink) {
-        explanationLink.style.display = 'inline-flex';
+        explanationLink.classList.add('visible');
     }
     
     // Mostrar botón de continuar
-    if (continueContainer) {
-        continueContainer.style.display = 'flex';
+    if (continueBtn) {
+        continueBtn.style.visibility = 'visible';
     }
     
     // Mostrar botón de volver a resultados
@@ -279,7 +287,7 @@ function applyAnswerStyles(selectedOption, isCorrect) {
 
 // ===== MOSTRAR FEEDBACK =====
 function showFeedback(isCorrect) {
-    vfFeedback.style.display = 'block';
+    vfFeedback.classList.add('visible');
     
     if (isCorrect) {
         feedbackText.textContent = '¡Correcto!';
@@ -291,17 +299,46 @@ function showFeedback(isCorrect) {
 }
 
 // ===== TOGGLE EXPLICACIÓN =====
-function toggleExplanation() {
-    const isVisible = vfExplanation.classList.contains('show');
-    
-    if (isVisible) {
-        vfExplanation.classList.remove('show');
-        explanationLink.innerHTML = 'Ver explicación <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>';
-    } else {
-        vfExplanation.classList.add('show');
-        explanationLink.innerHTML = 'Ocultar explicación <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>';
-    }
+function showExplanationView() {
+  if (questionContent) {
+    questionContent.style.opacity = '0';
+    setTimeout(() => {
+      questionContent.style.display = 'none';
+    }, 400); // Coincide con la duración de la transición
+  }
+  if (explanationContent) {
+    explanationContent.style.display = 'block';
+    setTimeout(() => {
+      explanationContent.style.opacity = '1';
+      explanationContent.style.visibility = 'visible';
+    }, 10);
+  }
+  // Intercambiar botones
+  if (explanationLink) explanationLink.style.display = 'none';
+  if (backToAnswerBtn) backToAnswerBtn.style.display = 'inline-flex'; // Aseguramos que se muestre
+  if (continueBtn) continueBtn.style.visibility = 'hidden';
 }
+
+function hideExplanationView() {
+  if (explanationContent) {
+    explanationContent.style.opacity = '0';
+    explanationContent.style.visibility = 'hidden';
+    setTimeout(() => {
+      explanationContent.style.display = 'none';
+    }, 400);
+  }
+  if (questionContent) {
+    questionContent.style.display = 'flex';
+    questionContent.style.opacity = '1';
+    setTimeout(() => {
+    }, 10);
+  }
+  // Intercambiar botones
+  if (explanationLink) explanationLink.style.display = 'inline-flex'; // Mostramos el de ver explicación
+  if (backToAnswerBtn) backToAnswerBtn.style.display = 'none';
+  if (continueBtn && isQuestionAnswered) continueBtn.style.visibility = 'visible';
+}
+
 
 // ===== CONFIGURAR PREGUNTA ACTUAL =====
 function setupCurrentQuestion() {
@@ -455,20 +492,24 @@ function resetQuestionState() {
     
     // Ocultar feedback y explicación
     if (vfFeedback) {
-        vfFeedback.style.display = 'none';
+        vfFeedback.classList.remove('visible');
     }
     
     if (explanationLink) {
-        explanationLink.style.display = 'none';
+        explanationLink.classList.remove('visible');
     }
     
-    if (vfExplanation) {
-        vfExplanation.classList.remove('show');
+    if (backToAnswerBtn) {
+        backToAnswerBtn.style.display = 'none';
     }
     
-    if (continueContainer) {
-        continueContainer.style.display = 'none';
+    // Ocultar la vista de explicación y mostrar la de pregunta
+    hideExplanationView();
+    
+    if (continueBtn) {
+        continueBtn.style.visibility = 'hidden';
     }
+    
     
     // Resetear estado interno
     isQuestionAnswered = false;
@@ -727,6 +768,14 @@ function showResults() {
     const navigation = document.querySelector('.vf-navigation');
     if (navigation) navigation.style.display = 'none';
 
+    // Ocultar la tarjeta de pregunta
+    const questionCard = document.querySelector('.vf-question-card');
+    if (questionCard) questionCard.style.display = 'none';
+
+    // Obtener el contenedor de resultados
+    const resultsContainer = document.querySelector('.vf-results-container');
+    if (!resultsContainer) return;
+
     const score = calculateScore();
     const totalQuestions = questions.length;
     const percentage = (score / totalQuestions) * 100;
@@ -808,12 +857,23 @@ function showResults() {
         </div>
     `;
 
-    document.querySelector('.vf-question-card').innerHTML = resultsHTML;
+    // Mostrar los resultados en su propio contenedor
+    resultsContainer.innerHTML = resultsHTML;
+    resultsContainer.style.display = 'block';
 }
 
 // ===== REINICIAR QUIZ =====
 function restartQuiz() {
-    // Mostrar navegación
+    // Ocultar resultados y mostrar tarjeta de pregunta
+    const resultsContainer = document.querySelector('.vf-results-container');
+    if (resultsContainer) {
+        resultsContainer.style.display = 'none';
+        resultsContainer.innerHTML = '';
+    }
+    const questionCard = document.querySelector('.vf-question-card');
+    if (questionCard) questionCard.style.display = 'flex';
+
+    // Mostrar navegación de nuevo
     const navigation = document.querySelector('.vf-navigation');
     if (navigation) navigation.style.display = 'flex';
 
@@ -891,10 +951,6 @@ function showAnsweredQuestions() {
                 <p></p>
             </div>
             
-            <div id="continueContainer" class="vf-continue-container" style="display: none;">
-                <button id="continueBtn" class="btn btn-primary">Continuar</button>
-            </div>
-            
             <div id="backToResultsContainer" class="vf-back-to-results" style="display: none;">
                 <button id="backToResultsBtn" class="btn">Volver a Resultados</button>
             </div>
@@ -930,8 +986,6 @@ function setupDOMElements() {
     const newFeedbackText = document.getElementById('feedbackText');
     const newExplanationLink = document.getElementById('explanationLink');
     const newVfExplanation = document.getElementById('vfExplanation');
-    const newContinueContainer = document.getElementById('continueContainer');
-    const newContinueBtn = document.getElementById('continueBtn');
     
     console.log('Elementos encontrados:', {
         options: newVfOptions.length,
@@ -939,8 +993,6 @@ function setupDOMElements() {
         feedbackText: !!newFeedbackText,
         explanationLink: !!newExplanationLink,
         explanation: !!newVfExplanation,
-        continueContainer: !!newContinueContainer,
-        continueBtn: !!newContinueBtn
     });
     
     // Actualizar las variables globales
@@ -949,8 +1001,6 @@ function setupDOMElements() {
     feedbackText = newFeedbackText;
     explanationLink = newExplanationLink;
     vfExplanation = newVfExplanation;
-    continueContainer = newContinueContainer;
-    continueBtn = newContinueBtn;
     
     console.log('Variables globales actualizadas');
     console.log('=== ELEMENTOS DEL DOM CONFIGURADOS ===');
@@ -1095,13 +1145,13 @@ function setupAnsweredOptions(currentQuestion, userAnswer) {
     // Mostrar enlace de explicación
     if (explanationLink) {
         explanationLink.style.display = 'inline-flex';
-        console.log('Enlace de explicación mostrado');
+        explanationLink.classList.add('visible');
     }
     
     // Mostrar botón de continuar
-    if (continueContainer) {
-        continueContainer.style.display = 'flex';
-        console.log('Botón continuar mostrado');
+    if (continueBtn) {
+        continueBtn.style.visibility = 'visible';
+        console.log('Botón de continuar mostrado');
     }
     
     // Mostrar botón de volver a resultados
@@ -1163,5 +1213,3 @@ window.verdaderoFalso = {
     restartQuiz,
     debugOptionsState // Agregar función de debug
 };
-
-

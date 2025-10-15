@@ -91,6 +91,11 @@ class HistorialUnified {
       gridView: '#gridView',
       listView: '#listView',
       
+      // Estadísticas
+      totalItems: '#totalItems',
+      totalPdfs: '#totalPdfs',
+      totalFavorites: '#totalFavorites',
+      
       // Paginación
       pagination: '#pagination',
       prevPage: '#prevPage',
@@ -121,6 +126,7 @@ class HistorialUnified {
     });
 
     // Vincular acciones adicionales
+    this.elements.advancedSearch = document.getElementById('advancedSearch');
     this.elements.clearFiltersBtn = document.getElementById('clearFiltersBtn');
   }
 
@@ -138,6 +144,14 @@ class HistorialUnified {
     // Limpiar búsqueda
     if (this.elements.clearSearch) {
       this.elements.clearSearch.addEventListener('click', () => this.clearSearch());
+    }
+
+    // Búsqueda avanzada (placeholder)
+    if (this.elements.advancedSearch) {
+      this.elements.advancedSearch.addEventListener('click', () => {
+        this.trackEvent('open_advanced_search');
+        this.showNotification('info', 'La búsqueda avanzada estará disponible pronto');
+      });
     }
 
     // Limpiar filtros (vacía búsqueda + restaura filtro "Todos")
@@ -457,7 +471,6 @@ class HistorialUnified {
 
     this.renderContent();
     this.updateStats();
-    this.updateFilterCounts();
     this.updatePagination();
     this.updateUI();
 
@@ -540,16 +553,18 @@ class HistorialUnified {
       </div>
       
       <div class="card-content">
-        <div class="card-file" title="PDF origen">
-          <span class="file-pill">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,9H18V20H6V4H13V9Z"/>
-            </svg>
-            ${this.escapeHtml(item.pdf_name || item.pdf_title || 'Documento')}
-          </span>
+        <div class="card-main-content">
+            <div class="card-file" title="PDF origen">
+              <span class="file-pill">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,9H18V20H6V4H13V9Z"/>
+                </svg>
+                ${this.escapeHtml(item.pdf_name || item.pdf_title || 'Documento')}
+              </span>
+            </div>
+            <h3 class="card-title">${this.escapeHtml(item.pdf_title || 'Sin título')}</h3>
+            <p class="card-preview">${item.contentPreview}</p>
         </div>
-        <h3 class="card-title">${this.escapeHtml(item.pdf_title || 'Sin título')}</h3>
-        <div class="card-preview">${item.contentPreview}</div>
         <div class="card-meta">
           <span class="card-date">${item.formattedDate}</span>
           <span class="card-size">${this.getContentSize(item.content)}</span>
@@ -909,7 +924,13 @@ class HistorialUnified {
   updateStats() {
     try {
       const totalItems = this.state.data.length;
-      // La barra de estadísticas ha sido eliminada. La lógica se puede simplificar o remover.
+      const uniquePdfs = new Set(this.state.data.map(i => i.pdf_id).filter(Boolean)).size;
+      const totalFavs = this.state.favorites.length;
+      if (this.elements.totalItems) this.elements.totalItems.textContent = String(totalItems);
+      if (this.elements.totalPdfs) this.elements.totalPdfs.textContent = String(uniquePdfs);
+      if (this.elements.totalFavorites) this.elements.totalFavorites.textContent = String(totalFavs);
+      const statsBar = document.getElementById('statsBar');
+      if (statsBar) statsBar.style.display = totalItems > 0 ? 'grid' : 'none';
     } catch (e) {
       console.warn('updateStats error', e);
     }

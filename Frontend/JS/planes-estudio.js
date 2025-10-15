@@ -1477,7 +1477,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
         try {
             this.setFormLoading(true);
 
-            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+            const base = this.getBaseUrl();
             const url = isEdit ? `${base}/api/study/plans/${planId}` : `${base}/api/study/plans`;
             const method = isEdit ? 'PUT' : 'POST';
             const token = this.getAuthToken();
@@ -1667,7 +1667,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
             const saveBtn = form.querySelector('#quickTaskSaveBtn');
             if (saveBtn) this.setButtonLoading(saveBtn, true, 'Guardando...');
             const token = this.getAuthToken();
-            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+            const base = this.getBaseUrl();
             const res = await fetch(`${base}/api/study/plans/${plan.id}/tasks`, {
                 method: 'POST',
                 headers: {
@@ -1706,7 +1706,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
             const nextStatus = currentStatus === 'active' ? 'paused' : 'active';
 
             const token = this.getAuthToken();
-            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+            const base = this.getBaseUrl();
             const response = await fetch(`${base}/api/study/plans/${planId}`, {
                 method: 'PUT',
                 headers: {
@@ -1772,7 +1772,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
             if (taskBtn) this.setButtonLoading(taskBtn, true, currentCompleted ? 'Desmarcando...' : 'Completando...');
 
             const token = this.getAuthToken();
-            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+            const base = this.getBaseUrl();
             const response = await fetch(`${base}/api/tasks/${taskId}`, {
                 method: 'PUT',
                 headers: {
@@ -1804,7 +1804,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
 
         try {
             const token = this.getAuthToken();
-            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+            const base = this.getBaseUrl();
             const response = await fetch(`${base}/api/study/plans/${planId}`, {
                 method: 'DELETE',
                 headers: {
@@ -1908,8 +1908,9 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
             const dueDate = form.querySelector('#editTaskDueDate')?.value || null;
             const priority = form.querySelector('#editTaskPriority')?.value || 'medium';
 
-            if (!title) {
-                this.showError('El título de la tarea es requerido.');
+        // Validar requeridos según backend: título y fecha de vencimiento
+        if (!title || !dueDate) {
+            this.showError('Título y fecha de vencimiento son requeridos.');
                 return;
             }
 
@@ -1917,14 +1918,14 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 const saveBtn = form.querySelector('#saveEditTaskBtn');
                 if (saveBtn) this.setButtonLoading(saveBtn, true, 'Guardando...');
                 const token = this.getAuthToken();
-                const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+                const base = this.getBaseUrl(); // Usar el método unificado
                 const res = await fetch(`${base}/api/tasks/${taskId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                     },
-                    body: JSON.stringify({ title, description, due_date: dueDate, priority })
+                    body: JSON.stringify({ title, description, due_date: dueDate, priority, completed: task.completed })
                 });
 
                 const data = await res.json();
@@ -1932,10 +1933,11 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                     throw new Error(data?.error || 'No se pudo actualizar la tarea');
                 }
 
-                // Actualizar en memoria
+                // Actualizar en memoria - la API devuelve la tarea actualizada
                 const idx = (plan.plan_tasks || []).findIndex(t => String(t.id) === String(taskId));
                 if (idx >= 0) {
-                    plan.plan_tasks[idx] = { ...plan.plan_tasks[idx], title, description, due_date: dueDate, priority };
+                    // Reemplazar con los datos devueltos por la API
+                    plan.plan_tasks[idx] = data.task;
                 }
 
                 form.remove();
@@ -1960,7 +1962,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
             const deleteBtn = document.querySelector(`.task-item[data-task-id="${taskId}"] .btn-delete-task`);
             if (deleteBtn) this.setButtonLoading(deleteBtn, true, 'Eliminando...');
             const token = this.getAuthToken();
-            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+            const base = this.getBaseUrl();
             const response = await fetch(`${base}/api/tasks/${taskId}`, {
                 method: 'DELETE',
                 headers: {
@@ -2222,7 +2224,7 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
             const saveBtn = form.querySelector('#saveNewTaskBtn');
             if (saveBtn) this.setButtonLoading(saveBtn, true, 'Guardando...');
             const token = this.getAuthToken();
-            const base = (window.CONFIG && window.CONFIG.API && window.CONFIG.API.BASE_URL) ? window.CONFIG.API.BASE_URL : '';
+            const base = this.getBaseUrl(); // Usar el método unificado
             const res = await fetch(`${base}/api/study/plans/${plan.id}/tasks`, {
                 method: 'POST',
                 headers: {
@@ -2237,11 +2239,11 @@ window.StudyPlansManager = window.StudyPlansManager || class StudyPlansManager {
                 throw new Error(data?.error || 'No se pudo crear la tarea');
             }
 
-            const newTask = data?.task;
+            const newTask = data.task; // La API devuelve { message, task }
             if (newTask) {
-                const tasks = plan.plan_tasks || plan.tasks || [];
-                tasks.unshift(newTask);
-                plan.plan_tasks = tasks;
+                // Asegurarse de que plan.plan_tasks es un array antes de hacer push
+                plan.plan_tasks = Array.isArray(plan.plan_tasks) ? plan.plan_tasks : [];
+                plan.plan_tasks.push(newTask);
             }
 
             form.remove();

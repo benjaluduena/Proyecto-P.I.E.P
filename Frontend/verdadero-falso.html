@@ -43,52 +43,59 @@
       </div>
     </header>
 
-    <!-- Tarjeta principal de pregunta -->
-    <section class="vf-question-card">
-      <div class="vf-question-header">
-        <h2 class="vf-question-title">
-          Cargando pregunta...
-        </h2>
-        <div class="vf-question-number">-</div>
-      </div>
-      
-      <!-- Opciones Verdadero/Falso -->
-      <div class="vf-options">
-        <button class="vf-option" data-option="true" data-correct="false">
-          <span class="vf-option-text">Verdadero</span>
-        </button>
-        <button class="vf-option" data-option="false" data-correct="true">
-          <span class="vf-option-text">Falso</span>
-        </button>
-      </div>
-      
-      <!-- Feedback de respuesta -->
-      <div class="vf-feedback" id="vfFeedback" style="display: none;">
-        <p class="vf-feedback-text" id="feedbackText"></p>
-        <button class="vf-explanation-link" id="explanationLink" style="display: none;">
-          Ver explicación 
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
-          </svg>
-        </button>
-      </div>
-      
-      <!-- Explicación (se muestra cuando se activa) -->
-      <div class="vf-explanation" id="vfExplanation">
-        <h4>Explicación:</h4>
-        <p>Cargando explicación...</p>
-      </div>
-      
-      <!-- Botón de continuar -->
-      <div class="vf-continue-container" id="continueContainer" style="display: none;">
-        <button class="btn-purple" id="continueBtn">
-          Continuar 
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
-          </svg>
-        </button>
-      </div>
-    </section>
+    <div class="vf-quiz-wrapper">
+      <!-- Tarjeta principal de pregunta -->
+      <section class="vf-question-card">
+        <!-- Contenido de la Pregunta -->
+        <div class="vf-question-content">
+          <div class="vf-question-header">
+            <h2 class="vf-question-title">Cargando pregunta...</h2>
+            <div class="vf-question-number">-</div>
+          </div>
+          
+          <div class="vf-options">
+            <button class="vf-option" data-option="true" data-correct="false">
+              <span class="vf-option-text">Verdadero</span>
+            </button>
+            <button class="vf-option" data-option="false" data-correct="true">
+              <span class="vf-option-text">Falso</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Contenido de la Explicación -->
+        <div class="vf-explanation-content" style="display: none;">
+          <div class="vf-explanation" id="vfExplanation">
+            <h4>Explicación:</h4>
+            <p>Cargando explicación...</p>
+          </div>
+        </div>
+
+        <!-- Acciones (siempre visibles en el layout) -->
+        <div class="vf-actions-footer">
+          <div class="vf-feedback-actions">
+            <div class="vf-feedback" id="vfFeedback">
+              <p class="vf-feedback-text" id="feedbackText"></p>
+            </div>
+            <button class="vf-explanation-link" id="explanationLink">
+              Ver explicación 
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </button>
+            <button class="vf-explanation-link" id="backToAnswerBtn" style="display: none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7.82843 10.9999H20V12.9999H7.82843L13.1924 18.3638L11.7782 19.778L4 11.9999L11.7782 4.22168L13.1924 5.63589L7.82843 10.9999Z"></path></svg>
+              Volver a la respuesta
+            </button>
+          </div>
+          <button class="btn-purple" id="continueBtn" style="visibility: hidden;">
+            Continuar 
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- Contenedor de Resultados -->
+      <section class="vf-results-container" style="display: none;"></section>
+    </div>
 
     <!-- Navegación inferior -->
     <nav class="vf-navigation">
@@ -124,4 +131,3 @@
   <script src="/JS/verdadero-falso.js"></script>
 </body>
 </html>
-

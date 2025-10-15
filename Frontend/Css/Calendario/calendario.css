@@ -98,27 +98,22 @@
   gap: 1rem;
 }
 
-.calendario-container .container-month {
+.calendario-container .nav-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .calendario-container .container-buttons {
   display: flex;
   align-items: center;
   gap: 1rem;
-  flex-shrink: 0;
-  margin-left: auto;
 }
 
 
 
 .calendario-container .month-display {
-  flex: 1;
-  text-align: center;
+  text-align: left;
 }
 
 .calendario-container .month-display h2 {
@@ -236,7 +231,7 @@
 }
 
 .calendario-container .calendar-day.has-events .day-number {
-  color: #A259FA;
+  color: white;
   font-weight: 700;
 }
 

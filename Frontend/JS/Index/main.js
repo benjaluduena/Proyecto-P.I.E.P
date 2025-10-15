@@ -18,6 +18,12 @@ function actualizarMenuActivo(seccion) {
     const activeButton = document.querySelector(`[onclick*="cargarSeccion('${seccion}')"]`);
     if (activeButton) {
       activeButton.classList.add('active');
+    } else if (seccion === 'cambiar-plan') {
+      const planBtn = document.getElementById('btnCambiarPlan');
+      if (planBtn) planBtn.classList.add('active');
+    } else if (seccion === 'classroom') {
+      const classroomBtn = document.getElementById('classroomBtn');
+      if (classroomBtn) classroomBtn.classList.add('active');
     }
   }
 }
@@ -466,5 +472,3 @@ function updateUserProfileTitles() {
     }
   }
 }
-
-

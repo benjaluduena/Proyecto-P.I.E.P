@@ -43,6 +43,12 @@ body {
     letter-spacing: -0.5px;
 }
 
+.logo img{
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
 .logo .ai-badge {
     background: linear-gradient(135deg, #a259fa 0%, #667eea 100%);
     color: white;

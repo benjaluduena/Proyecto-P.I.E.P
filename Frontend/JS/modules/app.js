@@ -473,6 +473,12 @@ class App {
       if (homeBtn) {
         homeBtn.classList.add('active');
       }
+    } else if (sectionName === 'cambiar-plan') {
+      const planBtn = document.getElementById('btnCambiarPlan');
+      if (planBtn) planBtn.classList.add('active');
+    } else if (sectionName === 'classroom') {
+      const classroomBtn = document.getElementById('classroomBtn');
+      if (classroomBtn) classroomBtn.classList.add('active');
     }
   }
   

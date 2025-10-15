@@ -92,7 +92,7 @@ function renderMC(data) {
         ${opciones.map((op, i) => `
           <div class="mc-option" data-index="${i}">
             <span class="option-letter">${optionLetter(i)}</span>
-            <span>${op || ''}</span>
+            <span class="option-answer">${op || ''}</span>
           </div>
         `).join('')}
       </div>
@@ -160,7 +160,7 @@ function evaluateCurrent() {
 async function loadMC() {
   try {
     if (mcMeta) {
-      mcMeta.textContent = `Archivo: ${fileName || 'Documento PDF'} · Generado ahora`;
+      mcMeta.textContent = `Multiple Choice: ${fileName || 'Documento PDF'}`;
     }
     if (!outputId) throw new Error('Falta outputId en la URL');
     const response = await apiCall(`/api/ai/content/${outputId}`);
@@ -193,7 +193,7 @@ async function loadMC() {
 
 document.addEventListener('DOMContentLoaded', loadMC);
 
-const backBtn = document.querySelector('.back-btn-modern');
+const backBtn = document.getElementById('closeBtn');
 if (backBtn) {
   backBtn.addEventListener('click', () => { window.location.href = '/index.html'; });
 }

@@ -183,6 +183,7 @@ body {
   margin: 0 auto;
   padding: 2rem 1rem;
   min-height: 100vh;
+  padding-bottom: 100px; /* Espacio para la navegación fija */
   display: flex;
   flex-direction: column;
 }
@@ -352,6 +353,16 @@ body {
   grid-template-columns: 1fr;
 }
 
+/* Contenedor del Quiz */
+.vf-quiz-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra los hijos horizontalmente */
+  justify-content: center; /* Centra los hijos verticalmente */
+  flex-grow: 1; /* Hace que el wrapper ocupe el espacio restante */
+  width: 100%;
+}
+
 /* ===== TARJETA DE PREGUNTA ===== */
 .vf-question-card {
   background: var(--white);
@@ -360,11 +371,21 @@ body {
   box-shadow: var(--shadow-medium);
   transition: var(--transition);
   border: 2px solid var(--border-color);
+  width: 100%; /* Ocupa el ancho del wrapper */
+  display: flex;
+  flex-direction: column;
 }
 
 .vf-question-card:hover {
   box-shadow: var(--shadow-heavy);
   border-color: var(--accent-color);
+}
+
+.vf-question-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.4s ease;
 }
 
 .vf-question-header {
@@ -450,8 +471,11 @@ body {
 
 /* ===== FEEDBACK DE RESPUESTA ===== */
 .vf-feedback {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
+  /* El feedback ahora es solo el contenedor del texto */
+  min-height: 28px; /* Altura para el texto de feedback */
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .vf-feedback-text {
@@ -465,13 +489,18 @@ body {
   color: var(--error-color);
 }
 
+.vf-feedback.visible {
+  visibility: visible;
+  opacity: 1;
+}
+
 .vf-explanation-link {
   font-family: Poppins;
   background: none;
   border: none;
   color: var(--text-light);
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: 1rem;
   text-decoration: none;
   padding: 0;
   margin: 0;
@@ -479,6 +508,20 @@ body {
   align-items: center;
   gap: 0.5rem;
   transition: var(--transition);
+  visibility: hidden;
+  opacity: 0;
+}
+
+.vf-explanation-link.visible {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Asegurar que el botón de volver a la respuesta sea visible cuando se muestra */
+#backToAnswerBtn {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: inline-flex; /* Asegura que se muestre correctamente */
 }
 
 .vf-explanation-link:hover {
@@ -496,12 +539,22 @@ body {
 
 /* ===== EXPLICACIÓN ===== */
 .vf-explanation {
-  background: var(--accent-color);
-  padding: 1rem;
-  border-radius: var(--border-radius-small);
-  border-left: 4px solid var(--primary-color);
+  background: var(--bg-lighter);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  border-left: 5px solid var(--primary-color);
   margin-bottom: 1.5rem;
-  display: none;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.vf-explanation-content {
+  margin-bottom: 1.5rem;
+  opacity: 0;
+  visibility: hidden;
+  display: none; /* Se mantiene para la lógica JS, pero la transición la maneja opacity */
+  transition: opacity 0.4s ease, visibility 0.4s ease;
 }
 
 .vf-explanation.show {
@@ -521,11 +574,26 @@ body {
 }
 
 /* ===== BOTÓN DE CONTINUAR ===== */
-.vf-continue-container {
+.vf-actions-footer {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 1rem;
+  justify-content: space-between; /* Alinear elementos a los extremos */
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  min-height: 60px; /* Espacio reservado para los botones */
 }
+
+#continueBtn {
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.vf-feedback-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
 
 .vf-continue-btn {
   padding: 0.8rem 1.8rem;
@@ -552,18 +620,18 @@ body {
 
 /* ===== NAVEGACIÓN ===== */
 .vf-navigation {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 1.5rem;
   background: var(--white);
-  margin-top: 3rem;
   padding: 12px 24px;
   border-radius: var(--border-radius-small);
   box-shadow: var(--shadow-light);
-  width: fit-content;
-  margin-left: auto;
-  margin-right: auto;
   transition: all 0.3s ease;
 }
 
@@ -647,8 +715,21 @@ body {
 }
 
 /* ===== RESULTADOS ===== */
+.vf-results-container {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-medium);
+  padding: 2rem;
+  width: 100%;
+  max-width: 700px; /* Ajusta según sea necesario */
+  border: 2px solid var(--border-color);
+}
+
 .vf-results {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .vf-results h2 {

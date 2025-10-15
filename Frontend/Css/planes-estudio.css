@@ -1370,7 +1370,7 @@ template *,
     border-top: 1px solid #e9ecef;
 }
 
-.btn-secondary {
+.edit-plan-form .btn-secondary {
     background: #6c757d;
     color: white;
     border: none;
@@ -1382,46 +1382,12 @@ template *,
     transition: all 0.3s ease;
 }
 
-.btn-secondary:hover {
+.edit-plan-form .btn-secondary:hover {
     background: #545b62;
     transform: translateY(-1px);
 }
 
-/* Footer de la tarjeta */
-.card-footer {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid #e9ecef;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.status-badge {
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.status-badge.active {
-    background: #d4edda;
-    color: #155724;
-}
-
-.status-badge.paused {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.status-badge.completed {
-    background: #d1ecf1;
-    color: #0c5460;
-}
-
-/* Responsive */
+/* Responsive para Editar */
 @media (max-width: 768px) {
     .overview-stats {
         grid-template-columns: 1fr;
@@ -1904,4 +1870,302 @@ template *,
   .expanded-view .tab-panel[data-panel="edit"] textarea,
   .expanded-view .tab-panel[data-panel="edit"] select { font-size: 14px; }
   .expanded-view .tab-panel[data-panel="edit"] .form-actions { flex-direction: column; align-items: stretch; }
+}
+
+/* ================================================== */
+/*          ESTILOS PARA VISTA EXPANDIDA MEJORADA       */
+/* ================================================== */
+
+/* Contenedor principal de la vista expandida */
+.expanded-view {
+    padding: 16px;
+    background-color: #f8fafc; /* Un fondo ligeramente diferente */
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Pestañas de navegación */
+.expanded-tabs {
+    display: flex;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 16px;
+}
+
+.tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: none;
+    background-color: transparent;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.tab-btn:hover {
+    color: #4f46e5;
+}
+
+.tab-btn.active {
+    color: #4f46e5;
+}
+
+.tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #4f46e5;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.tab-btn.active::after {
+    transform: scaleX(1);
+}
+
+.tab-content {
+    padding-top: 8px;
+}
+
+.tab-panel {
+    display: none;
+    animation: fadeIn 0.4s ease;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Pestaña de Resumen (Overview) */
+.overview-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-title {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.overview-main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.progress-section, .recent-activity {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+.progress-section h4, .recent-activity h4 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: #334155;
+}
+
+.progress-bar-large {
+    width: 100%;
+    height: 24px;
+    background-color: #e2e8f0;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-fill-large {
+    height: 100%;
+    background: linear-gradient(90deg, #818cf8, #4f46e5);
+    border-radius: 12px;
+    transition: width 0.5s ease;
+}
+
+.progress-text-large {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.activity-list .empty-message {
+    color: #94a3b8;
+    text-align: center;
+    padding: 20px 0;
+}
+
+/* Pestaña de Tareas */
+.tasks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.tasks-header h4 {
+    margin: 0;
+}
+
+.tasks-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.tasks-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.tasks-controls .task-filter {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    background-color: #fff;
+    font-size: 0.85rem;
+}
+
+.tasks-list-expanded {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Pestaña de Contenido */
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.content-header h4 {
+    margin: 0;
+}
+
+.content-list-expanded {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Pestaña de Editar */
+.edit-plan-container {
+    background-color: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.edit-plan-container h4 {
+    margin-top: 0;
+    text-align: center;
+    margin-bottom: 24px;
+    color: #334155;
+}
+
+.edit-plan-form .form-group {
+    margin-bottom: 16px;
+}
+
+.edit-plan-form label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.edit-plan-form input[type="text"],
+.edit-plan-form input[type="date"],
+.edit-plan-form textarea,
+.edit-plan-form select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #f8fafc;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.edit-plan-form input:focus,
+.edit-plan-form textarea:focus,
+.edit-plan-form select:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
+.edit-plan-form .form-row {
+    display: flex;
+    gap: 16px;
+}
+
+.edit-plan-form .form-row .form-group {
+    flex: 1;
+}
+
+.edit-plan-form .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
 }

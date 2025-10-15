@@ -35,12 +35,6 @@
 <body>
   <!-- Skip to main content for accessibility -->
   <a href="#main-content" class="sr-only">Saltar al contenido principal</a>
-  
-  <!-- Loading indicator -->
-  <div id="loadingIndicator" class="loading-indicator" style="display: none;" role="status" aria-live="polite">
-    <div class="loading-spinner" aria-hidden="true"></div>
-    <div class="loading-text">Cargando historial...</div>
-  </div>
 
   <!-- Main container -->
   <div class="historial-container">
@@ -49,9 +43,6 @@
       <div class="header-content">
         <div class="title-section">
           <h1 class="page-title">
-            <svg class="title-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M13,3A9,9 0 0,0 4,12H1L4.89,15.89L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3Z"/>
-            </svg>
             <span class="title-text">Mi Historial de Estudio</span>
           </h1>
           <p class="page-subtitle">
@@ -129,12 +120,6 @@
                 <span class="sr-only">Limpiar búsqueda</span>
               </button>
             </div>
-            <button id="advancedSearch" class="advanced-search-btn" title="Búsqueda avanzada">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M14,12V19.88C14.04,20.18 13.94,20.5 13.71,20.71C13.32,21.1 12.69,21.1 12.3,20.71L10.29,18.7C10.06,18.47 9.96,18.16 10,17.87V12H9.97L4.21,4.62C3.87,4.19 3.95,3.56 4.38,3.22C4.57,3.08 4.78,3 5,3V3H19V3C19.22,3 19.43,3.08 19.62,3.22C20.05,3.56 20.13,4.19 19.79,4.62L14.03,12H14Z"/>
-              </svg>
-              <span class="sr-only">Búsqueda avanzada</span>
-            </button>
           </div>
         </div>
         
@@ -142,37 +127,51 @@
         <div class="filter-section">
           <nav class="filter-tabs" role="tablist" aria-label="Filtros de contenido">
             <button class="filter-btn active" data-filter="all" role="tab" aria-selected="true" aria-controls="content-all">
-              <span class="filter-icon" aria-hidden="true">📁</span>
+              <svg class="filter-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" />
+              </svg>
               <span class="filter-text">Todos</span>
               <span class="filter-count" id="count-all">0</span>
             </button>
             <button class="filter-btn" data-filter="favorites" role="tab" aria-selected="false" aria-controls="content-favorites">
-              <span class="filter-icon" aria-hidden="true">❤️</span>
+              <svg class="filter-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" />
+              </svg>
               <span class="filter-text">Favoritos</span>
               <span class="filter-count" id="count-favorites">0</span>
             </button>
             <button class="filter-btn" data-filter="resumen" role="tab" aria-selected="false" aria-controls="content-resumen">
-              <span class="filter-icon" aria-hidden="true">📄</span>
+              <svg class="filter-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M10,12H16V14H10V12M10,16H16V18H10V16Z" />
+              </svg>
               <span class="filter-text">Resúmenes</span>
               <span class="filter-count" id="count-resumen">0</span>
             </button>
             <button class="filter-btn" data-filter="verdadero_falso" role="tab" aria-selected="false" aria-controls="content-verdadero-falso">
-              <span class="filter-icon" aria-hidden="true">✅</span>
+              <svg class="filter-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M16.5,8L11,13.5L7.5,10L6,11.5L11,16.5L18,9.5L16.5,8Z" />
+              </svg>
               <span class="filter-text">V/F</span>
               <span class="filter-count" id="count-verdadero_falso">0</span>
             </button>
             <button class="filter-btn" data-filter="multiple_choice" role="tab" aria-selected="false" aria-controls="content-multiple-choice">
-              <span class="filter-icon" aria-hidden="true">📝</span>
+              <svg class="filter-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M13,22L15.5,19L14.09,17.59L12,19.67V14.5L19.5,7L18.09,5.59L11,12.67V4.5L12.5,2L10,4.5L7.5,2L9,4.5V12.67L1.91,5.59L.5,7L8,14.5V19.67L5.91,17.59L4.5,19L7,21.5V22H13Z" />
+              </svg>
               <span class="filter-text">Múltiple</span>
               <span class="filter-count" id="count-multiple_choice">0</span>
             </button>
             <button class="filter-btn" data-filter="mapa_mental" role="tab" aria-selected="false" aria-controls="content-mapa-mental">
-              <span class="filter-icon" aria-hidden="true">🧠</span>
+              <svg class="filter-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,16.5L6.5,12L7.91,10.59L11,13.67L16.59,8.09L18,9.5L11,16.5Z" />
+              </svg>
               <span class="filter-text">Mapas</span>
               <span class="filter-count" id="count-mapa_mental">0</span>
             </button>
             <button class="filter-btn" data-filter="flashcards" role="tab" aria-selected="false" aria-controls="content-flashcards">
-              <span class="filter-icon" aria-hidden="true">🎴</span>
+              <svg class="filter-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M20,2H4C2.9,2 2,2.9 2,4V20A2,2 0 0,0 4,22H20A2,2 0 0,0 22,20V4A2,2 0 0,0 20,2M20,20H4V4H20V20M14.5,14.25L16.5,12.25L14.5,10.25V8.5H9.5V10.25L7.5,12.25L9.5,14.25V16H14.5V14.25Z" />
+              </svg>
               <span class="filter-text">Flashcards</span>
               <span class="filter-count" id="count-flashcards">0</span>
             </button>
@@ -181,28 +180,14 @@
       </div>
     </header>
 
-    <!-- Statistics bar -->
-    <div class="stats-bar" id="statsBar" style="display: none;">
-      <div class="stat-card">
-        <div class="stat-value" id="totalItems">0</div>
-        <div class="stat-label">Total de elementos</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="totalPdfs">0</div>
-        <div class="stat-label">PDFs procesados</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="totalFavorites">0</div>
-        <div class="stat-label">Favoritos</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="studyTime">0h</div>
-        <div class="stat-label">Tiempo de estudio</div>
-      </div>
-    </div>
-
     <!-- Main content area -->
     <main id="main-content" class="content-area">
+      <!-- Loading indicator -->
+      <div id="loadingIndicator" class="loading-indicator" style="display: none;" role="status" aria-live="polite">
+        <div class="loading-spinner" aria-hidden="true"></div>
+        <div class="loading-text">Cargando historial...</div>
+      </div>
+
       <!-- Content grid -->
       <div id="contentGrid" class="content-grid" role="main" aria-live="polite" aria-label="Contenido del historial">
         <!-- Content cards will be dynamically inserted here -->

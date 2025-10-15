@@ -386,104 +386,108 @@
 
                 <!-- Vista expandida (debe ser hermana de .normal-view, NO hija) -->
                 <div class="expanded-view" style="display: none;">
-                    <!-- Navegación de pestañas -->
+                    <!-- Navegación de pestañas rediseñada -->
                     <div class="expanded-tabs">
                         <button class="tab-btn active" data-tab="overview">
                             <i class="fas fa-chart-pie"></i>
-                            Resumen
+                            <span>Resumen</span>
                         </button>
                         <button class="tab-btn" data-tab="tasks">
                             <i class="fas fa-tasks"></i>
-                            Tareas
+                            <span>Tareas</span>
                         </button>
                         <button class="tab-btn" data-tab="content">
                             <i class="fas fa-brain"></i>
-                            Contenido
+                            <span>Contenido</span>
                         </button>
                         <button class="tab-btn" data-tab="edit">
                             <i class="fas fa-edit"></i>
-                            Editar
+                            <span>Editar</span>
                         </button>
                     </div>
 
                     <!-- Contenido de pestañas -->
                     <div class="tab-content">
-                        <!-- Pestaña Resumen -->
+                        <!-- Pestaña Resumen (Rediseñada) -->
                         <div class="tab-panel active" data-panel="overview">
                             <div class="overview-stats">
                                 <div class="stat-card">
-                                    <div class="stat-icon">
-                                        <i class="fas fa-tasks"></i>
-                                    </div>
+                                    <div class="stat-icon" style="background-color: #eef2ff; color: #6366f1;">
+                                        <i class="fas fa-layer-group"></i></div>
                                     <div class="stat-info">
-                                        <span class="stat-value tasks-total">0</span>
                                         <span class="stat-title">Total Tareas</span>
+                                        <span class="stat-value tasks-total">0</span>
                                     </div>
                                 </div>
                                 <div class="stat-card">
-                                    <div class="stat-icon">
-                                        <i class="fas fa-check-circle"></i>
-                                    </div>
+                                    <div class="stat-icon" style="background-color: #f0fdf4; color: #22c55e;">
+                                        <i class="fas fa-check-circle"></i></div>
                                     <div class="stat-info">
-                                        <span class="stat-value tasks-completed">0</span>
                                         <span class="stat-title">Completadas</span>
+                                        <span class="stat-value tasks-completed">0</span>
                                     </div>
                                 </div>
                                 <div class="stat-card">
-                                    <div class="stat-icon">
-                                        <i class="fas fa-clock"></i>
-                                    </div>
+                                    <div class="stat-icon" style="background-color: #fffbeb; color: #f59e0b;">
+                                        <i class="fas fa-clock"></i></div>
                                     <div class="stat-info">
-                                        <span class="stat-value tasks-pending">0</span>
                                         <span class="stat-title">Pendientes</span>
+                                        <span class="stat-value tasks-pending">0</span>
                                     </div>
                                 </div>
                                 <div class="stat-card">
-                                    <div class="stat-icon">
-                                        <i class="fas fa-calendar-day"></i>
-                                    </div>
+                                    <div class="stat-icon" style="background-color: #fef2f2; color: #ef4444;">
+                                        <i class="fas fa-calendar-day"></i></div>
                                     <div class="stat-info">
-                                        <span class="stat-value days-remaining">0</span>
                                         <span class="stat-title">Días Restantes</span>
+                                        <span class="stat-value days-remaining">0</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="progress-section">
-                                <h4>Progreso General</h4>
-                                <div class="progress-bar-large">
-                                    <div class="progress-fill-large" style="width: 0%"></div>
-                                    <span class="progress-text-large">0%</span>
+                            <div class="overview-main-content">
+                                <div class="progress-section">
+                                    <h4>Progreso General</h4>
+                                    <div class="progress-bar-large">
+                                        <div class="progress-fill-large" style="width: 0%"></div>
+                                        <span class="progress-text-large">0%</span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="recent-activity">
-                                <h4>Actividad Reciente</h4>
-                                <div class="activity-list">
-                                    <!-- Se llenará dinámicamente -->
+                                <div class="recent-activity">
+                                    <h4>Actividad Reciente</h4>
+                                    <div class="activity-list">
+                                        <!-- Se llenará dinámicamente -->
+                                        <p class="empty-message">No hay actividad reciente.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Pestaña Tareas -->
+                        <!-- Pestaña Tareas (Rediseñada) -->
                         <div class="tab-panel" data-panel="tasks">
                             <div class="tasks-header">
                                 <h4>Gestión de Tareas</h4>
-                                <button class="btn-primary add-task-btn">
-                                    <i class="fas fa-plus"></i>
-                                    Nueva Tarea
-                                </button>
+                                <div class="tasks-header-actions">
+                                    <div class="tasks-controls">
+                                        <!-- Filtros se inyectarán aquí por JS -->
+                                    </div>
+                                    <button class="btn-primary add-task-btn">
+                                        <i class="fas fa-plus"></i>
+                                        Nueva Tarea
+                                    </button>
+                                </div>
                             </div>
                             <div class="tasks-list-expanded">
                                 <!-- Las tareas se cargarán dinámicamente -->
                             </div>
                         </div>
 
-                        <!-- Pestaña Contenido -->
+                        <!-- Pestaña Contenido (Rediseñada) -->
                         <div class="tab-panel" data-panel="content">
                             <div class="content-header">
                                 <h4>Gestión de Contenido</h4>
-                                <button class="btn-primary add-content-btn">
+                                <button class="btn-primary add-content-btn" title="Agregar contenido desde tu historial">
                                     <i class="fas fa-plus"></i>
                                     Agregar Contenido
                                 </button>
@@ -493,41 +497,44 @@
                             </div>
                         </div>
 
-                        <!-- Pestaña Editar -->
+                        <!-- Pestaña Editar (Rediseñada) -->
                         <div class="tab-panel" data-panel="edit">
-                            <form class="edit-plan-form">
-                                <div class="form-group">
-                                    <label>Título del Plan</label>
-                                    <input type="text" class="edit-title" placeholder="Título del plan">
-                                </div>
-                                <div class="form-group">
-                                    <label>Descripción</label>
-                                    <textarea class="edit-description" rows="3"
-                                        placeholder="Descripción del plan"></textarea>
-                                </div>
-                                <div class="form-row">
+                            <div class="edit-plan-container">
+                                <h4>Editar Información del Plan</h4>
+                                <form class="edit-plan-form">
                                     <div class="form-group">
-                                        <label>Fecha de Inicio</label>
-                                        <input type="date" class="edit-start-date">
+                                        <label>Título del Plan</label>
+                                        <input type="text" class="edit-title" placeholder="Título del plan">
                                     </div>
                                     <div class="form-group">
-                                        <label>Fecha de Fin</label>
-                                        <input type="date" class="edit-end-date">
+                                        <label>Descripción</label>
+                                        <textarea class="edit-description" rows="3"
+                                            placeholder="Descripción del plan"></textarea>
                                     </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Estado</label>
-                                    <select class="edit-status">
-                                        <option value="active">Activo</option>
-                                        <option value="paused">Pausado</option>
-                                        <option value="completed">Completado</option>
-                                    </select>
-                                </div>
-                                <div class="form-actions">
-                                    <button type="button" class="btn-secondary cancel-edit">Cancelar</button>
-                                    <button type="submit" class="btn-primary save-edit">Guardar Cambios</button>
-                                </div>
-                            </form>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Fecha de Inicio</label>
+                                            <input type="date" class="edit-start-date">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Fecha de Fin</label>
+                                            <input type="date" class="edit-end-date">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Estado</label>
+                                        <select class="edit-status">
+                                            <option value="active">Activo</option>
+                                            <option value="paused">Pausado</option>
+                                            <option value="completed">Completado</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="button" class="btn-secondary cancel-edit">Cancelar</button>
+                                        <button type="submit" class="btn-primary save-edit">Guardar Cambios</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>

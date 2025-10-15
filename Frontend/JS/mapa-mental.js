@@ -12,7 +12,7 @@ const progressText = document.getElementById('progressText');
 
 async function loadMindmap() {
   try {
-    fileNameElement.textContent = fileName || 'Documento PDF';
+    fileNameElement.textContent = `Mapa Mental: ${fileName || 'Documento PDF'}`;
     fileTimeElement.textContent = '⏱️ Generado ahora';
 
     let progress = 0;
@@ -94,7 +94,7 @@ async function loadMindmap() {
     // Ocultar estado de carga y mostrar visualización
     document.getElementById('mmLoadingState').style.display = 'none';
     wrapper.style.display = 'block';
-    document.getElementById('mmActions').style.display = 'flex';
+    // document.getElementById('mmActions').style.display = 'flex';
     
     // Crear el mapa mental con opciones mejoradas
     const mm = mmGlobal.Markmap.create(svg, {

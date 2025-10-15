@@ -7,12 +7,10 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    color: #1a202c;
+    font-family: 'Poppins', sans-serif;
+    background: #f9f9f9;
+    color: #333;
     line-height: 1.6;
-    min-height: 100vh;
-    overflow-x: hidden;
 }
 
 /* Header Mejorado */
@@ -77,13 +75,58 @@ body {
     box-shadow: 0 4px 12px rgba(162, 89, 250, 0.3);
 }
 
+
+.mm-top-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 2rem 83px 0 83px;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    box-sizing: border-box;
+}
+
+.mm-top-header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.mm-top-header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.mm-top-title {
+    padding: 12px 24px;
+    background-color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
 /* Main Content */
 .mm-main-content {
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 30px 40px;
-    display: grid;
-    gap: 24px;
+    /* position: relative;
+    max-width: 1200px; */
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+    /* max-height: 100vh; */
+    /* display: flex;
+    flex-direction: column; */
 }
 
 /* Document Info Moderna */
@@ -172,8 +215,15 @@ body {
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
 }
 
 .mm-status-indicator.complete {
@@ -217,21 +267,15 @@ body {
 
 /* Mind Map Container */
 .mm-container {
-    background: white;
-    border-radius: 24px;
     overflow: hidden;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(226, 232, 240, 0.5);
-    min-height: 600px;
+    min-height: 100%;
     display: flex;
     flex-direction: column;
 }
 
 /* Header del Mapa Mental */
 .mm-header {
-    background: linear-gradient(135deg, #a259fa 0%, #667eea 100%);
     color: white;
-    padding: 24px 32px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -279,31 +323,39 @@ body {
 
 /* Controls */
 .mm-controls {
+    position: absolute;
+    z-index: 10;
+    bottom: 2rem;
+    right: 2rem;
     display: flex;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.15);
+    background: white;
     padding: 8px;
-    border-radius: 12px;
-    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .mm-control-btn {
     width: 36px;
     height: 36px;
-    background: rgba(255, 255, 255, 0.2);
+    background: #ebedf1;
     border: none;
     border-radius: 8px;
-    color: white;
+    color: #333;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    backdrop-filter: blur(5px);
+}
+
+.mm-control-btn svg {
+    width: 18px;
+    height: 18px;
 }
 
 .mm-control-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: #d8dadf;
     transform: translateY(-1px);
 }
 
@@ -333,8 +385,15 @@ body {
 }
 
 @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
 }
 
 .mm-loading-text h3 {
@@ -352,16 +411,18 @@ body {
 
 /* Visualization */
 .mm-visualization {
-    flex: 1;
-    position: relative;
-    background: #f8fafc;
-    min-height: 500px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+    background: #f9f9f9;
 }
 
 #markmap {
     width: 100%;
     height: 100%;
-    background: #f8fafc;
 }
 
 /* Estilos para nodos del mapa mental */
@@ -467,53 +528,53 @@ body {
     .mm-main-content {
         padding: 20px;
     }
-    
+
     .mm-document-info {
         padding: 20px;
     }
-    
+
     .mm-document-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 16px;
     }
-    
+
     .mm-header {
         padding: 20px;
         flex-direction: column;
         align-items: stretch;
         gap: 16px;
     }
-    
+
     .mm-header-left {
         min-width: auto;
         justify-content: center;
     }
-    
+
     .mm-title {
         font-size: 20px;
     }
-    
+
     .mm-actions {
         padding: 20px;
         flex-direction: column;
     }
-    
+
     .mm-btn {
         width: 100%;
     }
-    
+
     .mm-controls {
         justify-content: center;
         width: 100%;
     }
-    
+
     .header-content {
         padding: 0 20px;
         flex-direction: column;
         gap: 16px;
     }
-    
+
     .mm-container {
         min-height: 400px;
     }
@@ -523,25 +584,25 @@ body {
     .mm-document-name {
         font-size: 18px;
     }
-    
+
     .mm-document-meta {
         flex-direction: column;
         gap: 8px;
     }
-    
+
     .mm-title {
         font-size: 18px;
     }
-    
+
     .mm-loading-text h3 {
         font-size: 20px;
     }
-    
+
     .mm-control-btn {
         width: 32px;
         height: 32px;
     }
-    
+
     .mm-btn {
         min-width: auto;
         padding: 10px 16px;
@@ -558,6 +619,7 @@ body {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
